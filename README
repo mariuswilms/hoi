@@ -1,0 +1,207 @@
+  _   _   _
+ / \ / \ / \
+( H | O | I )
+ \_/ \_/ \_/
+
+---- Bare Metal PaaS
+
+Synopsis
+--------
+Hoi has been created to ease hosting of the growing number
+of Atelier Disko client projects.
+
+"It's as complicated as you want it to be." [0]
+
+Atelier Disko isn't primarly an infrastructure company, so we don't
+like to afford maintaining too ambitious solutions. Resources
+freed from deliberately choosing a classic shared hosting
+architechture are re-invested into providing a stable, secure
+and performant hosting environment with good resource utilization.
+
+Our projects are primarly PHP-based web applications. They
+are distinct in what they do but pretty uniform in how the are
+structured and in the technology they need.
+
+[0] https://twitter.com/alexander_h/status/751470506503798784
+
+-- Hoi is currently in development and until it reaches 1.0, it --
+-- should be considered not ready for general production use.   --
+
+Is it for you?
+--------------
+If you're hosting needs are similar and are ready to sacrifice some
+benefits of containers for ease of use, hoi might also be something
+for you.
+
+What's inside?
+--------------
+Hoi consist of a server (hoid) backend and client (hoictl) to
+control the server. It features several modules which take
+care of serving your project, backing it up and managing
+cron jobs and workers.
+
+Hoi currently relies on a fixed set of technologies (see requirements)
+to do its job. However, changing this and implementing an abstraction
+layer with adapters are a possible future goal.
+
+The currently available modules are:
+- "web"
+  Sets up NGINX(8) and PHP-FPM as the application server
+  when needed.
+
+- "cron"
+  Starts cron jobs using systemd(1) timers and will randomize
+  startups to reduce resource congestion.
+
+Planned modules are:
+- "worker"
+  Starts long running worker processes using systemd(1). Uses
+  resource controls (i.e. MemoryMax) to keep resource
+  usage of processes inside reasonable bounds. This is especially
+  useful if processes are leaking memory or otherwise don't
+  behave well. A feature despeartely missing from alternatives
+  like supervisord.
+
+- "backup"
+  Uses rsnapshot(1) to produce daily/weekly/monthly backups from your
+  project directory. If available will also include a dump of
+  attached databases. Generated snapshots may be pushed offsite
+  via SSH.
+
+- "seal"
+  Uses the mtree(8) utility to generate so called manifests of your
+  projects contents and will regularly check the project against
+  that manifest to detect possible tampering.
+
+- "db"
+
+- "log"
+
+Installation
+============
+First get the source from GitHub.
+$ git clone https://github.com/atelierdisko/hoi.git
+
+Then execute make to install configuration and binaries. The default
+prefix is /usr/local.
+$ cd hoi
+$ make install
+
+The prefix can be changed like this.
+$ PREFIX=/tmp make install
+
+As a service file has been installed too, the following command
+will start the hoi daemon under systemd.
+$ systemctl enable hoid
+
+To manually start the daemon use the following command.
+$ hoid --socket=/var/run/hoid.socket --config=/usr/local/etc/hoi/hoid.conf
+
+Development
+===========
+To start hoi in a test environment execute and read
+instructions printed.
+$ make test
+
+Project Configuration: The Hoifile
+==================================
+The Hoifile is a per project configuration file which defines
+the needs of a project, so hoi can run it. It uses a directive
+based configuration syntax similar to the NGINX configuration.
+
+Hoi will augment a Hoifile automatically by discovering needs
+of your project (i.e. does it use PHP?).
+
+To load a project containing a Hoifile use:
+$ hoictl --project=/var/www/foo load
+
+Domain Directive
+----------------
+Domains are configured using the naked domain. Handling
+of the www. prefix can be controlled via the "www" option.
+By default the prefix is dropped.
+
+domain example.org {}
+domain nperson.de {
+	www = "drop"
+	// www = "add"
+	// www = "keep"
+}
+
+A domain can have one or multiple aliases which inherit any configuration
+from the domain. If your alias needs different configuration add it as an
+additional domain.
+
+domain example.org {
+	aliases = ["example.com", "example.eu"]
+}
+
+You can also dynamically add an alias to a domain via hoictl:
+
+$ hoictl domain example.org --alias=example.com
+
+SSL can be enabled as follows, certificate files should
+be named after the domain. Symlinks are possible too.
+Once SSL is enabled all non SSL traffic will be redirected.
+
+domain example.org {
+	ssl = {
+		certificate = "config/ssl/example.com.crt"
+		certificateKey =  "config/ssl/example.com.key"
+	}
+}
+
+Access protection via auth - especially useful for staging/preview
+contexts - can be enabled as follows:
+
+domain example.org {
+	auth = {
+		user = "foo"
+		password = "bar"
+	}
+}
+
+Cron Directive
+--------------
+Jobs that are run on a regular basis are configured via the cron
+directive. The schedule option supports expressions from
+systemd.time[0].
+
+cron low-freq { # not required but allows to identify the cron later easily
+	schedule = "daily"
+	command = "bin/li3 calculate-stock"
+}
+
+[0] https://www.freedesktop.org/software/systemd/man/systemd.time.html
+
+Server Configuration
+====================
+The server configuration file can be found at:
+/etc/hoi/hoid.conf
+
+Customizing Service Templates
+-----------------------------
+The templates used by hoid to generate service configuration can
+be customized, they reside inside and use Go Template[0] syntax.
+/etc/hoi/templates
+
+[0] https://golang.org/pkg/text/template/
+
+Copyright & License
+-------------------
+Hoi is Copyright (c) 2016 Atelier Disko if not otherwise
+stated. Use of the source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+
+Versions & Requirements
+-----------------------
+The Go language is required. Hoi is continously
+tested with recent Go versions on Linux and Darwin.
+
+The backup directive requires rsnapshot(1)
+The crons directive requries systemd(1)
+The db directive requires mysql(1)
+The log directive requires logrotate(8)
+The seal directive requires mtree(8)
+The web directive requires nginx(8)
+The workers directive requries systemd(1)

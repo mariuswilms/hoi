@@ -1,0 +1,7 @@
+[Unit]
+Description=Runs Cron Job {{.C.Name}} for project {{.P.Name}}@{{.P.Context}} on Schedule
+
+[Timer]
+OnCalendar={{.C.Schedule}}
+AccuracySec=1us
+RandomizedDelaySec=10min
