@@ -8,7 +8,7 @@ Restart=on-failure
 User=root
 Group=root
 ExecStart=/sbin/hoid --conf=/etc/hoi/hoid.conf --socket=/var/run/hoid.socket
-ExecReload=/bin/kill -USR1 $MAINPID
+ExecReload=/bin/kill -HUP $MAINPID
 PrivateTmp=true
 PrivateDevices=true
 

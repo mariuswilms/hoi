@@ -89,13 +89,23 @@ func main() {
 
 	// Shutdown gracefully.
 	sigc := make(chan os.Signal, 1)
-	signal.Notify(sigc, os.Interrupt, os.Kill, syscall.SIGTERM)
+	signal.Notify(sigc,
+		os.Interrupt,
+		os.Kill,
+		syscall.SIGTERM,
+		syscall.SIGHUP,
+	)
 
 	go func(c chan os.Signal) {
 		sig := <-c
-		log.Printf("Caught signal %s: shutting down", sig)
-		RPCServer.Close()
-		os.Exit(0)
+		switch sig {
+		case syscall.SIGHUP:
+			log.Printf("Caught signal %s: currently noop", sig)
+		default:
+			log.Printf("Caught signal %s: shutting down", sig)
+			RPCServer.Close()
+			os.Exit(0)
+		}
 	}(sigc)
 
 	App.Run(os.Args)
