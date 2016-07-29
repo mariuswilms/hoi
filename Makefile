@@ -74,12 +74,10 @@ test:
 	@echo bin/hoictl enable var/www/foo
 
 $(PREFIX)/bin/%: dist/%
-	install $< $@
-	chmod 555 $@
+	install -m 555 $< $@
 
 $(PREFIX)/sbin/%: dist/%
-	install $< $@
-	chmod 555 $@
+	install -m 555 $< $@
 
 $(PREFIX)/etc/hoi/%: conf/%
 	@if [ ! -d $(@D) ]; then mkdir -p $(@D); chmod 775 $(@D); fi
