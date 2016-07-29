@@ -48,6 +48,8 @@ func projectDirectory(path string) string {
 }
 
 func main() {
+	log.SetFlags(0) // disable prefix, we are invoked directly.
+
 	App.Version("v version", "hoictl "+Version)
 
 	socket := App.String(cli.StringOpt{

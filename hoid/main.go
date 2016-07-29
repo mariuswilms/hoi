@@ -42,6 +42,8 @@ func (s *MemoryStore) Stats() string {
 }
 
 func main() {
+	log.SetFlags(0) // disable prefix, we are invoked directly.
+
 	App.Version("v version", "hoid "+Version)
 
 	socket := App.String(cli.StringOpt{
