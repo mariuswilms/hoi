@@ -77,6 +77,7 @@ Planned modules are:
 
 - "log"
 
+
 Installation
 ============
 First get the source from GitHub.
@@ -97,11 +98,13 @@ $ systemctl enable hoid
 To manually start the daemon use the following command.
 $ hoid --socket=/var/run/hoid.socket --config=/usr/local/etc/hoi/hoid.conf
 
+
 Development
 ===========
 To start hoi in a test environment execute and read
 instructions printed.
 $ make test
+
 
 Project Configuration: The Hoifile
 ==================================
@@ -186,6 +189,7 @@ be customized, they reside inside and use Go Template[0] syntax.
 /etc/hoi/templates
 
 [0] https://golang.org/pkg/text/template/
+
 
 Copyright & License
 -------------------
