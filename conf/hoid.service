@@ -1,0 +1,16 @@
+[Unit]
+Description=Hoi Bare Metal PaaS server
+After=network-online.target
+Wants=network-online.target systemd-networkd-wait-online.service
+
+[Service]
+Restart=on-failure
+User=root
+Group=root
+ExecStart=/sbin/hoid --conf=/etc/hoi/hoid.conf --socket=/var/run/hoid.socket
+ExecReload=/bin/kill -USR1 $MAINPID
+PrivateTmp=true
+PrivateDevices=true
+
+[Install]
+WantedBy=multi-user.target
