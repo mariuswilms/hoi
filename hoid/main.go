@@ -72,8 +72,8 @@ func main() {
 				StatusHandler: status,
 			},
 			ProjectAPI: &sRPC.ProjectAPI{
-				LoadHandler:      load,
-				AddDomainHandler: addDomain,
+				LoadHandler:   load,
+				DomainHandler: domain,
 			},
 		}
 		RPCServer = rpcServer // Assign to global.
@@ -167,7 +167,7 @@ func load(pDrv *pConfig.ProjectDirective) error {
 	return err
 }
 
-func addDomain(pDrv *pConfig.ProjectDirective, dDrv *pConfig.DomainDirective) error {
+func domain(pDrv *pConfig.ProjectDirective, dDrv *pConfig.DomainDirective) error {
 	Store.Lock()
 
 	if _, hasKey := Store.data[pDrv.Id()]; !hasKey {

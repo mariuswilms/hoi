@@ -51,8 +51,8 @@ func (s *ServerAPI) Status(args *ServerAPIArgs, reply *map[string]pConfig.Config
 }
 
 type ProjectAPI struct {
-	LoadHandler      func(pDrv *pConfig.ProjectDirective) error
-	AddDomainHandler func(pDrv *pConfig.ProjectDirective, dDrv *pConfig.DomainDirective) error
+	LoadHandler   func(pDrv *pConfig.ProjectDirective) error
+	DomainHandler func(pDrv *pConfig.ProjectDirective, dDrv *pConfig.DomainDirective) error
 }
 
 type ProjectAPIArgs struct {
@@ -70,8 +70,8 @@ func (p *ProjectAPI) Enable(args *ProjectAPIArgs, reply *bool) error {
 	*reply = true
 	return nil
 }
-func (p *ProjectAPI) AddDomain(args *ProjectAPIArgs, reply *bool) error {
-	log.Print("client request for: addDomain")
+func (p *ProjectAPI) Domain(args *ProjectAPIArgs, reply *bool) error {
+	log.Print("client request for: domain")
 	*reply = true
-	return p.AddDomainHandler(args.Project, args.Domain)
+	return p.DomainHandler(args.Project, args.Domain)
 }

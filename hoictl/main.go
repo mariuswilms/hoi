@@ -160,12 +160,12 @@ func main() {
 				},
 			}
 			var reply bool
-			err := RPCClient.Call("Project.AddDomain", args, &reply)
+			err := RPCClient.Call("Project.Domain", args, &reply)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "error: %s\n", err)
 				os.Exit(1)
 			}
-			fmt.Println("domain added to project")
+			fmt.Println("domain added/modified in project")
 		}
 	})
 
