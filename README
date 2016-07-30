@@ -29,9 +29,9 @@ structured and in the technology they need.
 
 Is it for you?
 --------------
-If you're hosting needs are similar and are ready to sacrifice some
-benefits of containers for ease of use, hoi might also be something
-for you.
+If your hosting needs are similar and are ready to sacrifice the
+benefits of i.e. containers for ease of use, hoi might also be
+something for you.
 
 What's inside?
 --------------
@@ -80,29 +80,28 @@ Planned modules are:
 
 Installation
 ============
-First get the source from GitHub.
-$ git clone https://github.com/atelierdisko/hoi.git
+Ensure GOPATH is set and get the source from GitHub.
+$ go get github.com/atelierdisko/hoi
 
 Then execute make to install configuration and binaries. The default
-prefix is /usr/local.
-$ cd hoi
-$ make install
-
-The prefix can be changed like this.
-$ PREFIX=/tmp make install
+prefix is /usr/local. The prefix can be cahnged via the PREFIX var.
+Following example code assumes no prefix at all.
+$ cd $GOPATH/src/github.com/atelierdisko/hoi
+$ PREFIX=/usr/local make install
 
 As a service file has been installed too, the following command
 will start the hoi daemon under systemd.
 $ systemctl enable hoid
 
-To manually start the daemon use the following command.
-$ hoid --socket=/var/run/hoid.socket --config=/usr/local/etc/hoi/hoid.conf
+To manually start the daemon use the following command. Note that
+both options are optional when installed without a prefix.
+$ hoid --socket=/var/run/hoid.socket --config=/etc/hoi/hoid.conf
 
 
 Development
 ===========
 To start hoi in a test environment execute and read
-instructions printed.
+instructions printed by `make test`.
 $ make test
 
 
