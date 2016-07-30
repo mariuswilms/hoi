@@ -5,6 +5,7 @@
 
 ---- Bare Metal PaaS
 
+
 Synopsis
 --------
 Hoi has been created to ease hosting of the growing number
@@ -139,7 +140,6 @@ domain example.org {
 }
 
 You can also dynamically add an alias to a domain via hoictl:
-
 $ hoictl domain example.org --alias=example.com
 
 SSL can be enabled as follows, certificate files should
@@ -175,6 +175,7 @@ cron low-freq { # not required but allows to identify the cron later easily
 }
 
 [0] https://www.freedesktop.org/software/systemd/man/systemd.time.html
+
 
 Server Configuration
 ====================
