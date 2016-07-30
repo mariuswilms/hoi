@@ -43,6 +43,13 @@ CONF_FILES = $(patsubst conf/%,$(PREFIX)/etc/hoi/%,$(shell find conf -type f))
 .PHONY: install
 install: $(PREFIX)/bin/hoictl $(PREFIX)/sbin/hoid $(CONF_FILES)
 
+.PHONY: clean
+clean:
+	if [ -d ./_test ]; then rm -fr ./_test; fi
+	if [ -d ./dist ]; then rm -r ./dist; fi
+	if [ -f ./hoid/hoid ]; then rm ./hoid/hoid; fi
+	if [ -f ./hoictl/hoictl ]; then rm ./hoictl/hoictl; fi
+
 .PHONY: dist
 dist: dist/hoictl dist/hoid
 
