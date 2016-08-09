@@ -4,112 +4,117 @@
 //
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
-package main
+package runner
 
 import (
 	"bytes"
 	"crypto/md5"
 	"fmt"
-	"io/ioutil"
-	"log"
 	"math/rand"
-	"os"
-	"os/exec"
-	"path/filepath"
 
+	"github.com/atelierdisko/hoi/builder"
 	pConfig "github.com/atelierdisko/hoi/config/project"
 	sConfig "github.com/atelierdisko/hoi/config/server"
+	"github.com/atelierdisko/hoi/system"
 )
 
-func deactivateWeb(pCfg *pConfig.Config, sCfg *sConfig.Config) error {
-	runPath, err := sCfg.NGINX.GetRunPath()
+func NewWebRunner(s sConfig.Config, p pConfig.Config) *WebRunner {
+	return &WebRunner{
+		s:     s,
+		p:     p,
+		build: builder.NewScopedBuilder(builder.KIND_WEB, "servers/*.conf", p, s),
+		sys:   system.NewNGINX(p, s),
+	}
+}
+
+type WebRunner struct {
+	s     sConfig.Config
+	p     pConfig.Config
+	sys   *system.NGINX
+	build *builder.Builder
+}
+
+func (r WebRunner) Disable() error {
+	servers, err := r.sys.ListInstalled()
 	if err != nil {
 		return err
 	}
-	pattern := fmt.Sprintf("project_%s_server_*", pCfg.Id())
+	for _, s := range servers {
+		if err := r.sys.Uninstall(s); err != nil {
+			return err
+		}
+	}
+	if len(servers) == 0 {
+		return nil // nothing to disable
+	}
+	return r.sys.Reload()
+}
 
-	files, err := filepath.Glob(runPath + "/" + pattern)
+func (r WebRunner) Enable() error {
+	if len(r.p.Cron) == 0 {
+		return nil // nothing to do
+	}
+	files, err := r.build.ListAvailable()
 	if err != nil {
 		return err
 	}
 	for _, f := range files {
-		log.Printf("removing: %s", f)
-		if err := os.Remove(f); err != nil {
+		if err := r.sys.Install(f); err != nil {
 			return err
 		}
 	}
-	if os.Getenv("HOI_NOOP") == "yes" {
-		return nil
+	if len(files) == 0 {
+		return nil // nothing to enable
 	}
-	return exec.Command("systemctl", "reload", "nginx").Run()
+	return r.sys.Reload()
 }
 
-func activateWeb(pCfg *pConfig.Config, sCfg *sConfig.Config) error {
-	buildPath, err := sCfg.NGINX.GetBuildPathForProject(pCfg)
-	if err != nil {
-		return err
-	}
-	runPath, err := sCfg.NGINX.GetRunPath()
-	if err != nil {
-		return err
-	}
-	files, err := ioutil.ReadDir(buildPath + "/servers")
-	if err != nil {
-		return err
-	}
-	for _, f := range files {
-		source := fmt.Sprintf("%s/servers/%s", buildPath, f.Name())
-		target := fmt.Sprintf("%s/project_%s_server_%s", runPath, pCfg.Id(), f.Name())
-
-		log.Printf("symlinking: %s -> %s", prettyPath(source), prettyPath(target))
-		if err := os.Symlink(source, target); err != nil {
-			return err
-		}
-	}
-	if os.Getenv("HOI_NOOP") == "yes" {
-		return nil
-	}
-	return exec.Command("systemctl", "reload", "nginx").Run()
+func (r WebRunner) Clean() error {
+	return r.build.Clean()
 }
 
-func generateWeb(pCfg *pConfig.Config, sCfg *sConfig.Config) error {
-	templatePath, err := sCfg.NGINX.GetTemplatePath()
-	if err != nil {
-		return err
-	}
-	buildPath, err := sCfg.NGINX.GetBuildPathForProject(pCfg)
-	if err != nil {
-		return err
+func (r WebRunner) Generate() error {
+	if len(r.p.Domain) == 0 {
+		return nil // nothing to do
 	}
 
-	log.Printf("removing:  %s", prettyPath(buildPath))
-	if err := os.RemoveAll(buildPath); err != nil {
+	creds, err := r.p.GetCreds()
+	if err != nil {
 		return err
-	}
-
-	// Maps usernames to cleartext passwords.
-	creds := make(map[string]string)
-	for k, v := range pCfg.Domain {
-		if v.Auth.User != "" {
-			if v.Auth.Password == "" {
-				return fmt.Errorf("auth user %s given but empty password for domain %s", v.Auth.User, v.FQDN)
-			}
-			if _, hasKey := creds[k]; hasKey {
-				if creds[k] == v.Auth.Password {
-					return fmt.Errorf("auth user %s given multiple times but with differing passwords for domain %s", v.Auth.User, v.FQDN)
-				}
-			}
-			creds[v.Auth.User] = v.Auth.Password
-		}
 	}
 	if len(creds) != 0 {
-		err := generateBasicAuthFile(
-			buildPath,
-			creds,
-		)
+		var tmp []byte
+		buf := bytes.NewBuffer(tmp)
+
+		// APR1-MD5 is the strongest hash nginx supports for basic auth
+		salt := generateAPR1Salt()
+
+		for user, password := range creds {
+			buf.WriteString(fmt.Sprintf("%s:%s\n", user, computeAPR1(password, salt)))
+		}
+		if err := r.build.WriteSensitiveFile("password", buf); err != nil {
+			return err
+		}
+	}
+	for k, v := range r.p.Domain {
+		if !v.SSL.IsEnabled() {
+			continue
+		}
+		e := r.p.Domain[k]
+
+		path, err := e.SSL.GetCertificate()
 		if err != nil {
 			return err
 		}
+		e.SSL.Certificate = path
+
+		path, err = e.SSL.GetCertificateKey()
+		if err != nil {
+			return err
+		}
+		e.SSL.CertificateKey = path
+
+		r.p.Domain[k] = e
 	}
 
 	tmplData := struct {
@@ -117,40 +122,14 @@ func generateWeb(pCfg *pConfig.Config, sCfg *sConfig.Config) error {
 		S             sConfig.Config
 		WebConfigPath string
 	}{
-		P: *pCfg,
-		S: *sCfg,
+		P: r.p,
+		S: r.s,
 		// even though we symlink parts of the build path, config files
 		// should not rely on symlinking but reference the original
 		// created files
-		WebConfigPath: buildPath,
+		WebConfigPath: r.build.Path(),
 	}
-	return generateProjectConfig(
-		templatePath,
-		buildPath,
-		tmplData,
-	)
-}
-
-// APR1-MD5 is the strongest hash nginx supports for basic auth
-func generateBasicAuthFile(bPath string, creds map[string]string) error {
-	log.Printf("writing basic auth file with %d entry/entries: %s", len(creds), prettyPath(bPath+"/password"))
-
-	if err := os.MkdirAll(bPath, 0755); err != nil {
-		return err
-	}
-	fh, err := os.OpenFile(bPath+"/password", os.O_CREATE|os.O_RDWR, 0640)
-	if err != nil {
-		return err
-	}
-	defer fh.Close()
-
-	salt := generateAPR1Salt()
-
-	for u, p := range creds {
-		hash := computeAPR1(p, salt)
-		fh.WriteString(fmt.Sprintf("%s:%s\n", u, hash))
-	}
-	return nil
+	return r.build.LoadWriteTemplates(tmplData)
 }
 
 const APR1abc string = "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"

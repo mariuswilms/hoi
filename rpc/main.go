@@ -52,6 +52,7 @@ func (s *ServerAPI) Status(args *ServerAPIArgs, reply *map[string]pConfig.Config
 
 type ProjectAPI struct {
 	LoadHandler   func(pDrv *pConfig.ProjectDirective) error
+	UnloadHandler func(pDrv *pConfig.ProjectDirective) error
 	DomainHandler func(pDrv *pConfig.ProjectDirective, dDrv *pConfig.DomainDirective) error
 }
 
@@ -65,10 +66,10 @@ func (p *ProjectAPI) Load(args *ProjectAPIArgs, reply *bool) error {
 	*reply = true
 	return p.LoadHandler(args.Project)
 }
-func (p *ProjectAPI) Enable(args *ProjectAPIArgs, reply *bool) error {
-	log.Print("client request for: enable")
+func (p *ProjectAPI) Unload(args *ProjectAPIArgs, reply *bool) error {
+	log.Print("client request for: unload")
 	*reply = true
-	return nil
+	return p.UnloadHandler(args.Project)
 }
 func (p *ProjectAPI) Domain(args *ProjectAPIArgs, reply *bool) error {
 	log.Print("client request for: domain")

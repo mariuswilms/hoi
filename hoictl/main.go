@@ -10,16 +10,19 @@ import (
 	"net/rpc"
 	"os"
 	"path/filepath"
-	"strings"
 
 	pConfig "github.com/atelierdisko/hoi/config/project"
-	sRPC "github.com/atelierdisko/hoi/hoid/rpc"
+	sRPC "github.com/atelierdisko/hoi/rpc"
 	"github.com/jawher/mow.cli"
 )
 
 var (
-	App     = cli.App("hoictl", "hoictl is the command line interface to hoid")
-	Version string
+	App = cli.App("hoictl", "hoictl is the command line interface to hoid")
+
+	// Set via ldflags.
+	Version    string
+	SocketPath string
+
 	// Searches current than parent directories until it finds Hoifile or
 	// reaches root.
 	RPCClient *rpc.Client
@@ -52,13 +55,6 @@ func main() {
 
 	App.Version("v version", "hoictl "+Version)
 
-	socket := App.String(cli.StringOpt{
-		Name:   "socket",
-		Value:  "/var/run/hoid.socket",
-		Desc:   "UNIX socket file",
-		EnvVar: "HOID_SOCKET",
-	})
-
 	path := App.String(cli.StringOpt{
 		Name:  "project",
 		Desc:  "path to project root",
@@ -66,7 +62,7 @@ func main() {
 	})
 
 	App.Before = func() {
-		client, err := rpc.Dial("unix", *socket)
+		client, err := rpc.Dial("unix", SocketPath)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "error: %s\n", err)
 			os.Exit(1)
@@ -87,7 +83,7 @@ func main() {
 			if len(reply) != 0 {
 				fmt.Print("Projects:\n")
 				for _, p := range reply {
-					fmt.Printf("- %-20s in %s\n", p.PrettyName(), prettyPath(p.Path))
+					fmt.Printf("- %-20s in %s\n", p.PrettyName(), p.Path)
 					fmt.Printf("  **%s**\n", "loaded")
 					fmt.Printf("  %-10s: %d\n", "domain", len(p.Domain))
 					fmt.Printf("  %-10s: %d\n", "cron", len(p.Cron))
@@ -118,7 +114,7 @@ func main() {
 		}
 	})
 
-	App.Command("enable", "enables a project", func(cmd *cli.Cmd) {
+	App.Command("unload", "removes a project's configuration", func(cmd *cli.Cmd) {
 		cmd.Action = func() {
 			args := &sRPC.ProjectAPIArgs{
 				Project: &pConfig.ProjectDirective{
@@ -126,12 +122,12 @@ func main() {
 				},
 			}
 			var reply bool
-			err := RPCClient.Call("Project.Enable", args, &reply)
+			err := RPCClient.Call("Project.Unload", args, &reply)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "error: %s\n", err)
 				os.Exit(1)
 			}
-			fmt.Println("project enabled")
+			fmt.Println("project unloaded")
 		}
 	})
 
@@ -170,12 +166,4 @@ func main() {
 	})
 
 	App.Run(os.Args)
-}
-
-func prettyPath(path string) string {
-	cwd, err := os.Getwd()
-	if err != nil {
-		return path
-	}
-	return strings.Replace(path, cwd, ".", 1)
 }

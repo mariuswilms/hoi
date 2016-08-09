@@ -5,85 +5,55 @@
 package server
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
 
-	pConfig "github.com/atelierdisko/hoi/config/project"
 	"github.com/hashicorp/hcl"
 )
 
 type Config struct {
-	User     string
-	Group    string
-	NGINX    NGINXDirective
-	Systemd  SystemdDirective
-	Backup   BackupDirective
-	Project  map[string]ProjectDirective
-	Database map[string]DatabaseDirective
+	// Use these user/group when possible i.e. in
+	// systemd unit definitions.
+	User  string
+	Group string
 	// E-Mail of administrator, who receives
 	// passwords and notifications.
-	Email string
-}
-
-type Paths struct {
+	Email        string
 	TemplatePath string
 	BuildPath    string
-	RunPath      string
+	Web          WebDirective
+	NGINX        NGINXDirective
+	PHP          PHPDirective
+	Cron         CronDirective
+	Worker       WorkerDirective
+	Systemd      SystemdDirective
 }
 
-func (ps *Paths) GetTemplatePath() (string, error) {
-	if ps.TemplatePath == "" {
-		return "", errors.New("refusing to return empty template path")
-	}
-	return filepath.Abs(ps.TemplatePath)
+type WebDirective struct {
+	Enabled bool
 }
-func (ps *Paths) GetBuildPathForProject(pCfg *pConfig.Config) (string, error) {
-	if ps.BuildPath == "" {
-		return "", fmt.Errorf("refusing to use empty build path as base for project %s", pCfg.PrettyName())
-	}
-	base, err := filepath.Abs(ps.BuildPath)
-	if err != nil {
-		return ps.BuildPath, err
-	}
-	return filepath.Join(base, pCfg.Id()), nil
-}
-func (ps *Paths) GetRunPath() (string, error) {
-	if ps.RunPath == "" {
-		return "", errors.New("refusing to return empty run path")
-	}
-	return filepath.Abs(ps.RunPath)
-}
-
 type NGINXDirective struct {
-	Paths `hcl:",squash"`
+	RunPath string
 }
-
+type PHPDirective struct {
+	Enabled bool
+	RunPath string
+}
+type CronDirective struct {
+	Enabled bool
+}
+type WorkerDirective struct {
+	Enabled bool
+}
 type SystemdDirective struct {
-	Paths `hcl:",squash"`
+	RunPath string
 }
 
-type DatabaseDirective struct {
-	User     string
-	Password string
+func New() (*Config, error) {
+	cfg := &Config{}
+	return cfg, nil
 }
-type BackupDirective struct {
-	Offsite OffsiteBackupDirective
-	Onsite  OnsiteBackupDirective
-}
-type OnsiteBackupDirective struct {
-	Path string
-}
-type OffsiteBackupDirective struct {
-	Host   string
-	User   string
-	Secret string
-}
-type ProjectDirective struct {
-	Path string
-}
-
 func NewFromFile(f string) (*Config, error) {
 	cfg := &Config{}
 
@@ -97,11 +67,6 @@ func NewFromFile(f string) (*Config, error) {
 	}
 	return cfg, err
 }
-
-func New() (*Config, error) {
-	cfg := &Config{}
-	return cfg, nil
-}
 func NewFromString(s string) (*Config, error) {
 	cfg := &Config{}
 	return decodeInto(cfg, s)
@@ -113,5 +78,12 @@ func decodeInto(cfg *Config, s string) (*Config, error) {
 	if err != nil {
 		return cfg, err
 	}
+	cfg.TemplatePath, _ = filepath.Abs(cfg.TemplatePath)
+	cfg.BuildPath, _ = filepath.Abs(cfg.BuildPath)
+
+	cfg.NGINX.RunPath, _ = filepath.Abs(cfg.NGINX.RunPath)
+	cfg.Systemd.RunPath, _ = filepath.Abs(cfg.Systemd.RunPath)
+	cfg.PHP.RunPath, _ = filepath.Abs(cfg.PHP.RunPath)
+
 	return cfg, nil
 }

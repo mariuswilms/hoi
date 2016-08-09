@@ -54,7 +54,6 @@ The currently available modules are:
   Starts cron jobs using systemd(1) timers and will randomize
   startups to reduce resource congestion.
 
-Planned modules are:
 - "worker"
   Starts long running worker processes using systemd(1). Uses
   resource controls (i.e. MemoryMax) to keep resource
@@ -63,6 +62,7 @@ Planned modules are:
   behave well. A feature despeartely missing from alternatives
   like supervisord.
 
+Planned modules are:
 - "backup"
   Uses rsnapshot(1) to produce daily/weekly/monthly backups from your
   project directory. If available will also include a dump of
@@ -96,7 +96,7 @@ $ systemctl enable hoid
 
 To manually start the daemon use the following command. Note that
 both options are optional when installed without a prefix.
-$ hoid --socket=/var/run/hoid.socket --config=/etc/hoi/hoid.conf
+$ hoid
 
 
 Development

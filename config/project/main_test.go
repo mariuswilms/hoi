@@ -4,7 +4,10 @@
 // license that can be found in the LICENSE file.
 package project
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 func TestDecodeRoot(t *testing.T) {
 	hoifile := `
@@ -25,12 +28,8 @@ PHPVersion = 56
 func TestDecodeMakesArray(t *testing.T) {
 	hoifile := `
 cron high-freq {
-	schedule = "*/10 * * * *"
-	command = "cd bin && ./li3.php jobs runFrequency high"
 }
 cron medium-freq {
-	schedule = "0 * * * *"
-	command = "cd bin && ./li3.php jobs runFrequency medium"
 }
 `
 	cfg, err := NewFromString(hoifile)
@@ -43,7 +42,22 @@ cron medium-freq {
 	}
 }
 
-func TestDecodeDomainGetsFqdn(t *testing.T) {
+func TestDecodeSetsName(t *testing.T) {
+	hoifile := `
+cron high-freq {
+}
+`
+	cfg, err := NewFromString(hoifile)
+
+	if err != nil {
+		t.Error(err)
+	}
+	if cfg.Cron["high-freq"].Name != "high-freq" {
+		t.Error("failed to parse name")
+	}
+}
+
+func TestDecodeDomainGetsFQDN(t *testing.T) {
 	hoifile := `
 domain "example.com" {
 }
@@ -53,6 +67,26 @@ domain "example.com" {
 	if err != nil {
 		t.Error(err)
 	}
+	if cfg.Domain["example.com"].FQDN != "example.com" {
+		t.Error("failed to compare FQDN")
+	}
+}
+
+func TestAccessCertPath(t *testing.T) {
+	hoifile := `
+domain "example.com" {
+	ssl = {
+		certificate = "foo.crt"
+		certificateKey = "foo.key"
+	}
+}
+`
+	cfg, err := NewFromString(hoifile)
+
+	if err != nil {
+		t.Error(err)
+	}
+	fmt.Printf("%+v", cfg)
 	if cfg.Domain["example.com"].FQDN != "example.com" {
 		t.Error("failed to compare FQDN")
 	}
