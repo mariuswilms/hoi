@@ -48,17 +48,17 @@ worker media-fix {
 }
 endef
 
-CONF_FILES = $(patsubst conf/%,$(PREFIX)/etc/hoi/%,$(shell find conf -type f))
+CONF_FILES = $(patsubst conf/%,$(PREFIX)/etc/hoi/%,$(filter-out %/hoid.service,$(shell find conf -type f)))
 
 .PHONY: install
-install: $(PREFIX)/bin/hoictl $(PREFIX)/sbin/hoid $(CONF_FILES)
+install: $(PREFIX)/bin/hoictl $(PREFIX)/sbin/hoid $(CONF_FILES) /etc/systemd/system/hoid.service
 
 .PHONY: uninstall
 uninstall:
 	rm $(PREFIX)/bin/hoictl
 	rm $(PREFIX)/sbin/hoid
 	# User must ensure unit is stopped and disabled.
-	rm $(PREFIX)/etc/systemd/system/hoid.service
+	rm /etc/systemd/system/hoid.service
 	# Leave configuration as is, as user might have customized it.
 
 .PHONY: clean
@@ -106,14 +106,15 @@ $(PREFIX)/bin/%: dist/%
 $(PREFIX)/sbin/%: dist/%
 	install -m 555 $< $@
 
+# Always installed without prefix.
+/etc/systemd/system/hoid.service: conf/hoid.service
+	cp $< $@
+	chmod 644 $@
+
 $(PREFIX)/etc/hoi/%: conf/%
 	@if [ ! -d $(@D) ]; then mkdir -p $(@D); chmod 775 $(@D); fi
 	cp $< $@
 	chmod 664 $@
-
-$(PREFIX)/etc/systemd/system/hoid.service: conf/hoid.service
-	cp $< $@
-	chmod 644 $@
 
 $(PREFIX)/etc/hoi/hoid.conf: conf/hoid.conf
 	@if [ ! -d $(@D) ]; then mkdir -p $(@D); chmod 775 $(@D); fi
