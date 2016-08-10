@@ -91,13 +91,12 @@ func (r WorkerRunner) Generate() error {
 		return err
 	}
 	for _, v := range r.p.Worker {
-		/*
-			parsed, err := v.GetCommand(r.p)
-			if err != nil {
-				return err
-			}
-			v.Command = parsed
-		*/
+		parsed, err := v.GetCommand(r.p)
+		if err != nil {
+			return err
+		}
+		v.Command = parsed
+
 		tmplData := struct {
 			P pConfig.Config
 			S sConfig.Config
@@ -107,7 +106,7 @@ func (r WorkerRunner) Generate() error {
 			S: r.s,
 			W: v,
 		}
-		err := r.build.WriteTemplate(
+		err = r.build.WriteTemplate(
 			fmt.Sprintf("%s@.service", v.ID()),
 			tS,
 			tmplData,
