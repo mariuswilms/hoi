@@ -7,7 +7,7 @@ Wants=network-online.target systemd-networkd-wait-online.service
 Restart=on-failure
 User=root
 Group=root
-ExecStart=/sbin/hoid --config=/etc/hoi/hoid.conf --socket=/var/run/hoid.socket
+ExecStart=/sbin/hoid
 ExecReload=/bin/kill -HUP $MAINPID
 PrivateTmp=true
 PrivateDevices=true

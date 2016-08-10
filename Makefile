@@ -110,6 +110,10 @@ $(PREFIX)/etc/hoi/%: conf/%
 	cp $< $@
 	chmod 664 $@
 
+$(PREFIX)/etc/systemd/system/hoid.service: conf/hoid.service
+	cp $< $@
+	chmod 644 $@
+
 $(PREFIX)/etc/hoi/hoid.conf: conf/hoid.conf
 	@if [ ! -d $(@D) ]; then mkdir -p $(@D); chmod 775 $(@D); fi
 	cp $< $@
