@@ -57,6 +57,9 @@ install: $(PREFIX)/bin/hoictl $(PREFIX)/sbin/hoid $(CONF_FILES)
 uninstall:
 	rm $(PREFIX)/bin/hoictl
 	rm $(PREFIX)/sbin/hoid
+	# User must ensure unit is stopped and disabled.
+	rm $(PREFIX)/etc/systemd/system/hoid.service
+	# Leave configuration as is, as user might have customized it.
 
 .PHONY: clean
 clean:
