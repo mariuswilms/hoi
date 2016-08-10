@@ -95,7 +95,20 @@ func (b Builder) WriteTemplate(name string, t *template.Template, tmplData inter
 			return err
 		}
 	}
-	return writeTemplate(t, filepath.Join(dir, name), tmplData)
+	return writeTemplate(t, filepath.Join(dir, name), 0644, tmplData)
+}
+
+func (b Builder) WriteSensitiveTemplate(name string, t *template.Template, tmplData interface{}) error {
+	log.Printf("[project %s] writing sensitive: %s", b.p.PrettyName(), name)
+
+	dir := filepath.Join(b.s.BuildPath, b.kind, b.p.ID())
+
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		if err := os.MkdirAll(dir, 0750); err != nil {
+			return err
+		}
+	}
+	return writeTemplate(t, filepath.Join(dir, name), 0640, tmplData)
 }
 
 // Recursively crawls template directory for given kind and
@@ -153,7 +166,7 @@ func (b Builder) LoadWriteTemplates(tmplData interface{}) error {
 		}
 	}
 	for dst, t := range templates {
-		if err := writeTemplate(t, dst, tmplData); err != nil {
+		if err := writeTemplate(t, dst, 0644, tmplData); err != nil {
 			return err
 		}
 	}
@@ -172,10 +185,10 @@ func loadTemplate(path string) (*template.Template, error) {
 }
 
 // FIXME clean up partially written file
-func writeTemplate(t *template.Template, dst string, tmplData interface{}) error {
+func writeTemplate(t *template.Template, dst string, perm os.FileMode, tmplData interface{}) error {
 	log.Printf("writing: %s", dst)
 
-	fh, err := os.OpenFile(dst, os.O_CREATE|os.O_RDWR, 0640)
+	fh, err := os.OpenFile(dst, os.O_CREATE|os.O_RDWR, perm)
 	if err != nil {
 		return err
 	}
