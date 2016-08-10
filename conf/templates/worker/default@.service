@@ -9,7 +9,11 @@ Group={{.S.Group}}
 WorkingDirectory={{.P.Path}}
 Restart=on-abort
 RestartSec=120
+{{if .S.Systemd.UseLegacy}}
+MemoryLimit=200M
+{{else}}
 MemoryMax=200M
+{{end}}
 
 [Install]
 WantedBy=default.target
