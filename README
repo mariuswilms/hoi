@@ -209,10 +209,16 @@ Versions & Requirements
 The Go language is required. Hoi is continously
 tested with recent Go versions on Linux and Darwin.
 
-The backup directive requires rsnapshot(1)
-The crons directive requries systemd(1)
-The db directive requires mysql(1)
-The log directive requires logrotate(8)
-The seal directive requires mtree(8)
 The web directive requires nginx(8)
+The PHP directive requires PHP(1)
+The crons directive requries systemd(1)
 The workers directive requries systemd(1)
+
+The default template for NGINX will log to syslog/journald. This
+feature is available in NGINX >= 1.7.1. To lower the version
+requirement the "useLegacy" option can be enabled (which will
+log to the standard file locations instead).
+
+Recent systemd versions are always supported, older ones (i.e. 215)
+are probably supported by via the "useLegacy" option inside the
+server configuration file.

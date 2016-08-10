@@ -34,7 +34,8 @@ type WebDirective struct {
 	Enabled bool
 }
 type NGINXDirective struct {
-	RunPath string
+	RunPath   string
+	UseLegacy bool
 }
 type PHPDirective struct {
 	Enabled bool
