@@ -93,7 +93,13 @@ func (sys Systemd) EnableAndStart(unit string) error {
 	if os.Getenv("HOI_NOOP") == "yes" {
 		return nil
 	}
-	return exec.Command("systemctl", "enable", "--now", ns+"_"+unit).Run()
+
+	// FIXME --now cannot be used with at least 215
+	// return exec.Command("systemctl", "enable", "--now", ns+"_"+unit).Run()
+	if err := exec.Command("systemctl", "enable", ns+"_"+unit).Run(); err != nil {
+		return err
+	}
+	return exec.Command("systemctl", "start", ns+"_"+unit).Run()
 }
 
 // Disable needs unit name, doesn't work on full path.
@@ -104,7 +110,12 @@ func (sys Systemd) StopAndDisable(unit string) error {
 	if os.Getenv("HOI_NOOP") == "yes" {
 		return nil
 	}
-	return exec.Command("systemctl", "disable", "--now", ns+"_"+unit).Run()
+	// FIXME --now cannot be used with at least 215
+	// return exec.Command("systemctl", "disable", "--now", ns+"_"+unit).Run()
+	if err := exec.Command("systemctl", "stop", ns+"_"+unit).Run(); err != nil {
+		return err
+	}
+	return exec.Command("systemctl", "disable", ns+"_"+unit).Run()
 }
 
 // Disable needs unit name, doesn't work on full path.
