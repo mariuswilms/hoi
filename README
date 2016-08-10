@@ -96,14 +96,13 @@ Then execute make to install configuration and binaries. The default
 prefix is /usr/local. The prefix can be cahnged via the PREFIX var.
 Following example code assumes no prefix at all.
 $ cd $GOPATH/src/github.com/atelierdisko/hoi
-$ PREFIX=/usr/local make install
+$ PREFIX= make install
 
 As a service file has been installed too, the following command
-will start the hoi daemon under systemd.
-$ systemctl enable hoid
+will enable and start the hoi daemon under systemd.
+$ systemctl enable --now hoid
 
-To manually start the daemon use the following command. Note that
-both options are optional when installed without a prefix.
+To manually start the daemon use the following command.
 $ hoid
 
 
