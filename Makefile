@@ -91,12 +91,10 @@ test:
 	@echo 
 	@echo Terminal A:
 	@echo -----------
-	@echo export HOI_NOOP=yes
 	@echo ./_test/sbin/hoid 
 	@echo 
 	@echo Terminal B:
 	@echo -----------
-	@echo export HOI_NOOP=yes
 	@echo ./_test/bin/hoictl --project=./_test/var/www/foo load
 
 $(PREFIX)/bin/%: dist/%

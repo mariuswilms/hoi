@@ -40,9 +40,6 @@ func (sys PHP) Uninstall() error {
 
 func (sys PHP) Reload() error {
 	log.Printf("PHP reload")
-	if os.Getenv("HOI_NOOP") == "yes" {
-		return nil
-	}
 	return exec.Command("systemctl", "reload", "php5-fpm").Run()
 }
 

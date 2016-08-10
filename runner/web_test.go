@@ -13,7 +13,6 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	os.Setenv("HOI_NOOP", "yes")
 	os.RemoveAll("/tmp/test")
 
 	mRun := m.Run()

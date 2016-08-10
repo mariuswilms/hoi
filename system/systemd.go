@@ -92,11 +92,7 @@ func (sys Systemd) ListInstalledTimers() ([]string, error) {
 
 func (sys Systemd) EnableAndStart(unit string) error {
 	ns := fmt.Sprintf("project_%s_%s", sys.p.ID(), sys.kind)
-
 	log.Printf("systemd enable+start: %s", ns+"_"+unit)
-	if os.Getenv("HOI_NOOP") == "yes" {
-		return nil
-	}
 
 	if sys.s.Systemd.UseLegacy {
 		// --now cannot be used with at least 215
@@ -113,9 +109,6 @@ func (sys Systemd) StopAndDisable(unit string) error {
 	ns := fmt.Sprintf("project_%s_%s", sys.p.ID(), sys.kind)
 	log.Printf("systemd stop+disable: %s", ns+"_"+unit)
 
-	if os.Getenv("HOI_NOOP") == "yes" {
-		return nil
-	}
 	if sys.s.Systemd.UseLegacy {
 		// --now cannot be used with at least 215
 		if err := exec.Command("systemctl", "stop", ns+"_"+unit).Run(); err != nil {
@@ -131,9 +124,6 @@ func (sys Systemd) Stop(unit string) error {
 	ns := fmt.Sprintf("project_%s_%s", sys.p.ID(), sys.kind)
 	log.Printf("systemd stop: %s", ns+"_"+unit)
 
-	if os.Getenv("HOI_NOOP") == "yes" {
-		return nil
-	}
 	return exec.Command("systemctl", "stop", ns+"_"+unit).Run()
 }
 

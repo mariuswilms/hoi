@@ -44,9 +44,6 @@ func (sys NGINX) Uninstall(server string) error {
 
 func (sys NGINX) Reload() error {
 	log.Printf("NGINX reload")
-	if os.Getenv("HOI_NOOP") == "yes" {
-		return nil
-	}
 	return exec.Command("systemctl", "reload", "nginx").Run()
 }
 
