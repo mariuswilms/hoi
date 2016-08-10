@@ -88,8 +88,6 @@ func main() {
 					fmt.Printf("  %-10s: %d\n", "domain", len(p.Domain))
 					fmt.Printf("  %-10s: %d\n", "cron", len(p.Cron))
 					fmt.Printf("  %-10s: %d\n", "worker", len(p.Worker))
-
-					// fmt.Printf("%#v\n\n", p)
 				}
 			} else {
 				fmt.Println("no projects loaded :(")
