@@ -206,19 +206,24 @@ license that can be found in the LICENSE file.
 
 Versions & Requirements
 -----------------------
-The Go language is required. Hoi is continously
-tested with recent Go versions on Linux and Darwin.
+The Go language is required.
+  The templates make use of the trimming feature
+  which became available in 1.6. To lower this
+  requirement you need to use your own templates
+  without trimming.
 
-The web directive requires nginx(8)
-The PHP directive requires PHP(1)
-The crons directive requries systemd(1)
-The workers directive requries systemd(1)
+Hoi is continously tested on Linux and Darwin.
 
-The default template for NGINX will log to syslog/journald. This
-feature is available in NGINX >= 1.7.1. To lower the version
-requirement the "useLegacy" option can be enabled (which will
-log to the standard file locations instead).
+The web runner requires nginx(8)
+  The default template for NGINX will log to syslog/journald. This
+  feature is available in NGINX >= 1.7.1. To lower this version
+  requirement the "useLegacy" option can be enabled (which will
+  log to the stderr instead).
 
-Recent systemd versions are always supported, older ones (i.e. 215)
-are probably supported by via the "useLegacy" option inside the
-server configuration file.
+The cron runner requires systemd(1)
+The worker runner requires systemd(1)
+  Recent systemd versions are always supported, older ones (i.e. 215)
+  are probably supported via the "useLegacy" option.
+
+The PHP runner requires PHP(1)
+  If you don't enable this runner you can drop this requirement.
