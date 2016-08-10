@@ -7,6 +7,7 @@ package runner
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"github.com/atelierdisko/hoi/builder"
 	pConfig "github.com/atelierdisko/hoi/config/project"
@@ -72,8 +73,10 @@ func (r CronRunner) Enable() error {
 		if err := r.sys.Install(f); err != nil {
 			return err
 		}
-		if err := r.sys.EnableAndStart(filepath.Base(f)); err != nil {
-			return err
+		if strings.HasSuffix(f, ".timer") {
+			if err := r.sys.EnableAndStart(filepath.Base(f)); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
