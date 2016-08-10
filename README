@@ -50,6 +50,12 @@ The currently available modules are:
   Sets up NGINX(8) and PHP-FPM as the application server
   when needed.
 
+- "PHP"
+  Safely enables project specific PHP(1) settings. This by
+  default includes security related settings like open_basedir.
+  Other alternative/classic prove to be inflexible or
+  even buggy[0].
+
 - "cron"
   Starts cron jobs using systemd(1) timers and will randomize
   startups to reduce resource congestion.
@@ -78,6 +84,8 @@ Planned modules are:
 
 - "log"
 
+[0] https://bugs.php.net/bug.php?id=63965
+    - "php-fpm site specific settings go global"
 
 Installation
 ============
