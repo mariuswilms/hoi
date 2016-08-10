@@ -6,6 +6,7 @@ package system
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -35,6 +36,9 @@ func (sys Systemd) Install(path string) error {
 	target := fmt.Sprintf("%s/%s_%s", sys.s.Systemd.RunPath, ns, filepath.Base(path))
 
 	log.Printf("systemd install: %s -> %s", path, target)
+	if sys.s.Systemd.UseLegacy {
+		return copyFile(path, target)
+	}
 	return os.Symlink(path, target)
 }
 
@@ -94,12 +98,14 @@ func (sys Systemd) EnableAndStart(unit string) error {
 		return nil
 	}
 
-	// FIXME --now cannot be used with at least 215
-	// return exec.Command("systemctl", "enable", "--now", ns+"_"+unit).Run()
-	if err := exec.Command("systemctl", "enable", ns+"_"+unit).Run(); err != nil {
-		return err
+	if sys.s.Systemd.UseLegacy {
+		// --now cannot be used with at least 215
+		if err := exec.Command("systemctl", "enable", ns+"_"+unit).Run(); err != nil {
+			return err
+		}
+		return exec.Command("systemctl", "start", ns+"_"+unit).Run()
 	}
-	return exec.Command("systemctl", "start", ns+"_"+unit).Run()
+	return exec.Command("systemctl", "enable", "--now", ns+"_"+unit).Run()
 }
 
 // Disable needs unit name, doesn't work on full path.
@@ -110,12 +116,14 @@ func (sys Systemd) StopAndDisable(unit string) error {
 	if os.Getenv("HOI_NOOP") == "yes" {
 		return nil
 	}
-	// FIXME --now cannot be used with at least 215
-	// return exec.Command("systemctl", "disable", "--now", ns+"_"+unit).Run()
-	if err := exec.Command("systemctl", "stop", ns+"_"+unit).Run(); err != nil {
-		return err
+	if sys.s.Systemd.UseLegacy {
+		// --now cannot be used with at least 215
+		if err := exec.Command("systemctl", "stop", ns+"_"+unit).Run(); err != nil {
+			return err
+		}
+		return exec.Command("systemctl", "disable", ns+"_"+unit).Run()
 	}
-	return exec.Command("systemctl", "disable", ns+"_"+unit).Run()
+	return exec.Command("systemctl", "disable", "--now", ns+"_"+unit).Run()
 }
 
 // Disable needs unit name, doesn't work on full path.
@@ -127,4 +135,28 @@ func (sys Systemd) Stop(unit string) error {
 		return nil
 	}
 	return exec.Command("systemctl", "stop", ns+"_"+unit).Run()
+}
+
+func copyFile(src string, dst string) error {
+	info, err := os.Stat(src)
+	if err != nil {
+		return err
+	}
+
+	s, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer s.Close()
+
+	d, err := os.OpenFile(dst, os.O_WRONLY|os.O_CREATE, info.Mode())
+	if err != nil {
+		return err
+	}
+	defer d.Close()
+
+	if _, err := io.Copy(d, s); err != nil {
+		return err
+	}
+	return nil
 }

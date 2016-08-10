@@ -47,7 +47,8 @@ type WorkerDirective struct {
 	Enabled bool
 }
 type SystemdDirective struct {
-	RunPath string
+	RunPath   string
+	UseLegacy bool
 }
 
 func New() (*Config, error) {
