@@ -37,15 +37,15 @@ something for you.
 What's inside?
 --------------
 Hoi consist of a server (hoid) backend and client (hoictl) to
-control the server. It features several modules which take
-care of serving your project, backing it up and managing
+control the server. It features several modules ("runners") which
+take care of serving your project, backing it up and managing
 cron jobs and workers.
 
 Hoi currently relies on a fixed set of technologies (see requirements)
 to do its job. However, changing this and implementing an abstraction
 layer with adapters are a possible future goal.
 
-The currently available modules are:
+The currently available runners are:
 - "web"
   Sets up NGINX(8) and PHP-FPM as the application server
   when needed.
@@ -68,7 +68,7 @@ The currently available modules are:
   behave well. A feature desperately missing from alternatives
   like supervisord.
 
-Planned modules are:
+Planned runners are:
 - "backup"
   Uses rsnapshot(1) to produce daily/weekly/monthly backups from your
   project directory. If available will also include a dump of
