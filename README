@@ -53,8 +53,8 @@ The currently available modules are:
 - "PHP"
   Safely enables project specific PHP(1) settings. This by
   default includes security related settings like open_basedir.
-  Other alternative/classic prove to be inflexible or
-  even buggy[0].
+  Other alternative/classic approaches have been proven to be
+  inflexible or are even buggy[0].
 
 - "cron"
   Starts cron jobs using systemd(1) timers and will randomize
