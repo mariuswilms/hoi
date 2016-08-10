@@ -218,7 +218,7 @@ The web runner requires nginx(8)
   The default template for NGINX will log to syslog/journald. This
   feature is available in NGINX >= 1.7.1. To lower this version
   requirement the "useLegacy" option can be enabled (which will
-  log to the stderr instead).
+  log to STDERR instead).
 
 The cron runner requires systemd(1)
 The worker runner requires systemd(1)
