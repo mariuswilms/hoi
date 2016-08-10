@@ -65,7 +65,7 @@ The currently available modules are:
   resource controls (i.e. MemoryMax) to keep resource
   usage of processes inside reasonable bounds. This is especially
   useful if processes are leaking memory or otherwise don't
-  behave well. A feature despeartely missing from alternatives
+  behave well. A feature desperately missing from alternatives
   like supervisord.
 
 Planned modules are:
