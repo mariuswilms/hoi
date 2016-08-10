@@ -1,3 +1,6 @@
+[Install]
+WantedBy=timers.target
+
 [Unit]
 Description=Runs Cron Job {{.C.Name}} for project {{.P.Name}}@{{.P.Context}} on Schedule
 
