@@ -50,43 +50,47 @@ func (sys Systemd) Uninstall(unit string) error {
 	return os.Remove(target)
 }
 
-// TODO Use systemctl list-units with pattern to also find units
-// that have been started using a service template (i.e. workers)
 // Lists installed service units. Strips project namespace.
 func (sys Systemd) ListInstalledServices() ([]string, error) {
 	ns := fmt.Sprintf("project_%s_%s", sys.p.ID(), sys.kind)
-	path := fmt.Sprintf("%s/%s*.service", sys.s.Systemd.RunPath, ns)
-
-	files, err := filepath.Glob(path)
-	if err != nil {
-		return files, err
-	}
 	units := make([]string, 0)
 
-	for _, f := range files {
-		units = append(units, strings.TrimPrefix(filepath.Base(f), ns+"_"))
+	out, err := exec.Command("systemctl", "list-units", fmt.Sprintf("'%s_*.service'", ns), "--no-legend", "--no-pager").Output()
+	if err != nil {
+		return units, err
 	}
-	log.Printf("systemd found %d installed service unit/s matched by: %s\n%v", len(units), path, units)
+
+	if len(out) != 0 {
+		// line format:
+		// worker@1.service loaded active running Worker aaa for project ad@dev
+		for _, line := range strings.Split(string(out), "\n") {
+			fields := strings.Fields(line)
+			units = append(units, strings.TrimPrefix(fields[0], ns+"_"))
+		}
+	}
+	log.Printf("systemd found %d installed service unit/s:\n%v", len(units), units)
 	return units, err
 }
 
-// FIXME Use systemctl list-timers with pattern to also find units
 // that have been started using a service template.
 // Lists installed timer  units. Strips project namespace.
 func (sys Systemd) ListInstalledTimers() ([]string, error) {
 	ns := fmt.Sprintf("project_%s_%s", sys.p.ID(), sys.kind)
-	path := fmt.Sprintf("%s/%s*.timer", sys.s.Systemd.RunPath, ns)
-
-	files, err := filepath.Glob(path)
-	if err != nil {
-		return files, err
-	}
 	units := make([]string, 0)
 
-	for _, f := range files {
-		units = append(units, strings.TrimPrefix(filepath.Base(f), ns+"_"))
+	out, err := exec.Command("systemctl", "list-units", fmt.Sprintf("'%s_*.timer'", ns), "--no-legend", "--no-pager").Output()
+	if err != nil {
+		return units, err
 	}
-	log.Printf("systemd found %d installed timer unit/s matched by: %s\n%v", len(units), path, units)
+	if len(out) != 0 {
+		// line format:
+		// worker@1.service loaded active running Worker aaa for project ad@dev
+		for _, line := range strings.Split(string(out), "\n") {
+			fields := strings.Fields(line)
+			units = append(units, strings.TrimPrefix(fields[0], ns+"_"))
+		}
+	}
+	log.Printf("systemd found %d installed timer unit/s:\n%v", len(units), units)
 	return units, err
 }
 
