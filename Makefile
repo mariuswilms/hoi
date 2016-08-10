@@ -35,11 +35,11 @@ seal {
 	]
 }
 cron high-freq {
-	schedule = "*/10 * * * *"
+	schedule = "hourly"
 	command = "./bin/li3.php jobs runFrequency high"
 }
 cron medium-freq {
-	schedule = "hourly"
+	schedule = "daily"
 	command = "./bin/li3.php jobs runFrequency medium"
 }
 worker media-fix {
