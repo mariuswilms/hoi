@@ -114,20 +114,13 @@ $(PREFIX)/etc/hoi/hoid.conf: conf/hoid.conf
 	cp $< $@
 	chmod 600 $@
 
-dist/hoid: hoid $(ANY_DEPS) 
+dist/%: % $(ANY_DEPS) 
 	go build -ldflags "$(HOID_GOFLAGS)" -o $@ ./$<
 
-dist/hoid-darwin-amd64: hoid $(ANY_DEPS)
+dist/%-darwin-amd64: % $(ANY_DEPS)
 	GOOS=darwin GOARCH=amd64 go build -ldflags "$(HOID_GOFLAGS)" -o $@ ./$<
 
-dist/hoid-linux-amd64: hoid $(ANY_DEPS)
+dist/%-linux-amd64: % $(ANY_DEPS)
 	GOOS=linux GOARCH=amd64 go build -ldflags "$(HOID_GOFLAGS)" -o $@ ./$<
 
-dist/hoictl: hoictl $(ANY_DEPS)
-	go build -ldflags "$(HOICTL_GOFLAGS)" -o $@ ./$<
 
-dist/hoictl-darwin-amd64: hoictl $(ANY_DEPS)
-	GOOS=darwin GOARCH=amd64 go build -ldflags "$(HOICTL_GOFLAGS)" -o $@ ./$<
-
-dist/hoictl-linux-amd64: hoictl $(ANY_DEPS)
-	GOOS=linux GOARCH=amd64 go build -ldflags "$(HOICTL_GOFLAGS)" -o $@ ./$<
