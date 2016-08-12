@@ -74,7 +74,7 @@ func (r WebRunner) Clean() error {
 	return r.build.Clean()
 }
 
-func (r WebRunner) Generate() error {
+func (r WebRunner) Build() error {
 	if len(r.p.Domain) == 0 {
 		return nil // nothing to do
 	}

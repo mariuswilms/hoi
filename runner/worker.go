@@ -86,7 +86,7 @@ func (r WorkerRunner) Clean() error {
 	return r.build.Clean()
 }
 
-func (r WorkerRunner) Generate() error {
+func (r WorkerRunner) Build() error {
 	if len(r.p.Worker) == 0 {
 		return nil // nothing to do
 	}

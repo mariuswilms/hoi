@@ -90,7 +90,7 @@ func (r CronRunner) Clean() error {
 	return r.build.Clean()
 }
 
-func (r CronRunner) Generate() error {
+func (r CronRunner) Build() error {
 	if len(r.p.Cron) == 0 {
 		return nil // nothing to do
 	}

@@ -5,8 +5,6 @@
 package runner
 
 import (
-	"log"
-
 	"github.com/atelierdisko/hoi/builder"
 	pConfig "github.com/atelierdisko/hoi/config/project"
 	sConfig "github.com/atelierdisko/hoi/config/server"
@@ -22,6 +20,14 @@ func NewPHPRunner(s sConfig.Config, p pConfig.Config) *PHPRunner {
 	}
 }
 
+// The PHP runner allows to configure PHP on a per project basis.
+//
+// This is achieved by putting a PHP configuration file into a place where PHP
+// generally looks for autoload-able configuration files while using the PATH[0]
+// feature. Other approaches have proven to be buggy[1].
+//
+// [0] http://php.net/manual/pl/ini.sections.php
+// [1] https://bugs.php.net/bug.php?id=63965
 type PHPRunner struct {
 	s     sConfig.Config
 	p     pConfig.Config
@@ -29,12 +35,26 @@ type PHPRunner struct {
 	build *builder.Builder
 }
 
-func (r PHPRunner) Disable() error {
-	if !r.sys.IsInstalled() {
-		log.Print("not installed")
-		return nil // nothing to disable
+func (r PHPRunner) Build() error {
+	if !r.p.UsePHP {
+		return nil // nothing to do
 	}
-	return r.sys.Uninstall()
+	tS, err := r.build.LoadTemplate("php.ini")
+	if err != nil {
+		return err
+	}
+	tmplData := struct {
+		P pConfig.Config
+		S sConfig.Config
+	}{
+		P: r.p,
+		S: r.s,
+	}
+	return r.build.WriteTemplate("php.ini", tS, tmplData)
+}
+
+func (r PHPRunner) Clean() error {
+	return r.build.Clean()
 }
 
 func (r PHPRunner) Enable() error {
@@ -53,28 +73,13 @@ func (r PHPRunner) Enable() error {
 	return nil
 }
 
+func (r PHPRunner) Disable() error {
+	if !r.sys.IsInstalled() {
+		return nil // nothing to disable
+	}
+	return r.sys.Uninstall()
+}
+
 func (r PHPRunner) Commit() error {
 	return r.sys.ReloadIfDirty()
-}
-
-func (r PHPRunner) Clean() error {
-	return r.build.Clean()
-}
-
-func (r PHPRunner) Generate() error {
-	if !r.p.UsePHP {
-		return nil // nothing to do
-	}
-	tS, err := r.build.LoadTemplate("php.ini")
-	if err != nil {
-		return err
-	}
-	tmplData := struct {
-		P pConfig.Config
-		S sConfig.Config
-	}{
-		P: r.p,
-		S: r.s,
-	}
-	return r.build.WriteTemplate("php.ini", tS, tmplData)
 }

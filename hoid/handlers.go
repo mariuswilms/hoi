@@ -42,7 +42,7 @@ func handleLoad(pDrv *pConfig.ProjectDirective) error {
 	for _, r := range runners(*pCfg) {
 		steps = append(steps, r.Disable)
 		steps = append(steps, r.Clean)
-		steps = append(steps, r.Generate)
+		steps = append(steps, r.Build)
 		steps = append(steps, r.Enable)
 		steps = append(steps, r.Commit)
 	}
@@ -112,7 +112,7 @@ func handleDomain(pDrv *pConfig.ProjectDirective, dDrv *pConfig.DomainDirective)
 	for _, r := range runners {
 		steps = append(steps, r.Disable)
 		steps = append(steps, r.Clean)
-		steps = append(steps, r.Generate)
+		steps = append(steps, r.Build)
 		steps = append(steps, r.Enable)
 		steps = append(steps, r.Commit)
 	}
