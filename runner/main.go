@@ -9,4 +9,5 @@ type Runnable interface {
 	Disable() error
 	Clean() error
 	Generate() error
+	Commit() error
 }

@@ -78,6 +78,10 @@ func (r WorkerRunner) Enable() error {
 	return nil
 }
 
+func (r WorkerRunner) Commit() error {
+	return nil
+}
+
 func (r WorkerRunner) Clean() error {
 	return r.build.Clean()
 }

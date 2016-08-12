@@ -17,8 +17,9 @@ import (
 )
 
 type NGINX struct {
-	p pConfig.Config
-	s sConfig.Config
+	p     pConfig.Config
+	s     sConfig.Config
+	dirty bool
 }
 
 func NewNGINX(p pConfig.Config, s sConfig.Config) *NGINX {
@@ -26,25 +27,43 @@ func NewNGINX(p pConfig.Config, s sConfig.Config) *NGINX {
 }
 
 // Installs just the server configuration.
-func (sys NGINX) Install(path string) error {
+func (sys *NGINX) Install(path string) error {
 	ns := fmt.Sprintf("project_%s", sys.p.ID())
 	target := fmt.Sprintf("%s/%s_%s", sys.s.NGINX.RunPath, ns, filepath.Base(path))
 
 	log.Printf("NGINX install: %s -> %s", path, target)
+
+	sys.dirty = true
 	return os.Symlink(path, target)
 }
 
-func (sys NGINX) Uninstall(server string) error {
+func (sys *NGINX) Uninstall(server string) error {
 	ns := fmt.Sprintf("project_%s", sys.p.ID())
 	target := fmt.Sprintf("%s/%s_%s", sys.s.NGINX.RunPath, ns, server)
 
 	log.Printf("NGINX uninstall: %s", target)
+
+	sys.dirty = true
 	return os.Remove(target)
 }
 
 func (sys NGINX) Reload() error {
 	log.Printf("NGINX reload")
 	return exec.Command("systemctl", "reload", "nginx").Run()
+}
+
+func (sys *NGINX) ReloadIfDirty() error {
+	if !sys.dirty {
+		return nil
+	}
+	log.Printf("NGINX reload")
+
+	if err := exec.Command("systemctl", "reload", "nginx").Run(); err != nil {
+		log.Printf("NGINX reload: left in dirty state")
+		return err
+	}
+	sys.dirty = false
+	return nil
 }
 
 func (sys NGINX) ListInstalled() ([]string, error) {

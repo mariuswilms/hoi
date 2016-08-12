@@ -56,6 +56,10 @@ func handleLoad(pDrv *pConfig.ProjectDirective) error {
 			log.Printf("[project %s] step %s failed: %s", pCfg.PrettyName(), "enable", err)
 			return err
 		}
+		if err := r.Commit(); err != nil {
+			log.Printf("[project %s] step %s failed: %s", pCfg.PrettyName(), "commit", err)
+			return err
+		}
 		log.Printf("[project %s] ------- %s finished all steps", pCfg.PrettyName(), reflect.TypeOf(r))
 	}
 
@@ -85,6 +89,10 @@ func handleUnload(pDrv *pConfig.ProjectDirective) error {
 		}
 		if err := r.Clean(); err != nil {
 			log.Printf("[project %s] step %s failed: %s", pDrv.PrettyName(), "clean", err)
+			return err
+		}
+		if err := r.Commit(); err != nil {
+			log.Printf("[project %s] step %s failed: %s", pDrv.PrettyName(), "commit", err)
 			return err
 		}
 	}

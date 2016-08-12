@@ -63,10 +63,11 @@ func (r WebRunner) Enable() error {
 			return err
 		}
 	}
-	if len(files) == 0 {
-		return nil // nothing to enable
-	}
-	return r.sys.Reload()
+	return nil
+}
+
+func (r WebRunner) Commit() error {
+	return r.sys.ReloadIfDirty()
 }
 
 func (r WebRunner) Clean() error {

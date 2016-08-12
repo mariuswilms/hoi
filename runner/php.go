@@ -34,10 +34,7 @@ func (r PHPRunner) Disable() error {
 		log.Print("not installed")
 		return nil // nothing to disable
 	}
-	if err := r.sys.Uninstall(); err != nil {
-		return err
-	}
-	return r.sys.Reload()
+	return r.sys.Uninstall()
 }
 
 func (r PHPRunner) Enable() error {
@@ -53,7 +50,11 @@ func (r PHPRunner) Enable() error {
 			return err
 		}
 	}
-	return r.sys.Reload()
+	return nil
+}
+
+func (r PHPRunner) Commit() error {
+	return r.sys.ReloadIfDirty()
 }
 
 func (r PHPRunner) Clean() error {

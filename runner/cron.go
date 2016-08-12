@@ -82,6 +82,10 @@ func (r CronRunner) Enable() error {
 	return nil
 }
 
+func (r CronRunner) Commit() error {
+	return nil
+}
+
 func (r CronRunner) Clean() error {
 	return r.build.Clean()
 }
