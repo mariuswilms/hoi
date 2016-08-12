@@ -206,11 +206,7 @@ license that can be found in the LICENSE file.
 
 Versions & Requirements
 -----------------------
-The Go language is required to build the project.
-  The templates make use of the trimming feature
-  which became available in 1.6. To lower this
-  requirement you need to use your own templates
-  without trimming.
+The Go language >= 1.6 is required to build the project.
 
 Hoi is continously tested on Linux and Darwin.
 
