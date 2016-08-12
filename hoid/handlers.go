@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"reflect"
+	"runtime"
 
 	pConfig "github.com/atelierdisko/hoi/config/project"
 	"github.com/atelierdisko/hoi/runner"
@@ -37,33 +38,17 @@ func handleLoad(pDrv *pConfig.ProjectDirective) error {
 		return err
 	}
 
+	steps := make([]func() error, 0)
 	for _, r := range runners(*pCfg) {
-		log.Printf("[project %s] ------- %s begins steps", pCfg.PrettyName(), reflect.TypeOf(r))
-
-		if err := r.Disable(); err != nil {
-			log.Printf("[project %s] step %s failed: %s", pCfg.PrettyName(), "disable", err)
-			return err
-		}
-		if err := r.Clean(); err != nil {
-			log.Printf("[project %s] step %s failed: %s", pCfg.PrettyName(), "clean", err)
-			return err
-		}
-		if err := r.Generate(); err != nil {
-			log.Printf("[project %s] step %s failed: %s", pCfg.PrettyName(), "generate", err)
-			return err
-		}
-		if err := r.Enable(); err != nil {
-			log.Printf("[project %s] step %s failed: %s", pCfg.PrettyName(), "enable", err)
-			return err
-		}
-		if err := r.Commit(); err != nil {
-			log.Printf("[project %s] step %s failed: %s", pCfg.PrettyName(), "commit", err)
-			return err
-		}
-		log.Printf("[project %s] ------- %s finished all steps", pCfg.PrettyName(), reflect.TypeOf(r))
+		steps = append(steps, r.Disable)
+		steps = append(steps, r.Clean)
+		steps = append(steps, r.Generate)
+		steps = append(steps, r.Enable)
+		steps = append(steps, r.Commit)
 	}
-
-	log.Printf("[project %s] ===== all runners done!", pCfg.PrettyName())
+	if err := performSteps(*pCfg, steps); err != nil {
+		return err
+	}
 
 	// Only add to store if all steps finished.
 	Store.data[pCfg.ID()] = *pCfg
@@ -81,20 +66,16 @@ func handleUnload(pDrv *pConfig.ProjectDirective) error {
 	if _, hasKey := Store.data[pDrv.ID()]; !hasKey {
 		return fmt.Errorf("no project %s in store to unload", pDrv.ID())
 	}
+	pCfg := Store.data[pDrv.ID()]
 
-	for _, r := range runners(Store.data[pDrv.ID()]) {
-		if err := r.Disable(); err != nil {
-			log.Printf("[project %s] step %s failed: %s", pDrv.PrettyName(), "disable", err)
-			return err
-		}
-		if err := r.Clean(); err != nil {
-			log.Printf("[project %s] step %s failed: %s", pDrv.PrettyName(), "clean", err)
-			return err
-		}
-		if err := r.Commit(); err != nil {
-			log.Printf("[project %s] step %s failed: %s", pDrv.PrettyName(), "commit", err)
-			return err
-		}
+	steps := make([]func() error, 0)
+	for _, r := range runners(pCfg) {
+		steps = append(steps, r.Disable)
+		steps = append(steps, r.Clean)
+		steps = append(steps, r.Commit)
+	}
+	if err := performSteps(pCfg, steps); err != nil {
+		return err
 	}
 
 	log.Printf("[project %s] unloaded :(", pDrv.PrettyName())
@@ -121,18 +102,32 @@ func handleDomain(pDrv *pConfig.ProjectDirective, dDrv *pConfig.DomainDirective)
 	} else {
 		pCfg.Domain[dDrv.FQDN] = *dDrv
 	}
-	Store.data[pCfg.ID()] = pCfg
 
-	// TODO go through all runner steps, maybe just web?
+	runners := make([]runner.Runnable, 0)
+	if Config.Web.Enabled {
+		runners = append(runners, runner.NewWebRunner(*Config, pCfg))
+	}
+
+	steps := make([]func() error, 0)
+	for _, r := range runners {
+		steps = append(steps, r.Disable)
+		steps = append(steps, r.Clean)
+		steps = append(steps, r.Generate)
+		steps = append(steps, r.Enable)
+		steps = append(steps, r.Commit)
+	}
+	if err := performSteps(pCfg, steps); err != nil {
+		return err
+	}
 
 	log.Printf("[project %s] added domain: %s", pDrv.PrettyName(), dDrv.FQDN)
+	Store.data[pCfg.ID()] = pCfg
 	return nil
 }
 
 func runners(pCfg pConfig.Config) []runner.Runnable {
 	runners := make([]runner.Runnable, 0)
 
-	// FIXME: Order matters?
 	if Config.Web.Enabled {
 		runners = append(runners, runner.NewWebRunner(*Config, pCfg))
 	}
@@ -147,4 +142,17 @@ func runners(pCfg pConfig.Config) []runner.Runnable {
 	}
 
 	return runners
+}
+
+func performSteps(pCfg pConfig.Config, steps []func() error) error {
+	getFuncName := func(i interface{}) string {
+		return runtime.FuncForPC(reflect.ValueOf(i).Pointer()).Name()
+	}
+	for _, s := range steps {
+		if err := s(); err != nil {
+			log.Printf("[project %s] step %s failed: %s", pCfg.PrettyName(), getFuncName(s), err)
+			return err
+		}
+	}
+	return nil
 }
