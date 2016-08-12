@@ -123,6 +123,9 @@ func handleDomain(pDrv *pConfig.ProjectDirective, dDrv *pConfig.DomainDirective)
 	}
 	Store.data[pCfg.ID()] = pCfg
 
+	// TODO go through all runner steps, maybe just web?
+
+	log.Printf("[project %s] added domain: %s", pDrv.PrettyName(), dDrv.FQDN)
 	return nil
 }
 
