@@ -108,7 +108,7 @@ func main() {
 				fmt.Fprintf(os.Stderr, "error: %s\n", err)
 				os.Exit(1)
 			}
-			fmt.Println("project loaded")
+			fmt.Println("project successfully loaded :)")
 		}
 	})
 
@@ -125,7 +125,7 @@ func main() {
 				fmt.Fprintf(os.Stderr, "error: %s\n", err)
 				os.Exit(1)
 			}
-			fmt.Println("project unloaded")
+			fmt.Println("project successfully unloaded :(")
 		}
 	})
 

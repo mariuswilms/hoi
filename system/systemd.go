@@ -17,6 +17,7 @@ import (
 	sConfig "github.com/atelierdisko/hoi/config/server"
 )
 
+// The hoi-internal kind of units we manage.
 const SYSTEMD_KIND_CRON = "cron"
 const SYSTEMD_KIND_WORKER = "worker"
 
@@ -72,7 +73,6 @@ func (sys Systemd) ListInstalledServices() ([]string, error) {
 	return units, err
 }
 
-// that have been started using a service template.
 // Lists installed timer  units. Strips project namespace.
 func (sys Systemd) ListInstalledTimers() ([]string, error) {
 	ns := fmt.Sprintf("project_%s_%s", sys.p.ID(), sys.kind)
