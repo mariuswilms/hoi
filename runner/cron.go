@@ -2,6 +2,7 @@
 //
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
+
 package runner
 
 import (
@@ -24,6 +25,8 @@ func NewCronRunner(s sConfig.Config, p pConfig.Config) *CronRunner {
 	}
 }
 
+// Starts cron jobs using systemd(1) timers and will randomize
+// startups to reduce resource congestion.
 type CronRunner struct {
 	s     sConfig.Config
 	p     pConfig.Config

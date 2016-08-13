@@ -2,13 +2,14 @@
 //
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
+
 package project
 
 type DatabaseDirective struct {
-	// Name of the database.
+	// optional database name; defaults to project name
 	Name string
-	// The database user.
+	// optional user; defaults to project name
 	User string
-	// The plaintext password.
+	// required; must be non-empty
 	Password string
 }

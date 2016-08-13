@@ -2,18 +2,31 @@
 //
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
+
 package project
+
+import (
+	"errors"
+	"fmt"
+	"path/filepath"
+)
 
 const WWW_KEEP string = "keep"
 const WWW_DROP string = "drop"
 const WWW_ADD string = "add"
 
 type DomainDirective struct {
-	FQDN      string
-	WWW       string // keep, drop, add
-	SSL       SSLDirective
-	Auth      AuthDirective
-	Aliases   []string
+	// required; always the naked domain name/FQDN.
+	FQDN string
+	// optional; either "keep", "drop" or "add"; defaults to "drop".
+	WWW string
+	// optional; by default not enabled
+	SSL SSLDirective
+	// optional; by default not enabled
+	Auth AuthDirective
+	// optional; by default empty
+	Aliases []string
+	// optional; by default empty
 	Redirects []string
 }
 
