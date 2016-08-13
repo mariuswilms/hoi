@@ -32,9 +32,13 @@ func handleLoad(pDrv *pConfig.ProjectDirective) error {
 		return err
 	}
 
-	err = pCfg.Augment()
-	if err != nil {
+	if err = pCfg.Augment(); err != nil {
 		log.Printf("[project %s] failed to discover config: %s", pCfg.PrettyName(), err)
+		return err
+	}
+
+	if err = pCfg.Validate(); err != nil {
+		log.Printf("[project %s] did not validate: %s", pCfg.PrettyName(), err)
 		return err
 	}
 
@@ -103,6 +107,11 @@ func handleDomain(pDrv *pConfig.ProjectDirective, dDrv *pConfig.DomainDirective)
 		pCfg.Domain[dDrv.FQDN] = *dDrv
 	}
 
+	if err := pCfg.Validate(); err != nil {
+		log.Printf("[project %s] did not validate: %s", pCfg.PrettyName(), err)
+		return err
+	}
+
 	runners := make([]runner.Runnable, 0)
 	if Config.Web.Enabled {
 		runners = append(runners, runner.NewWebRunner(*Config, pCfg))
@@ -139,6 +148,9 @@ func runners(pCfg pConfig.Config) []runner.Runnable {
 	}
 	if Config.Worker.Enabled {
 		runners = append(runners, runner.NewWorkerRunner(*Config, pCfg))
+	}
+	if Config.Database.Enabled {
+		runners = append(runners, runner.NewDBRunner(*Config, pCfg, MySQLConn))
 	}
 
 	return runners

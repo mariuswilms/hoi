@@ -28,6 +28,8 @@ type Config struct {
 	Cron         CronDirective
 	Worker       WorkerDirective
 	Systemd      SystemdDirective
+	Database     DatabaseDirective
+	MySQL        MySQLDirective
 }
 
 type WebDirective struct {
@@ -50,6 +52,14 @@ type WorkerDirective struct {
 type SystemdDirective struct {
 	RunPath   string
 	UseLegacy bool
+}
+type DatabaseDirective struct {
+	Enabled bool
+}
+type MySQLDirective struct {
+	Host     string
+	User     string
+	Password string
 }
 
 func New() (*Config, error) {

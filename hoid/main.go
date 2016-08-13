@@ -5,6 +5,8 @@
 package main
 
 import (
+	"database/sql"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -13,6 +15,7 @@ import (
 	pConfig "github.com/atelierdisko/hoi/config/project"
 	sConfig "github.com/atelierdisko/hoi/config/server"
 	sRPC "github.com/atelierdisko/hoi/rpc"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/jawher/mow.cli"
 )
 
@@ -27,6 +30,7 @@ var (
 	Config    *sConfig.Config
 	RPCServer *sRPC.Server
 	Store     *MemoryStore
+	MySQLConn *sql.DB
 )
 
 func main() {
@@ -64,6 +68,17 @@ func main() {
 			data: make(map[string]pConfig.Config),
 		}
 		log.Printf("in-memory store ready")
+
+		// Only connect if we need a connection later.
+		if Config.Database.Enabled {
+			dsn := fmt.Sprintf("%s:%s@%s/", Config.MySQL.User, Config.MySQL.Password, Config.MySQL.Host)
+			conn, err := sql.Open("mysql", dsn)
+			if err != nil {
+				log.Fatal(err)
+			}
+			MySQLConn = conn // Assign to global.
+			log.Printf("connected to MySQL")
+		}
 	}
 
 	// Shutdown gracefully.
@@ -83,6 +98,10 @@ func main() {
 		default:
 			log.Printf("caught signal %s: shutting down", sig)
 			RPCServer.Close()
+
+			if MySQLConn != nil {
+				MySQLConn.Close()
+			}
 			os.Exit(0)
 		}
 	}(sigc)

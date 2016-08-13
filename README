@@ -69,6 +69,10 @@ The currently available runners are:
   behave well. A feature desperately missing from alternatives
   like supervisord.
 
+- "database"
+  Creates databases and users with minimum set of privileges
+  if they do not exist for mysqld(8).
+
 Planned runners are:
 - "backup"
   Uses rsnapshot(1) to produce daily/weekly/monthly backups from your
@@ -80,8 +84,6 @@ Planned runners are:
   Uses the mtree(8) utility to generate so called manifests of your
   projects contents and will regularly check the project against
   that manifest to detect possible tampering.
-
-- "db"
 
 - "log"
 

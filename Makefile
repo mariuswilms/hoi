@@ -34,7 +34,10 @@ cron medium-freq {
 }
 worker media-fix {
 	instances = 2
-	command = "./app/libraries/bin/cute-worker --queue=fix --scope={{.P.Name}}_{{.P.Context}} -r app/libraries/base_core/config/bootstrap.php"
+	command = "./bin/cute-worker --scope={{.P.Name}}_{{.P.Context}}"
+}
+database {
+	password = "bar"
 }
 endef
 

@@ -32,6 +32,6 @@ type AuthDirective struct {
 	Password string
 }
 
-func (drv AuthDirective) isEnabled() bool {
+func (drv AuthDirective) IsEnabled() bool {
 	return drv.User != ""
 }

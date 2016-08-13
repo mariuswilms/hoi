@@ -8,11 +8,8 @@ import (
 	"errors"
 	"fmt"
 	"hash/adler32"
-	"io/ioutil"
 	"log"
-	"os"
 	"path/filepath"
-	"strings"
 )
 
 type ProjectDirective struct {
@@ -49,51 +46,4 @@ func (c *ProjectDirective) PrettyName() string {
 		return fmt.Sprintf("%s@?", c.Name)
 	}
 	return fmt.Sprintf("? in %s", filepath.Base(c.Path))
-}
-
-func (c *ProjectDirective) Augment() error {
-	log.Printf("discovering project config: %s", c.Path)
-
-	if _, err := os.Stat(c.Path + "/app/webroot/index.php"); err == nil {
-		log.Print("- using PHP")
-		c.UsePHP = true
-
-		legacy, err := fileContainsString(c.Path+"/app/webroot/index.php", "cake")
-		if err != nil {
-			return err
-		}
-		if legacy {
-			log.Print("- using legacy rewrites")
-			c.UsePHPLegacyRewrites = true
-		}
-		log.Print("- using large uploads")
-		c.UseLargeUploads = true
-	}
-
-	if _, err := os.Stat(c.Path + "/assets"); err == nil {
-		c.UseAssets = true
-	}
-	if _, err := os.Stat(c.Path + "/media/versions"); err == nil {
-		c.UseMediaVersions = true
-	}
-	if _, err := os.Stat(c.Path + "/media/transfers"); err == nil {
-		c.UseMediaTransfers = true
-	}
-	if _, err := os.Stat(c.Path + "/files"); err == nil {
-		c.UseFiles = true
-	}
-	if _, err := os.Stat(c.Path + "/app/webroot/css"); err == nil {
-		c.UseAssets = true
-		c.UseClassicAssets = true
-	}
-	return nil
-}
-
-func fileContainsString(file string, search string) (bool, error) {
-	b, err := ioutil.ReadFile(file)
-	if err != nil {
-		return false, err
-	}
-	s := string(b)
-	return strings.Contains(s, search), nil
 }
