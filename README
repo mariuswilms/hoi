@@ -31,8 +31,9 @@ structured and in the technology they need.
 Is it for you?
 --------------
 If your hosting needs are similar and are ready to sacrifice the
-benefits of i.e. containers for ease of use, hoi might also be
-something for you.
+benefits of i.e. containers for ease of use or you are running
+services that are not well suited for per-project containers
+(i.e. PHP FPM or MySQL), hoi might also be something for you.
 
 What's inside?
 --------------
