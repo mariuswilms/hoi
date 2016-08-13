@@ -3,8 +3,10 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Runners build and manage configuration files or other kind
-// of configuration stored elsewhere.
+// Runners manage configurations in files and services to
+// fullfill the needs of the project. They usually command
+// a builder and a utilize a system, into which artifacts are
+// installed.
 package runner
 
 // Runnable describes methods common to each runner. Runners often use a builder

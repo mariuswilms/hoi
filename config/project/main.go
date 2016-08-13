@@ -3,8 +3,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Package config/project defines the configuration structure of a project as
-// defined by the Hoifile.
+// Defines the configuration structure of a project, usually
+// populated from contents of the Hoifile.
 package project
 
 import (
@@ -34,7 +34,7 @@ func NewFromFile(f string) (*Config, error) {
 
 	cfg, err = decodeInto(cfg, string(b))
 	if err != nil {
-		return cfg, fmt.Errorf("Failed to parse config file %s: %s", f, err)
+		return cfg, fmt.Errorf("failed to parse config file %s: %s", f, err)
 
 	}
 	cfg.Path = filepath.Dir(f)
