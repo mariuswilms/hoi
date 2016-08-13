@@ -6,13 +6,19 @@
 package project
 
 import (
+	"bytes"
 	"fmt"
 	"hash/adler32"
+	"html/template"
+	"log"
+	"strings"
 )
 
 // Jobs that are run on a regular basis are configured via the cron
 // directive. The schedule option supports expressions from
 // systemd.time.
+//
+// https://www.freedesktop.org/software/systemd/man/systemd.time.html
 type CronDirective struct {
 	// An optional descriptive name which allows to identify the
 	// cron later easily. If no name is given a hash of Command
@@ -21,11 +27,14 @@ type CronDirective struct {
 	// A valid systemd.time time and date specification expresssion that
 	// allows us to determine in which interval the cron should be run, i.e.:
 	// "hourly", "daily", "weekly", "monthly", "yearly"
-	//
-	// https://www.freedesktop.org/software/systemd/man/systemd.time.html
 	Schedule string
-	// The command to run.
-	Commando `hcl:",squash"`
+	// Holds a command string which can be either a path (relative to project root
+	// or absolute) or a template which evaluates to one of both. Templates may
+	// reference P (the project configuration).
+	//
+	// Commands will be executed with the project root path as the current working
+	// directory.
+	Command string
 }
 
 // Generates the ID for the directive, prefers the plain Name, if that
@@ -36,4 +45,25 @@ func (drv CronDirective) ID() string {
 		return fmt.Sprintf("%x", adler32.Checksum([]byte(drv.Command)))
 	}
 	return drv.Name
+}
+
+func (drv CronDirective) GetCommand(p Config) (string, error) {
+	if !strings.Contains(drv.Command, "{{") {
+		return drv.Command, nil
+	}
+	log.Printf("parsing command template: %s", drv.Command)
+
+	cmdTmplData := struct {
+		P Config
+	}{
+		P: p,
+	}
+	buf := new(bytes.Buffer)
+	cmdT := template.New("cmd")
+	cmdT.Parse(drv.Command)
+
+	if err := cmdT.Execute(buf, cmdTmplData); err != nil {
+		return "", err
+	}
+	return buf.String(), nil
 }

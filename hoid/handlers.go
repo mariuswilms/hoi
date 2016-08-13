@@ -21,13 +21,13 @@ func handleStatus() (map[string]pConfig.Config, error) {
 	return Store.data, nil
 }
 
-func handleLoad(pDrv *pConfig.ProjectDirective) error {
+func handleLoad(path string) error {
 	Store.Lock()
 	defer Store.Unlock()
 
-	log.Printf("loading project from: %s", pDrv.Path)
+	log.Printf("loading project from: %s", path)
 
-	pCfg, err := pConfig.NewFromFile(pDrv.Path + "/Hoifile")
+	pCfg, err := pConfig.NewFromFile(path + "/Hoifile")
 	if err != nil {
 		log.Printf("[project %s] failed to parse Hoifile: %s", pCfg.PrettyName(), err)
 		return err
@@ -55,23 +55,22 @@ func handleLoad(pDrv *pConfig.ProjectDirective) error {
 		return err
 	}
 
-	// Only add to store if all steps finished.
-	Store.data[pCfg.ID()] = *pCfg
-
 	log.Printf("[project %s] loaded :)", pCfg.PrettyName())
+	Store.data[pCfg.ID()] = *pCfg
 	return nil
 }
 
-func handleUnload(pDrv *pConfig.ProjectDirective) error {
+func handleUnload(path string) error {
 	Store.Lock()
 	defer Store.Unlock()
 
-	log.Printf("unloading project: %s", pDrv.ID())
+	id := pConfig.ProjectPathToID(path)
+	log.Printf("unloading project: %s", id)
 
-	if _, hasKey := Store.data[pDrv.ID()]; !hasKey {
-		return fmt.Errorf("no project %s in store to unload", pDrv.ID())
+	if _, hasKey := Store.data[id]; !hasKey {
+		return fmt.Errorf("no project %s in store to unload", id)
 	}
-	pCfg := Store.data[pDrv.ID()]
+	pCfg := Store.data[id]
 
 	steps := make([]func() error, 0)
 	for _, r := range runners(pCfg) {
@@ -83,21 +82,22 @@ func handleUnload(pDrv *pConfig.ProjectDirective) error {
 		return err
 	}
 
-	log.Printf("[project %s] unloaded :(", pDrv.PrettyName())
-	delete(Store.data, pDrv.ID())
+	log.Printf("[project %s] unloaded :(", pCfg.PrettyName())
+	delete(Store.data, pCfg.ID())
 	return nil
 }
 
-func handleDomain(pDrv *pConfig.ProjectDirective, dDrv *pConfig.DomainDirective) error {
+func handleDomain(path string, dDrv *pConfig.DomainDirective) error {
 	Store.Lock()
 	defer Store.Unlock()
 
-	log.Printf("adding domain %s to project: %s", dDrv.FQDN, pDrv.ID())
+	id := pConfig.ProjectPathToID(path)
+	log.Printf("adding domain %s to project: %s", dDrv.FQDN, id)
 
-	if _, hasKey := Store.data[pDrv.ID()]; !hasKey {
-		return fmt.Errorf("no project %s in store to add domain to", pDrv.ID())
+	if _, hasKey := Store.data[id]; !hasKey {
+		return fmt.Errorf("no project %s in store to add domain to", id)
 	}
-	pCfg := Store.data[pDrv.ID()]
+	pCfg := Store.data[id]
 
 	if _, hasKey := pCfg.Domain[dDrv.FQDN]; hasKey {
 		el := pCfg.Domain[dDrv.FQDN]
@@ -130,7 +130,7 @@ func handleDomain(pDrv *pConfig.ProjectDirective, dDrv *pConfig.DomainDirective)
 		return err
 	}
 
-	log.Printf("[project %s] added domain: %s", pDrv.PrettyName(), dDrv.FQDN)
+	log.Printf("[project %s] added domain: %s", pCfg.PrettyName(), dDrv.FQDN)
 	Store.data[pCfg.ID()] = pCfg
 	return nil
 }

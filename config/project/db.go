@@ -6,10 +6,10 @@
 package project
 
 type DatabaseDirective struct {
-	// optional database name; defaults to project name
+	// Optional database name; defaults to project name.
 	Name string
-	// optional user; defaults to project name
+	// Optional user; defaults to project name.
 	User string
-	// required; must be non-empty
+	// Password to access the database; required; must be non-empty.
 	Password string
 }

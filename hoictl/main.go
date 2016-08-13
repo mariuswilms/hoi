@@ -99,9 +99,7 @@ func main() {
 	App.Command("load", "initialize or update a project's configuration using a Hoifile", func(cmd *cli.Cmd) {
 		cmd.Action = func() {
 			args := &sRPC.ProjectAPIArgs{
-				Project: &pConfig.ProjectDirective{
-					Path: projectDirectory(*path),
-				},
+				Path: projectDirectory(*path),
 			}
 			var reply bool
 			err := RPCClient.Call("Project.Load", args, &reply)
@@ -116,9 +114,7 @@ func main() {
 	App.Command("unload", "removes a project's configuration", func(cmd *cli.Cmd) {
 		cmd.Action = func() {
 			args := &sRPC.ProjectAPIArgs{
-				Project: &pConfig.ProjectDirective{
-					Path: projectDirectory(*path),
-				},
+				Path: projectDirectory(*path),
 			}
 			var reply bool
 			err := RPCClient.Call("Project.Unload", args, &reply)
@@ -145,9 +141,7 @@ func main() {
 
 		cmd.Action = func() {
 			args := &sRPC.ProjectAPIArgs{
-				Project: &pConfig.ProjectDirective{
-					Path: projectDirectory(*path),
-				},
+				Path: projectDirectory(*path),
 				Domain: &pConfig.DomainDirective{
 					FQDN:    *fqdn,
 					WWW:     *www,

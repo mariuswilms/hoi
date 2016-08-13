@@ -3,10 +3,14 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// Package config/project defines the configuration structure of a project as
+// defined by the Hoifile.
 package project
 
 import (
+	"errors"
 	"fmt"
+	"hash/adler32"
 	"io/ioutil"
 	"log"
 	"os"
@@ -42,11 +46,71 @@ func NewFromString(s string) (*Config, error) {
 }
 
 type Config struct {
-	ProjectDirective `hcl:",squash"`
-	Domain           map[string]DomainDirective
-	Cron             map[string]CronDirective
-	Worker           map[string]WorkerDirective
-	Database         map[string]DatabaseDirective
+	// The absolute path to the project root; required but will
+	// be provided by hoictl mostly automatically.
+	Path string
+	// The name of the project; optional; if not provided the
+	// basename of the project's path will be used.
+	Name string
+	// The name of the context the project is running in. Usually
+	// one of "dev", "stage" or "prod"; required.
+	Context string
+	// Whether PHP is used at all; optional, will be autodetected.
+	UsePHP bool
+	// Whether we can use try_files in NGINX for rewrites into the front
+	// controller or not; optional will be autodetected. Older PHP frameworks
+	// will need this.
+	UsePHPLegacyRewrites bool
+	// The PHP Version in short simple form (5.6.3 -> 56); optional, defaults to "56".
+	// Will be used to run projects without PHP 7.0 compatibility side by side with
+	// those that are compatible.
+	PHPVersion string
+	// Whether we should enable large uploads inside NGINX (>100MB an <550MB); will be
+	// autodetected.
+	UseLargeUploads bool
+	// Whether media versions should be served.
+	UseMediaVersions bool
+	// Whether media transfers should be served.
+	UseMediaTransfers bool
+	// Whether generic files should be served.
+	UseFiles bool
+	// Whether assets should be served.
+	UseAssets bool
+	// Whether to use classic img/js/css dirs instead of a single assets dir.
+	UseClassicAssets bool
+	// Whether media and assets and all other sub-resurce should be served
+	// with a prefixed undersore i.e. /media under /_media, so that they don't
+	// conflict with paths routed through the app.
+	UseNoConflict bool
+	// Domains for the project.
+	Domain map[string]DomainDirective
+	// Crons for the project.
+	Cron map[string]CronDirective
+	// Workers for the project.
+	Worker map[string]WorkerDirective
+	// Databases for the project.
+	Database map[string]DatabaseDirective
+}
+
+func (c Config) ID() string {
+	if c.Path == "" {
+		log.Fatal(errors.New("no path to generate ID"))
+	}
+	return fmt.Sprintf("%x", adler32.Checksum([]byte(c.Path)))
+}
+
+func (c Config) PrettyName() string {
+	if c.Name != "" {
+		if c.Context != "" {
+			return fmt.Sprintf("%s@%s", c.Name, c.Context)
+		}
+		return fmt.Sprintf("%s@?", c.Name)
+	}
+	return fmt.Sprintf("? in %s", filepath.Base(c.Path))
+}
+
+func ProjectPathToID(path string) string {
+	return fmt.Sprintf("%x", adler32.Checksum([]byte(path)))
 }
 
 // Extracts username/password pairs from domain configuration.
@@ -62,6 +126,7 @@ func (c Config) GetCreds() (map[string]string, error) {
 	return creds, nil
 }
 
+// Validates several aspects and looks for typical human errors.
 func (c Config) Validate() error {
 	stringInSlice := func(a string, list []string) bool {
 		for _, b := range list {
@@ -106,6 +171,9 @@ func (c Config) Validate() error {
 	return nil
 }
 
+// Augments a project configuration as read from a Hoifile, so that
+// most configuration does not have to be given explictly and project
+// configuration can stay lean.
 func (c *Config) Augment() error {
 	log.Printf("discovering project config: %s", c.Path)
 

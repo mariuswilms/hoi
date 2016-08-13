@@ -3,6 +3,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// Runners build and manage configuration files or other kind
+// of configuration stored elsewhere.
 package runner
 
 // Runnable describes methods common to each runner. Runners often use a builder
@@ -13,7 +15,7 @@ package runner
 // full rebuild. The order in which Runnable methods should be invoked for a
 // full rebuild is:
 //
-// Disable -> Clean -> Build -> Enable -> Commit
+//   Disable -> Clean -> Build -> Enable -> Commit
 //
 // As these methods are invoked in a sequential way they are called "steps."
 // Method signature is intentionally kept simple and equal as we want to tread

@@ -52,28 +52,28 @@ func (s *ServerAPI) Status(args *ServerAPIArgs, reply *map[string]pConfig.Config
 }
 
 type ProjectAPI struct {
-	LoadHandler   func(pDrv *pConfig.ProjectDirective) error
-	UnloadHandler func(pDrv *pConfig.ProjectDirective) error
-	DomainHandler func(pDrv *pConfig.ProjectDirective, dDrv *pConfig.DomainDirective) error
+	LoadHandler   func(path string) error
+	UnloadHandler func(path string) error
+	DomainHandler func(path string, dDrv *pConfig.DomainDirective) error
 }
 
 type ProjectAPIArgs struct {
-	Project *pConfig.ProjectDirective
-	Domain  *pConfig.DomainDirective
+	Path   string
+	Domain *pConfig.DomainDirective
 }
 
 func (p *ProjectAPI) Load(args *ProjectAPIArgs, reply *bool) error {
 	log.Print("client request for: load")
 	*reply = true
-	return p.LoadHandler(args.Project)
+	return p.LoadHandler(args.Path)
 }
 func (p *ProjectAPI) Unload(args *ProjectAPIArgs, reply *bool) error {
 	log.Print("client request for: unload")
 	*reply = true
-	return p.UnloadHandler(args.Project)
+	return p.UnloadHandler(args.Path)
 }
 func (p *ProjectAPI) Domain(args *ProjectAPIArgs, reply *bool) error {
 	log.Print("client request for: domain")
 	*reply = true
-	return p.DomainHandler(args.Project, args.Domain)
+	return p.DomainHandler(args.Path, args.Domain)
 }

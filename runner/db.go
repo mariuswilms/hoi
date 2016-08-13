@@ -14,10 +14,16 @@ import (
 	"github.com/atelierdisko/hoi/system"
 )
 
-// The minimum set of database level privileges that are granted to project
-// database users. Includes privileges to migrate databases.
-const DB_PRIVS = "DELETE,INSERT,SELECT,UPDATE"
-const DB_ADMIN_PRIVS = "LOCK TABLES,ALTER,DROP,CREATE,INDEX"
+// Sets of database-level privileges granted to each database user
+// on a per project basis.
+const (
+	// The minimum set of database level privileges for general project
+	// usage (non-administrative tasks).
+	DB_PRIVS = "DELETE,INSERT,SELECT,UPDATE"
+	// The minimum set of database level privileges for migrating
+	// the database in use by the project.
+	DB_ADMIN_PRIVS = "LOCK TABLES,ALTER,DROP,CREATE,INDEX"
+)
 
 func NewDBRunner(s sConfig.Config, p pConfig.Config, conn *sql.DB) *DBRunner {
 	return &DBRunner{
