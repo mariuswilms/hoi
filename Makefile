@@ -24,16 +24,6 @@ domain atelierdisko.de {
 	www = "drop"
 	aliases = ["disko.xyz", "disko.io"]
 }
-seal {
-	ignore = [
-		"./app/resources/tmp/cache",
-		"./media",
-		"./media_versions",
-		"./app/webroot/media",
-		"./log",
-		"./tmp"
-	]
-}
 cron high-freq {
 	schedule = "hourly"
 	command = "./bin/li3.php jobs runFrequency high"
