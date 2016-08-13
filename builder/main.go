@@ -14,8 +14,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	pConfig "github.com/atelierdisko/hoi/config/project"
-	sConfig "github.com/atelierdisko/hoi/config/server"
+	"github.com/atelierdisko/hoi/project"
+	"github.com/atelierdisko/hoi/server"
 )
 
 const KIND_WEB = "web"
@@ -23,18 +23,18 @@ const KIND_PHP = "php"
 const KIND_CRON = "cron"
 const KIND_WORKER = "worker"
 
-func NewBuilder(kind string, p pConfig.Config, s sConfig.Config) *Builder {
+func NewBuilder(kind string, p project.Config, s server.Config) *Builder {
 	return &Builder{kind: kind, p: p, s: s}
 }
-func NewScopedBuilder(kind string, scope string, p pConfig.Config, s sConfig.Config) *Builder {
+func NewScopedBuilder(kind string, scope string, p project.Config, s server.Config) *Builder {
 	return &Builder{kind: kind, scope: scope, p: p, s: s}
 }
 
 type Builder struct {
 	kind  string
 	scope string
-	s     sConfig.Config
-	p     pConfig.Config
+	s     server.Config
+	p     project.Config
 }
 
 func (b Builder) Path() string {

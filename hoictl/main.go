@@ -14,7 +14,7 @@ import (
 	"os"
 	"path/filepath"
 
-	pConfig "github.com/atelierdisko/hoi/config/project"
+	"github.com/atelierdisko/hoi/project"
 	sRPC "github.com/atelierdisko/hoi/rpc"
 	"github.com/jawher/mow.cli"
 )
@@ -76,7 +76,7 @@ func main() {
 	App.Command("status", "show status", func(cmd *cli.Cmd) {
 		cmd.Action = func() {
 			args := &sRPC.ServerAPIArgs{}
-			var reply map[string]pConfig.Config
+			var reply map[string]project.Config
 			err := RPCClient.Call("Server.Status", args, &reply)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "error: %s\n", err)
@@ -144,7 +144,7 @@ func main() {
 		cmd.Action = func() {
 			args := &sRPC.ProjectAPIArgs{
 				Path: projectDirectory(*path),
-				Domain: &pConfig.DomainDirective{
+				Domain: &project.DomainDirective{
 					FQDN:    *fqdn,
 					WWW:     *www,
 					Aliases: *aliases,

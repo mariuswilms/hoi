@@ -13,17 +13,17 @@ import (
 	"path/filepath"
 	"strings"
 
-	pConfig "github.com/atelierdisko/hoi/config/project"
-	sConfig "github.com/atelierdisko/hoi/config/server"
+	"github.com/atelierdisko/hoi/project"
+	"github.com/atelierdisko/hoi/server"
 )
 
 type NGINX struct {
-	p     pConfig.Config
-	s     sConfig.Config
+	p     project.Config
+	s     server.Config
 	dirty bool
 }
 
-func NewNGINX(p pConfig.Config, s sConfig.Config) *NGINX {
+func NewNGINX(p project.Config, s server.Config) *NGINX {
 	return &NGINX{p: p, s: s}
 }
 

@@ -9,11 +9,12 @@ VERSION ?= 0.1.0-dev
 HOID_GOFLAGS = -X main.Version=$(VERSION)
 HOID_GOFLAGS +=  -X main.SocketPath=$(abspath $(PREFIX)/var/run/hoid.socket)
 HOID_GOFLAGS +=  -X main.ConfigPath=$(abspath $(PREFIX)/etc/hoi/hoid.conf)
+HOID_GOFLAGS +=  -X main.DataPath=$(abspath $(PREFIX)/var/lib/hoid.db)
 
 HOICTL_GOFLAGS = -X main.Version=$(VERSION)
 HOICTL_GOFLAGS +=  -X main.SocketPath=$(abspath $(PREFIX)/var/run/hoid.socket)
 
-ANY_DEPS = config/project config/server rpc builder runner system
+ANY_DEPS = project server rpc builder runner system
 
 DEBUG ?= no
 

@@ -14,9 +14,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	pConfig "github.com/atelierdisko/hoi/config/project"
-	sConfig "github.com/atelierdisko/hoi/config/server"
-	sRPC "github.com/atelierdisko/hoi/rpc"
+	"github.com/atelierdisko/hoi/rpc"
+	"github.com/atelierdisko/hoi/server"
+	"github.com/atelierdisko/hoi/store"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jawher/mow.cli"
 )
@@ -25,13 +25,14 @@ var (
 	App = cli.App("hoid", "hoid is a host project manager")
 
 	// Set via ldflags.
-	Version    string
-	ConfigPath string
-	SocketPath string
+	Version    string // hoi version
+	ConfigPath string // path to configuration file
+	SocketPath string // path to socket for RPC
+	DataPath   string // path to store database file
 
-	Config    *sConfig.Config
-	RPCServer *sRPC.Server
-	Store     *MemoryStore
+	Config    *server.Config
+	RPCServer *rpc.Server
+	Store     *store.Store
 	MySQLConn *sql.DB
 )
 
@@ -41,35 +42,33 @@ func main() {
 	App.Version("v version", "hoid "+Version)
 
 	App.Action = func() {
-		cfg, err := sConfig.NewFromFile(ConfigPath)
+		cfg, err := server.NewFromFile(ConfigPath)
 		if err != nil {
 			log.Fatal(err)
 		}
 		Config = cfg // Assign to global.
-		log.Printf("loaded configuration: %s", ConfigPath)
 
-		rpcServer := &sRPC.Server{
+		rpcServer := &rpc.Server{
 			Socket: SocketPath,
-			ServerAPI: &sRPC.ServerAPI{
+			ServerAPI: &rpc.ServerAPI{
 				StatusHandler: handleStatus,
 			},
-			ProjectAPI: &sRPC.ProjectAPI{
+			ProjectAPI: &rpc.ProjectAPI{
 				LoadHandler:   handleLoad,
 				UnloadHandler: handleUnload,
 				DomainHandler: handleDomain,
 			},
 		}
 		RPCServer = rpcServer // Assign to global.
-
 		if err := RPCServer.Run(); err != nil {
 			log.Fatal(err)
 		}
-		log.Printf("listening for RPC calls on: %s", SocketPath)
 
-		Store = &MemoryStore{
-			data: make(map[string]pConfig.Config),
+		_store, err := store.New(DataPath)
+		if err != nil {
+			log.Fatal(err)
 		}
-		log.Printf("in-memory store ready")
+		Store = _store // Assign to global
 
 		// Only connect if we need a connection later.
 		if Config.Database.Enabled {
@@ -99,6 +98,7 @@ func main() {
 			log.Printf("caught signal %s: currently noop", sig)
 		default:
 			log.Printf("caught signal %s: shutting down", sig)
+			Store.Close()
 			RPCServer.Close()
 
 			if MySQLConn != nil {

@@ -9,8 +9,8 @@ import (
 	"os"
 	"testing"
 
-	pConfig "github.com/atelierdisko/hoi/config/project"
-	sConfig "github.com/atelierdisko/hoi/config/server"
+	"github.com/atelierdisko/hoi/project"
+	"github.com/atelierdisko/hoi/server"
 )
 
 func TestMain(m *testing.M) {
@@ -34,10 +34,10 @@ func TestAPR1ImplementationToKnown(t *testing.T) {
 func TestDeactivate(t *testing.T) {
 	simulateSystem()
 
-	pCfg, _ := pConfig.New()
+	pCfg, _ := project.New()
 	pCfg.Path = "/tmp/test/var/www/foo"
 
-	sCfg, _ := sConfig.New()
+	sCfg, _ := server.New()
 	sCfg.NGINX.RunPath = "/tmp/test/etc/nginx/sites-enabled"
 
 	err := deactivateWeb(pCfg, sCfg)

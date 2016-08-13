@@ -11,17 +11,17 @@ import (
 	"os"
 	"os/exec"
 
-	pConfig "github.com/atelierdisko/hoi/config/project"
-	sConfig "github.com/atelierdisko/hoi/config/server"
+	"github.com/atelierdisko/hoi/project"
+	"github.com/atelierdisko/hoi/server"
 )
 
 type PHP struct {
-	p     pConfig.Config
-	s     sConfig.Config
+	p     project.Config
+	s     server.Config
 	dirty bool
 }
 
-func NewPHP(p pConfig.Config, s sConfig.Config) *PHP {
+func NewPHP(p project.Config, s server.Config) *PHP {
 	return &PHP{p: p, s: s}
 }
 

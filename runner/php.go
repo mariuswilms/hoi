@@ -7,12 +7,12 @@ package runner
 
 import (
 	"github.com/atelierdisko/hoi/builder"
-	pConfig "github.com/atelierdisko/hoi/config/project"
-	sConfig "github.com/atelierdisko/hoi/config/server"
+	"github.com/atelierdisko/hoi/project"
+	"github.com/atelierdisko/hoi/server"
 	"github.com/atelierdisko/hoi/system"
 )
 
-func NewPHPRunner(s sConfig.Config, p pConfig.Config) *PHPRunner {
+func NewPHPRunner(s server.Config, p project.Config) *PHPRunner {
 	return &PHPRunner{
 		s:     s,
 		p:     p,
@@ -30,8 +30,8 @@ func NewPHPRunner(s sConfig.Config, p pConfig.Config) *PHPRunner {
 // [0] http://php.net/manual/pl/ini.sections.php
 // [1] https://bugs.php.net/bug.php?id=63965
 type PHPRunner struct {
-	s     sConfig.Config
-	p     pConfig.Config
+	s     server.Config
+	p     project.Config
 	sys   *system.PHP
 	build *builder.Builder
 }
@@ -45,8 +45,8 @@ func (r PHPRunner) Build() error {
 		return err
 	}
 	tmplData := struct {
-		P pConfig.Config
-		S sConfig.Config
+		P project.Config
+		S server.Config
 	}{
 		P: r.p,
 		S: r.s,

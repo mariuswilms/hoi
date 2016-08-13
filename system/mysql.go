@@ -9,17 +9,17 @@ import (
 	"database/sql"
 	"log"
 
-	pConfig "github.com/atelierdisko/hoi/config/project"
-	sConfig "github.com/atelierdisko/hoi/config/server"
+	"github.com/atelierdisko/hoi/project"
+	"github.com/atelierdisko/hoi/server"
 )
 
-func NewMySQL(p pConfig.Config, s sConfig.Config, conn *sql.DB) *MySQL {
+func NewMySQL(p project.Config, s server.Config, conn *sql.DB) *MySQL {
 	return &MySQL{p: p, s: s, conn: conn}
 }
 
 type MySQL struct {
-	p     pConfig.Config
-	s     sConfig.Config
+	p     project.Config
+	s     server.Config
 	conn  *sql.DB
 	dirty bool
 }

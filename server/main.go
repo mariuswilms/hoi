@@ -3,15 +3,40 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// Server configuration.
 package server
 
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"path/filepath"
 
 	"github.com/hashicorp/hcl"
 )
+
+func New() (*Config, error) {
+	cfg := &Config{}
+	return cfg, nil
+}
+func NewFromFile(f string) (*Config, error) {
+	cfg := &Config{}
+
+	b, err := ioutil.ReadFile(f)
+	if err != nil {
+		return cfg, err
+	}
+	cfg, err = decodeInto(cfg, string(b))
+	if err != nil {
+		return cfg, fmt.Errorf("failed to parse config file %s: %s", f, err)
+	}
+	log.Printf("loaded configuration: %s", f)
+	return cfg, err
+}
+func NewFromString(s string) (*Config, error) {
+	cfg := &Config{}
+	return decodeInto(cfg, s)
+}
 
 type Config struct {
 	// Use these user/group when possible i.e. in
@@ -61,28 +86,6 @@ type MySQLDirective struct {
 	Host     string
 	User     string
 	Password string
-}
-
-func New() (*Config, error) {
-	cfg := &Config{}
-	return cfg, nil
-}
-func NewFromFile(f string) (*Config, error) {
-	cfg := &Config{}
-
-	b, err := ioutil.ReadFile(f)
-	if err != nil {
-		return cfg, err
-	}
-	cfg, err = decodeInto(cfg, string(b))
-	if err != nil {
-		return cfg, fmt.Errorf("failed to parse config file %s: %s", f, err)
-	}
-	return cfg, err
-}
-func NewFromString(s string) (*Config, error) {
-	cfg := &Config{}
-	return decodeInto(cfg, s)
 }
 
 func decodeInto(cfg *Config, s string) (*Config, error) {

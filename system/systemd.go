@@ -14,22 +14,22 @@ import (
 	"path/filepath"
 	"strings"
 
-	pConfig "github.com/atelierdisko/hoi/config/project"
-	sConfig "github.com/atelierdisko/hoi/config/server"
+	"github.com/atelierdisko/hoi/project"
+	"github.com/atelierdisko/hoi/server"
 )
 
 // The hoi-internal kind of units we manage.
 const SYSTEMD_KIND_CRON = "cron"
 const SYSTEMD_KIND_WORKER = "worker"
 
-func NewSystemd(kind string, p pConfig.Config, s sConfig.Config) *Systemd {
+func NewSystemd(kind string, p project.Config, s server.Config) *Systemd {
 	return &Systemd{kind: kind, p: p, s: s}
 }
 
 type Systemd struct {
 	kind string
-	p    pConfig.Config
-	s    sConfig.Config
+	p    project.Config
+	s    server.Config
 }
 
 // When installing unit files, they are prefixed as to namespace them by project.

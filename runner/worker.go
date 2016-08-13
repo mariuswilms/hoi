@@ -11,19 +11,19 @@ import (
 	"strings"
 
 	"github.com/atelierdisko/hoi/builder"
-	pConfig "github.com/atelierdisko/hoi/config/project"
-	sConfig "github.com/atelierdisko/hoi/config/server"
+	"github.com/atelierdisko/hoi/project"
+	"github.com/atelierdisko/hoi/server"
 	"github.com/atelierdisko/hoi/system"
 )
 
 type WorkerRunner struct {
-	s     sConfig.Config
-	p     pConfig.Config
+	s     server.Config
+	p     project.Config
 	sys   *system.Systemd
 	build *builder.Builder
 }
 
-func NewWorkerRunner(s sConfig.Config, p pConfig.Config) *WorkerRunner {
+func NewWorkerRunner(s server.Config, p project.Config) *WorkerRunner {
 	return &WorkerRunner{
 		s:     s,
 		p:     p,
@@ -103,9 +103,9 @@ func (r WorkerRunner) Build() error {
 		v.Command = parsed
 
 		tmplData := struct {
-			P pConfig.Config
-			S sConfig.Config
-			W pConfig.WorkerDirective
+			P project.Config
+			S server.Config
+			W project.WorkerDirective
 		}{
 			P: r.p,
 			S: r.s,

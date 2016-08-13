@@ -14,12 +14,12 @@ import (
 	"math/rand"
 
 	"github.com/atelierdisko/hoi/builder"
-	pConfig "github.com/atelierdisko/hoi/config/project"
-	sConfig "github.com/atelierdisko/hoi/config/server"
+	"github.com/atelierdisko/hoi/project"
+	"github.com/atelierdisko/hoi/server"
 	"github.com/atelierdisko/hoi/system"
 )
 
-func NewWebRunner(s sConfig.Config, p pConfig.Config) *WebRunner {
+func NewWebRunner(s server.Config, p project.Config) *WebRunner {
 	return &WebRunner{
 		s:     s,
 		p:     p,
@@ -29,8 +29,8 @@ func NewWebRunner(s sConfig.Config, p pConfig.Config) *WebRunner {
 }
 
 type WebRunner struct {
-	s     sConfig.Config
-	p     pConfig.Config
+	s     server.Config
+	p     project.Config
 	sys   *system.NGINX
 	build *builder.Builder
 }
@@ -120,8 +120,8 @@ func (r WebRunner) Build() error {
 	}
 
 	tmplData := struct {
-		P             pConfig.Config
-		S             sConfig.Config
+		P             project.Config
+		S             server.Config
 		WebConfigPath string
 	}{
 		P: r.p,

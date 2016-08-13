@@ -11,14 +11,14 @@ import (
 	"reflect"
 	"runtime"
 
-	pConfig "github.com/atelierdisko/hoi/config/project"
+	"github.com/atelierdisko/hoi/project"
 	"github.com/atelierdisko/hoi/runner"
 )
 
-func handleStatus() (map[string]pConfig.Config, error) {
+func handleStatus() (map[string]project.Config, error) {
 	Store.RLock()
 	defer Store.RUnlock()
-	return Store.data, nil
+	return Store.ReadAll(), nil
 }
 
 func handleLoad(path string) error {
@@ -27,7 +27,7 @@ func handleLoad(path string) error {
 
 	log.Printf("loading project from: %s", path)
 
-	pCfg, err := pConfig.NewFromFile(path + "/Hoifile")
+	pCfg, err := project.NewFromFile(path + "/Hoifile")
 	if err != nil {
 		log.Printf("[project %s] failed to parse Hoifile: %s", pCfg.PrettyName(), err)
 		return err
@@ -55,22 +55,23 @@ func handleLoad(path string) error {
 		return err
 	}
 
+	if err := Store.Write(pCfg.ID(), *pCfg); err != nil {
+		return err
+	}
 	log.Printf("[project %s] loaded :)", pCfg.PrettyName())
-	Store.data[pCfg.ID()] = *pCfg
 	return nil
 }
 
 func handleUnload(path string) error {
 	Store.Lock()
 	defer Store.Unlock()
+	id := project.ProjectPathToID(path)
 
-	id := pConfig.ProjectPathToID(path)
-	log.Printf("unloading project: %s", id)
-
-	if _, hasKey := Store.data[id]; !hasKey {
+	if !Store.Has(id) {
 		return fmt.Errorf("no project %s in store to unload", id)
 	}
-	pCfg := Store.data[id]
+	log.Printf("unloading project: %s", id)
+	pCfg, _ := Store.Read(id)
 
 	steps := make([]func() error, 0)
 	for _, r := range runners(pCfg) {
@@ -82,22 +83,23 @@ func handleUnload(path string) error {
 		return err
 	}
 
+	if err := Store.Delete(pCfg.ID()); err != nil {
+		return err
+	}
 	log.Printf("[project %s] unloaded :(", pCfg.PrettyName())
-	delete(Store.data, pCfg.ID())
 	return nil
 }
 
-func handleDomain(path string, dDrv *pConfig.DomainDirective) error {
+func handleDomain(path string, dDrv *project.DomainDirective) error {
 	Store.Lock()
 	defer Store.Unlock()
+	id := project.ProjectPathToID(path)
 
-	id := pConfig.ProjectPathToID(path)
-	log.Printf("adding domain %s to project: %s", dDrv.FQDN, id)
-
-	if _, hasKey := Store.data[id]; !hasKey {
+	if !Store.Has(id) {
 		return fmt.Errorf("no project %s in store to add domain to", id)
 	}
-	pCfg := Store.data[id]
+	log.Printf("adding domain %s to project: %s", dDrv.FQDN, id)
+	pCfg, _ := Store.Read(id)
 
 	if _, hasKey := pCfg.Domain[dDrv.FQDN]; hasKey {
 		el := pCfg.Domain[dDrv.FQDN]
@@ -130,12 +132,14 @@ func handleDomain(path string, dDrv *pConfig.DomainDirective) error {
 		return err
 	}
 
+	if err := Store.Write(pCfg.ID(), pCfg); err != nil {
+		return err
+	}
 	log.Printf("[project %s] added domain: %s", pCfg.PrettyName(), dDrv.FQDN)
-	Store.data[pCfg.ID()] = pCfg
 	return nil
 }
 
-func runners(pCfg pConfig.Config) []runner.Runnable {
+func runners(pCfg project.Config) []runner.Runnable {
 	runners := make([]runner.Runnable, 0)
 
 	if Config.Web.Enabled {
@@ -157,7 +161,7 @@ func runners(pCfg pConfig.Config) []runner.Runnable {
 	return runners
 }
 
-func performSteps(pCfg pConfig.Config, steps []func() error) error {
+func performSteps(pCfg project.Config, steps []func() error) error {
 	getFuncName := func(i interface{}) string {
 		return runtime.FuncForPC(reflect.ValueOf(i).Pointer()).Name()
 	}

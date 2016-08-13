@@ -11,12 +11,12 @@ import (
 	"strings"
 
 	"github.com/atelierdisko/hoi/builder"
-	pConfig "github.com/atelierdisko/hoi/config/project"
-	sConfig "github.com/atelierdisko/hoi/config/server"
+	"github.com/atelierdisko/hoi/project"
+	"github.com/atelierdisko/hoi/server"
 	"github.com/atelierdisko/hoi/system"
 )
 
-func NewCronRunner(s sConfig.Config, p pConfig.Config) *CronRunner {
+func NewCronRunner(s server.Config, p project.Config) *CronRunner {
 	return &CronRunner{
 		s:     s,
 		p:     p,
@@ -28,8 +28,8 @@ func NewCronRunner(s sConfig.Config, p pConfig.Config) *CronRunner {
 // Starts cron jobs using systemd(1) timers and will randomize
 // startups to reduce resource congestion.
 type CronRunner struct {
-	s     sConfig.Config
-	p     pConfig.Config
+	s     server.Config
+	p     project.Config
 	sys   *system.Systemd
 	build *builder.Builder
 }
@@ -114,9 +114,9 @@ func (r CronRunner) Build() error {
 		v.Command = parsed
 
 		tmplData := struct {
-			P pConfig.Config
-			S sConfig.Config
-			C pConfig.CronDirective
+			P project.Config
+			S server.Config
+			C project.CronDirective
 		}{
 			P: r.p,
 			S: r.s,

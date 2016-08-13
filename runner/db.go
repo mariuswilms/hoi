@@ -9,8 +9,8 @@ import (
 	"database/sql"
 	"strings"
 
-	pConfig "github.com/atelierdisko/hoi/config/project"
-	sConfig "github.com/atelierdisko/hoi/config/server"
+	"github.com/atelierdisko/hoi/project"
+	"github.com/atelierdisko/hoi/server"
 	"github.com/atelierdisko/hoi/system"
 )
 
@@ -25,7 +25,7 @@ const (
 	DB_ADMIN_PRIVS = "LOCK TABLES,ALTER,DROP,CREATE,INDEX"
 )
 
-func NewDBRunner(s sConfig.Config, p pConfig.Config, conn *sql.DB) *DBRunner {
+func NewDBRunner(s server.Config, p project.Config, conn *sql.DB) *DBRunner {
 	return &DBRunner{
 		s:   s,
 		p:   p,
@@ -36,8 +36,8 @@ func NewDBRunner(s sConfig.Config, p pConfig.Config, conn *sql.DB) *DBRunner {
 // Ensures that database and user for the project are available
 // and the user has a minimum set of privileges assigned to her.
 type DBRunner struct {
-	s   sConfig.Config
-	p   pConfig.Config
+	s   server.Config
+	p   project.Config
 	sys *system.MySQL
 }
 

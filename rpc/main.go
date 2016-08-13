@@ -12,7 +12,7 @@ import (
 	"net"
 	"net/rpc"
 
-	pConfig "github.com/atelierdisko/hoi/config/project"
+	"github.com/atelierdisko/hoi/project"
 )
 
 type Server struct {
@@ -32,6 +32,7 @@ func (s *Server) Run() error {
 	}
 	s.listener = lis
 	go rpc.Accept(s.listener)
+	log.Printf("listening for RPC calls on: %s", s.Socket)
 	return nil
 }
 
@@ -43,10 +44,10 @@ func (s *Server) Close() {
 type ServerAPIArgs struct{}
 
 type ServerAPI struct {
-	StatusHandler func() (map[string]pConfig.Config, error)
+	StatusHandler func() (map[string]project.Config, error)
 }
 
-func (s *ServerAPI) Status(args *ServerAPIArgs, reply *map[string]pConfig.Config) error {
+func (s *ServerAPI) Status(args *ServerAPIArgs, reply *map[string]project.Config) error {
 	log.Print("client request for: status")
 	data, err := s.StatusHandler()
 	*reply = data
@@ -56,12 +57,12 @@ func (s *ServerAPI) Status(args *ServerAPIArgs, reply *map[string]pConfig.Config
 type ProjectAPI struct {
 	LoadHandler   func(path string) error
 	UnloadHandler func(path string) error
-	DomainHandler func(path string, dDrv *pConfig.DomainDirective) error
+	DomainHandler func(path string, dDrv *project.DomainDirective) error
 }
 
 type ProjectAPIArgs struct {
 	Path   string
-	Domain *pConfig.DomainDirective
+	Domain *project.DomainDirective
 }
 
 func (p *ProjectAPI) Load(args *ProjectAPIArgs, reply *bool) error {
