@@ -69,10 +69,11 @@ test:
 	mkdir -p _test/bin 
 	mkdir -p _test/sbin 
 	mkdir -p _test/var/run
+	mkdir -p _test/var/lib
 	mkdir -p _test/etc/hoi 
 	mkdir -p _test/etc/nginx/sites-enabled 
 	mkdir -p _test/etc/systemd/system
-	mkdir -p _test/etc/php/fpm/conf.d
+	mkdir -p _test/etc/php5/fpm/conf.d
 	mkdir -p _test/var/www/example
 	mkdir -p _test/var/www/example/assets 
 	mkdir -p _test/var/www/example/media
