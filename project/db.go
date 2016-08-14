@@ -13,6 +13,8 @@ type DatabaseDirective struct {
 	Name string
 	// Optional user; defaults to project name.
 	User string
-	// Password to access the database; required; must be non-empty.
+	// Password to access the database; required; must be non-empty
+	// except in "dev" context where empty passwords are permitted
+	// to ease development.
 	Password string
 }

@@ -203,13 +203,14 @@ func (cfg Config) Validate() error {
 	}
 
 	// Database names must be unique and users should for security reasons not
-	// have an empty password.
+	// have an empty password (except the context is "dev" where this might be
+	// intended to ease development).
 	seenDatabases := make([]string, 0)
 	for _, db := range cfg.Database {
 		if stringInSlice(db.Name, seenDatabases) {
 			return fmt.Errorf("found duplicate database name: %s", db.Name)
 		}
-		if db.Password == "" {
+		if cfg.Context != "dev" && db.Password == "" {
 			return fmt.Errorf("user %s has empty password for database: %s", db.User, db.Name)
 		}
 		seenDatabases = append(seenDatabases, db.Name)
