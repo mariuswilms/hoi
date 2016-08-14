@@ -76,7 +76,7 @@ $ systemctl enable --now hoid
 
 Project Configuration: The Hoifile
 ==================================
-https://godoc.org/github.com/atelierdisko/hoi/project
+https://godoc.org/github.com/atelierdisko/hoi/project#Config
 
 The Hoifile defines the needs of a project and provides a minimum
 set of configuration. The remaining configuration is discovered
@@ -123,7 +123,7 @@ A more advanced Hoifile might look like this:
 
 Server Configuration: hoid.conf
 ===============================
-https://godoc.org/github.com/atelierdisko/hoi/server
+https://godoc.org/github.com/atelierdisko/hoi/server#Config
 
 Customizing Service Templates
 -----------------------------
