@@ -16,13 +16,6 @@ import (
 	"github.com/atelierdisko/hoi/system"
 )
 
-type WorkerRunner struct {
-	s     server.Config
-	p     project.Config
-	sys   *system.Systemd
-	build *builder.Builder
-}
-
 func NewWorkerRunner(s server.Config, p project.Config) *WorkerRunner {
 	return &WorkerRunner{
 		s:     s,
@@ -30,6 +23,18 @@ func NewWorkerRunner(s server.Config, p project.Config) *WorkerRunner {
 		build: builder.NewBuilder(builder.KIND_WORKER, p, s),
 		sys:   system.NewSystemd(system.SYSTEMD_KIND_WORKER, p, s),
 	}
+}
+
+// Starts long running worker processes using systemd(1). Uses
+// resource controls (i.e. MemoryMax) to keep resource usage of
+// processes inside reasonable bounds. This is especially useful if
+// processes are leaking memory or otherwise don't behave well. A
+// feature desperately missing from alternatives like supervisord.
+type WorkerRunner struct {
+	s     server.Config
+	p     project.Config
+	sys   *system.Systemd
+	build *builder.Builder
 }
 
 func (r WorkerRunner) Disable() error {

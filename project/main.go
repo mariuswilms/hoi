@@ -45,12 +45,22 @@ func NewFromString(s string) (*Config, error) {
 	return decodeInto(cfg, s)
 }
 
+// The main project configuration is provided by the Hoifile: a per
+// project configuration file which defines the needs of a project hoi
+// will try to fullfill.
+//
+// A project provides as much configuration as needed, as the remaining
+// configuration is filled in by discovering the projects needs (through
+// Augment()).
 type Config struct {
 	// The absolute path to the project root; required but will
 	// be provided by hoictl mostly automatically.
 	Path string
 	// The name of the project; optional; if not provided the
-	// basename of the project's path will be used.
+	// basename of the project's path will be used, stripped off
+	// any context information.
+	//   acme       -> acme
+	//   acme_stage -> acme
 	Name string
 	// The name of the context the project is running in. Usually
 	// one of "dev", "stage" or "prod"; required.

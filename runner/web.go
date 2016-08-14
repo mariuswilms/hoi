@@ -28,6 +28,8 @@ func NewWebRunner(s server.Config, p project.Config) *WebRunner {
 	}
 }
 
+// Will serve project under configured domains using aliases and
+// redirects, enforcing authentication and SSL encryption.
 type WebRunner struct {
 	s     server.Config
 	p     project.Config

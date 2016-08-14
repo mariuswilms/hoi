@@ -5,6 +5,9 @@
 
 package project
 
+// Hoi can manage the database creation and users for you. It will
+// create a database and users with minimum sets of privileges if they
+// do not exist.
 type DatabaseDirective struct {
 	// Optional database name; defaults to project name.
 	Name string
