@@ -76,6 +76,8 @@ test:
 	mkdir -p _test/etc/systemd/system
 	mkdir -p _test/etc/php5/fpm/conf.d
 	mkdir -p _test/var/www/example
+	mkdir -p _test/var/www/example/config/ssl
+	touch _test/var/www/example/config/ssl/example.org.{crt,key}
 	mkdir -p _test/var/www/example/assets 
 	mkdir -p _test/var/www/example/media
 	mkdir -p _test/var/www/example/media_versions
