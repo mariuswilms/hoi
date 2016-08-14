@@ -193,14 +193,12 @@ https://godoc.org/github.com/atelierdisko/hoi/project#CronDirective
 
 Jobs that are run on a regular basis are configured via the cron
 directive. The schedule option supports expressions from
-systemd.time[0].
+systemd.time like "daily", "hourly", "weekly".
 
-cron low-freq {
+cron low-freq { // optional identifier
 	schedule = "daily"
 	command = "bin/li3 calculate-stock"
 }
-
-[0] https://www.freedesktop.org/software/systemd/man/systemd.time.html
 
 Database Directive
 ------------------

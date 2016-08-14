@@ -57,16 +57,16 @@ type Config struct {
 	Context string
 	// Whether PHP is used at all; optional, will be autodetected.
 	UsePHP bool
-	// Whether we can use try_files in NGINX for rewrites into the front
-	// controller or not; optional will be autodetected. Older PHP frameworks
-	// will need this.
+	// Whether we can use try_files in NGINX for rewrites into the
+	// front controller or not; optional will be autodetected. Older
+	// PHP frameworks will need this.
 	UsePHPLegacyRewrites bool
-	// The PHP Version in short simple form (5.6.3 -> 56); optional, defaults to "56".
-	// Will be used to run projects without PHP 7.0 compatibility side by side with
-	// those that are compatible.
+	// The PHP Version in short simple form (5.6.3 -> 56); optional,
+	// defaults to "56". Will be used to run projects without PHP 7.0
+	// compatibility side by side with those that are compatible.
 	PHPVersion string
-	// Whether we should enable large uploads inside NGINX (>100MB an <550MB); will be
-	// autodetected.
+	// Whether we should enable large uploads inside NGINX (>100MB an
+	// <550MB); will be autodetected.
 	UseLargeUploads bool
 	// Whether media versions should be served.
 	UseMediaVersions bool
@@ -78,9 +78,9 @@ type Config struct {
 	UseAssets bool
 	// Whether to use classic img/js/css dirs instead of a single assets dir.
 	UseClassicAssets bool
-	// Whether media and assets and all other sub-resurce should be served
-	// with a prefixed undersore i.e. /media under /_media, so that they don't
-	// conflict with paths routed through the app.
+	// Whether media and assets and all other sub-resurce should be
+	// served with a prefixed undersore i.e. /media under /_media, so
+	// that they don't conflict with paths routed through the app.
 	UseNoConflict bool
 	// Domains for the project.
 	Domain map[string]DomainDirective
@@ -178,8 +178,8 @@ func (cfg *Config) Augment() error {
 	log.Printf("discovering project config: %s", cfg.Path)
 
 	if cfg.Name == "" {
-		// Strips the directory name from known context suffix, the context
-		// may be added as suffixed later (see database name).
+		// Strips the directory name from known context suffix, the
+		// context may be added as suffixed later (see database name).
 		cfg.Name = strings.TrimSuffix(filepath.Base(cfg.Path), fmt.Sprintf("_%s", cfg.Context))
 		log.Printf("- guessed project name: %s", cfg.Name)
 	}
@@ -222,10 +222,10 @@ func (cfg *Config) Augment() error {
 		cfg.UseClassicAssets = true
 	}
 
-	// Guesses auth user names. An empty user name usually indicates that
-	// auth is disabled. However, here we interpret non empty passwords as an
-	// indicator for enabled auth. This will than trigger the correct behavior
-	// in GetCreds().
+	// Guesses auth user names. An empty user name usually indicates
+	// that auth is disabled. However, here we interpret non empty
+	// passwords as an indicator for enabled auth. This will than
+	// trigger the correct behavior in GetCreds().
 	for k, _ := range cfg.Domain {
 		e := cfg.Domain[k]
 
@@ -236,7 +236,8 @@ func (cfg *Config) Augment() error {
 		cfg.Domain[k] = e
 	}
 
-	// Guessing will always give the same result, we can therefore only guess once.
+	// Guessing will always give the same result, we can therefore
+	// only guess once.
 	guessedDBName := false
 	for k, _ := range cfg.Database {
 		e := cfg.Database[k]
@@ -244,8 +245,9 @@ func (cfg *Config) Augment() error {
 			if guessedDBName {
 				return fmt.Errorf("more than one database name to guess; giving up on augmenting: %s", cfg.Path)
 			}
-			// Production databases are not suffixed with context name. For other
-			// contexts the database name will look like "example_stage".
+			// Production databases are not suffixed with context
+			// name. For other contexts the database name will look
+			// like "example_stage".
 			if cfg.Context == "prod" {
 				e.Name = cfg.Name
 			} else {
@@ -255,8 +257,10 @@ func (cfg *Config) Augment() error {
 			guessedDBName = true
 		}
 		if e.User == "" {
-			// It's OK to have the same user being reused for multiple database (not optimal but OK).
-			// The limitations as to the database names (which need to be unique) do not apply here.
+			// It's OK to have the same user being reused for multiple
+			// database (not optimal but OK). The limitations as to
+			// the database names (which need to be unique) do not
+			// apply here.
 			e.User = cfg.Name
 			log.Printf("- guessed database user: %s", e.User)
 		}
