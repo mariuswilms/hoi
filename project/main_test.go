@@ -17,7 +17,6 @@ context = "prod"
 PHPVersion = 56
 `
 	cfg, err := NewFromString(hoifile)
-
 	if err != nil {
 		t.Error(err)
 	}
@@ -34,7 +33,6 @@ cron medium-freq {
 }
 `
 	cfg, err := NewFromString(hoifile)
-
 	if err != nil {
 		t.Error(err)
 	}
@@ -49,7 +47,6 @@ cron high-freq {
 }
 `
 	cfg, err := NewFromString(hoifile)
-
 	if err != nil {
 		t.Error(err)
 	}
@@ -64,7 +61,6 @@ domain "example.com" {
 }
 `
 	cfg, err := NewFromString(hoifile)
-
 	if err != nil {
 		t.Error(err)
 	}
@@ -83,12 +79,24 @@ domain "example.com" {
 }
 `
 	cfg, err := NewFromString(hoifile)
-
 	if err != nil {
 		t.Error(err)
 	}
 	fmt.Printf("%+v", cfg)
 	if cfg.Domain["example.com"].FQDN != "example.com" {
 		t.Error("failed to compare FQDN")
+	}
+}
+
+func TestSimpleDomain(t *testing.T) {
+	hoifile := `
+	domain example.org {}
+`
+	cfg, err := NewFromString(hoifile)
+	if err != nil {
+		t.Error(err)
+	}
+	if len(cfg.Domain) != 1 || cfg.Domain["example.org"].FQDN != "example.org" {
+		t.Error("failed to use simple domain syntax")
 	}
 }
