@@ -90,7 +90,7 @@ type SSLDirective struct {
 }
 
 func (drv SSLDirective) IsEnabled() bool {
-	return drv.Certificate != ""
+	return drv.Certificate != "" && drv.CertificateKey != ""
 }
 
 func (drv SSLDirective) GetCertificate() (string, error) {
