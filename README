@@ -101,11 +101,13 @@ Following example code assumes no prefix at all.
 $ cd $GOPATH/src/github.com/atelierdisko/hoi
 $ PREFIX= make install
 
-As a service file has been installed too, the following command
-will enable and start the hoi daemon under systemd.
+A system file is available in the conf/ directory, but will not be installed by
+default. The following commands will do this for you.
+$ cp conf/hoid.service /etc/systemd/system/
 $ systemctl enable --now hoid
 
-To manually start the daemon use the following command.
+If you prefer to manually start the daemon (for debugging purposes) simply
+call it like this:
 $ hoid
 
 
@@ -118,6 +120,8 @@ $ make test
 
 Project Configuration: The Hoifile
 ==================================
+https://godoc.org/github.com/atelierdisko/hoi/project
+
 The Hoifile is a per project configuration file which defines
 the needs of a project, so hoi can run it. It uses a directive
 based configuration syntax similar to the NGINX configuration.
@@ -130,15 +134,16 @@ $ hoictl --project=/var/www/foo load
 
 Domain Directive
 ----------------
+https://godoc.org/github.com/atelierdisko/hoi/project#DomainDirective
+
 Domains are configured using the naked domain. Handling
 of the www. prefix can be controlled via the "www" option.
 By default the prefix is dropped.
 
-domain example.org {}
-domain nperson.de {
-	www = "drop"
-	// www = "add"
-	// www = "keep"
+domain example.org {} // required naked domain name/FQDN
+
+domain example.org {
+	www = "drop" // optional, either "drop", "add" or "keep"
 }
 
 A domain can have one or multiple aliases which inherit any configuration
@@ -152,6 +157,10 @@ domain example.org {
 You can also dynamically add an alias to a domain via hoictl:
 $ hoictl domain example.org --alias=example.com
 
+SSL Directive
+.............
+https://godoc.org/github.com/atelierdisko/hoi/project#SSLDirective
+
 SSL can be enabled as follows, certificate files should
 be named after the domain. Symlinks are possible too.
 Once SSL is enabled all non SSL traffic will be redirected.
@@ -163,34 +172,52 @@ domain example.org {
 	}
 }
 
+Auth Directive
+..............
+https://godoc.org/github.com/atelierdisko/hoi/project#AuthDirective
+
 Access protection via auth - especially useful for staging/preview
 contexts - can be enabled as follows:
 
 domain example.org {
 	auth = {
-		user = "foo"
-		password = "bar"
+		user = "foo" // optional, defaults to project name
+		password = "bar" // required, must be non empty
 	}
 }
 
 Cron Directive
 --------------
+https://godoc.org/github.com/atelierdisko/hoi/project#CronDirective
+
 Jobs that are run on a regular basis are configured via the cron
 directive. The schedule option supports expressions from
 systemd.time[0].
 
-cron low-freq { # not required but allows to identify the cron later easily
+cron low-freq {
 	schedule = "daily"
 	command = "bin/li3 calculate-stock"
 }
 
 [0] https://www.freedesktop.org/software/systemd/man/systemd.time.html
 
+Database Directive
+------------------
+https://godoc.org/github.com/atelierdisko/hoi/project#DatabaseDirective
 
-Server Configuration
-====================
-The server configuration file can be found at:
-/etc/hoi/hoid.conf
+Hoi can manage the database creation and users for you. It will create
+a database if it does not exist (the rest is left to migration tools).
+It will also create a user or ensure an existing user has a minimal
+set of privileges to access that database.
+
+database foo { // optional database name
+	user = "foo" // optional user name, defaults to project name
+	password = "s3cret"
+}
+
+Server Configuration: hoid.conf
+===============================
+https://godoc.org/github.com/atelierdisko/hoi/server
 
 Customizing Service Templates
 -----------------------------
@@ -202,13 +229,13 @@ be customized, they reside inside and use Go Template[0] syntax.
 
 
 Copyright & License
--------------------
+===================
 Hoi is Copyright (c) 2016 Atelier Disko if not otherwise
 stated. Use of the source code is governed by a BSD-style
 license that can be found in the LICENSE file.
 
 Versions & Requirements
------------------------
+=======================
 The Go language >= 1.6 is required to build the project.
 
 Hoi is continously tested on Linux and Darwin.
