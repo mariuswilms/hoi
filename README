@@ -57,7 +57,7 @@ of a project.
   Manages long running worker processes with resource controls.
   https://godoc.org/github.com/atelierdisko/hoi/runner#WorkerRunner
 
-- "database"
+- "db"
   Creates databases and users with minimum set of privileges.
   https://godoc.org/github.com/atelierdisko/hoi/runner#DBRunner
 
@@ -93,31 +93,31 @@ alias to a domain:
 $ hoictl domain example.org --alias=example.com
 
 A minimal Hoifile has 3 lines:
-name = "example"
-context = "prod"
-domain example.org {}
+  name = "example"
+  context = "prod"
+  domain example.org {}
 
 A more advanced Hoifile might look like this:
-name = "example"
-context = "prod"
-domain example.org {
-	SSL = {
-		certificate = "config/ssl/example.org.crt"
-		certificateKey = "config/ssl/example.org.key"
-	}
-	aliases = ["example.com", "example.net"]
-}
-database example {
-	password = "s3cret"
-}
-cron reporter {
-	schedule = "daily"
-	command = "bin/compile-report"
-}
-worker media-processor {
-	instances = 2
-	command = "bin/process-media"
-}
+  name = "example"
+  context = "prod"
+  domain example.org {
+    SSL = {
+      certificate = "config/ssl/example.org.crt"
+      certificateKey = "config/ssl/example.org.key"
+    }
+    aliases = ["example.com", "example.net"]
+  }
+  database example {
+    password = "s3cret"
+  }
+  cron reporter {
+    schedule = "daily"
+    command = "bin/compile-report"
+  }
+  worker media-processor {
+    instances = 2
+    command = "bin/process-media"
+  }
 
 Server Configuration: hoid.conf
 ===============================
@@ -154,9 +154,11 @@ The worker runner requires systemd(1)
   Recent systemd versions are always supported, older ones (i.e. 215) are
   probably supported via the "useLegacy" option.
 
-The PHP runner requires PHP(1)
+The PHP runner requires php(1)
   If you don't enable this runner you can drop this requirement.
 
+The DB runner requires mysqld(8)
+  If you don't enable this runner you can drop this requirement.
 
 Development
 ===========
