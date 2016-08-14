@@ -47,6 +47,9 @@ func (drv CronDirective) ID() string {
 	return drv.Name
 }
 
+// Returns the command string after parsing it as a template
+// using given project configuration. Tries to detect if parsing
+// is necessarry, as most often commands will not use templating.
 func (drv CronDirective) GetCommand(p Config) (string, error) {
 	if !strings.Contains(drv.Command, "{{") {
 		return drv.Command, nil

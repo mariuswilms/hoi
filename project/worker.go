@@ -41,7 +41,8 @@ func (drv WorkerDirective) ID() string {
 	return drv.Name
 }
 
-// Default to at least 1 instance.
+// Returns number of instances, while ensuring at least one instance is returned
+// and converting to correct unsigned integer type.
 func (drv WorkerDirective) GetInstances() uint {
 	if drv.Instances == 0 {
 		return uint(1)
@@ -49,6 +50,9 @@ func (drv WorkerDirective) GetInstances() uint {
 	return uint(drv.Instances)
 }
 
+// Returns the command string after parsing it as a template
+// using given project configuration. Tries to detect if parsing
+// is necessarry, as most often commands will not use templating.
 func (drv WorkerDirective) GetCommand(p Config) (string, error) {
 	if !strings.Contains(drv.Command, "{{") {
 		return drv.Command, nil
