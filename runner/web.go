@@ -47,14 +47,11 @@ func (r WebRunner) Disable() error {
 			return err
 		}
 	}
-	if len(servers) == 0 {
-		return nil // nothing to disable
-	}
-	return r.sys.Reload()
+	return nil
 }
 
 func (r WebRunner) Enable() error {
-	if len(r.p.Cron) == 0 {
+	if len(r.p.Domain) == 0 {
 		return nil // nothing to do
 	}
 	files, err := r.build.ListAvailable()
