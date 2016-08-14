@@ -124,7 +124,7 @@ func ProjectPathToID(path string) string {
 }
 
 // Extracts username/password pairs from domain configuration.
-func (cfg Config) GetCreds() (map[string]string, error) {
+func (cfg Config) GetCreds() map[string]string {
 	creds := make(map[string]string)
 
 	for _, v := range cfg.Domain {
@@ -133,7 +133,7 @@ func (cfg Config) GetCreds() (map[string]string, error) {
 		}
 		creds[v.Auth.User] = v.Auth.Password
 	}
-	return creds, nil
+	return creds
 }
 
 // Validates several aspects and looks for typical human errors.

@@ -82,11 +82,7 @@ func (r WebRunner) Build() error {
 		return nil // nothing to do
 	}
 
-	creds, err := r.p.GetCreds()
-	if err != nil {
-		return err
-	}
-	if len(creds) != 0 {
+	if creds := r.p.GetCreds(); len(creds) != 0 {
 		var tmp []byte
 		buf := bytes.NewBuffer(tmp)
 
