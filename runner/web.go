@@ -24,7 +24,7 @@ func NewWebRunner(s server.Config, p project.Config) *WebRunner {
 		s:     s,
 		p:     p,
 		build: builder.NewScopedBuilder(builder.KindWeb, "servers/*.conf", p, s),
-		sys:   system.NewNGINX(p, s),
+		nginx: system.NewNGINX(p, s),
 		ssl:   system.NewSSL(p, s),
 	}
 }
@@ -35,17 +35,17 @@ type WebRunner struct {
 	s     server.Config
 	p     project.Config
 	build *builder.Builder
-	sys   *system.NGINX
+	nginx *system.NGINX
 	ssl   *system.SSL
 }
 
 func (r WebRunner) Disable() error {
-	servers, err := r.sys.ListInstalled()
+	servers, err := r.nginx.ListInstalled()
 	if err != nil {
 		return err
 	}
 	for _, s := range servers {
-		if err := r.sys.Uninstall(s); err != nil {
+		if err := r.nginx.Uninstall(s); err != nil {
 			return err
 		}
 	}
@@ -69,7 +69,7 @@ func (r WebRunner) Enable() error {
 		return err
 	}
 	for _, f := range files {
-		if err := r.sys.Install(f); err != nil {
+		if err := r.nginx.Install(f); err != nil {
 			return err
 		}
 	}
@@ -77,7 +77,7 @@ func (r WebRunner) Enable() error {
 }
 
 func (r WebRunner) Commit() error {
-	return r.sys.ReloadIfDirty()
+	return r.nginx.ReloadIfDirty()
 }
 
 func (r WebRunner) Clean() error {
