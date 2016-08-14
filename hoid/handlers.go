@@ -151,23 +151,23 @@ func handleDomain(path string, dDrv *project.DomainDirective) error {
 func runners(pCfg project.Config) []runner.Runnable {
 	runners := make([]runner.Runnable, 0)
 
-	if Config.Web.Enabled {
-		runners = append(runners, runner.NewWebRunner(*Config, pCfg))
-	}
 	if Config.SSL.Enabled {
 		runners = append(runners, runner.NewSSLRunner(*Config, pCfg))
 	}
 	if Config.PHP.Enabled {
 		runners = append(runners, runner.NewPHPRunner(*Config, pCfg))
 	}
+	if Config.Database.Enabled {
+		runners = append(runners, runner.NewDBRunner(*Config, pCfg, MySQLConn))
+	}
+	if Config.Web.Enabled {
+		runners = append(runners, runner.NewWebRunner(*Config, pCfg))
+	}
 	if Config.Cron.Enabled {
 		runners = append(runners, runner.NewCronRunner(*Config, pCfg))
 	}
 	if Config.Worker.Enabled {
 		runners = append(runners, runner.NewWorkerRunner(*Config, pCfg))
-	}
-	if Config.Database.Enabled {
-		runners = append(runners, runner.NewDBRunner(*Config, pCfg, MySQLConn))
 	}
 
 	return runners
