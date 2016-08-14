@@ -38,14 +38,9 @@ something for you.
 What's inside?
 --------------
 Hoi consist of a server (hoid) backend and client (hoictl) to control the
-server. It features several modules ("runners") which take care of serving your
-project, backing it up and managing cron jobs and workers.
+server. It features several modules ("runners") which take care of the needs
+of a project.
 
-Hoi currently relies on a fixed set of technologies (see requirements) to do its
-job. However, changing this and implementing an abstraction layer with adapters
-are a possible future goal.
-
-The currently available runners are:
 - "web"
   Sets up NGINX(8) and PHP-FPM as the application server when needed.
 
@@ -68,49 +63,19 @@ The currently available runners are:
   Creates databases and users with minimum set of privileges if they do not
   exist for mysqld(8).
 
-Planned runners are:
-- "backup"
-  Uses rsnapshot(1) to produce daily/weekly/monthly backups from your project
-  directory. If available will also include a dump of attached databases.
-  Generated snapshots may be pushed offsite via SSH.
-
-- "seal"
-  Uses the mtree(8) utility to generate so called manifests of your projects
-  contents and will regularly check the project against that manifest to detect
-  possible tampering.
-
-- "log"
-
 [0] https://bugs.php.net/bug.php?id=63965
     - "php-fpm site specific settings go global"
 
 
 Installation
 ============
-Ensure GOPATH is set and get the source from GitHub.
-$ go get github.com/atelierdisko/hoi
+The following handful of commands will install hoi into your system:
 
-Then execute make to install configuration and binaries. The default prefix is
-/usr/local. The prefix can be cahnged via the PREFIX var. Following example code
-assumes no prefix at all.
+$ go get github.com/atelierdisko/hoi
 $ cd $GOPATH/src/github.com/atelierdisko/hoi
 $ PREFIX= make install
-
-A system file is available in the conf/ directory, but will not be installed by
-default. The following commands will do this for you.
 $ cp conf/hoid.service /etc/systemd/system/
 $ systemctl enable --now hoid
-
-If you prefer to manually start the daemon (for debugging purposes) simply call
-it like this:
-$ hoid
-
-
-Development
-===========
-To start hoi in a test environment execute and read
-instructions printed by `make test`.
-$ make test
 
 
 Project Configuration: The Hoifile
@@ -245,3 +210,31 @@ The worker runner requires systemd(1)
 
 The PHP runner requires PHP(1)
   If you don't enable this runner you can drop this requirement.
+
+
+Development
+===========
+Hoi comes with a small test environment to conduct manual testing.
+
+$ go get github.com/atelierdisko/hoi
+$ cd $GOPATH/src/github.com/atelierdisko/hoi
+$ make test
+
+Future Scope
+------------
+Hoi currently relies on a fixed set of technologies (see requirements) to do its
+job. However, changing this and implementing an abstraction layer with adapters
+are a possible future goal.
+
+Other planned runners are:
+- "backup"
+  Uses rsnapshot(1) to produce daily/weekly/monthly backups from your project
+  directory. If available will also include a dump of attached databases.
+  Generated snapshots may be pushed offsite via SSH.
+
+- "seal"
+  Uses the mtree(8) utility to generate so called manifests of your projects
+  contents and will regularly check the project against that manifest to detect
+  possible tampering.
+
+- "log"
