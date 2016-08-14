@@ -43,7 +43,7 @@ of a project.
 
 - "web"
   Serves the project under given domains, taking care of SSL
-  certification and basic auth where needed.
+  certificates and basic auth where needed.
   https://godoc.org/github.com/atelierdisko/hoi/runner#WebRunner
 
 - "php"
