@@ -151,9 +151,6 @@ func handleDomain(path string, dDrv *project.DomainDirective) error {
 func runners(pCfg project.Config) []runner.Runnable {
 	runners := make([]runner.Runnable, 0)
 
-	if Config.SSL.Enabled {
-		runners = append(runners, runner.NewSSLRunner(*Config, pCfg))
-	}
 	if Config.PHP.Enabled {
 		runners = append(runners, runner.NewPHPRunner(*Config, pCfg))
 	}

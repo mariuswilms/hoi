@@ -20,7 +20,9 @@ func NewSSL(p project.Config, s server.Config) *SSL {
 	return &SSL{p: p, s: s}
 }
 
-// Certs and keys are managed in two separate directories. Each
+// The SSL system manages certificates and keys in a central directory.
+//
+// Certs and keys are managed in two separate sub-directories. Each
 // file is named after the domain they belong to. Certs are suffixed
 // with .crt, keys with .key.
 type SSL struct {
@@ -89,4 +91,24 @@ func (sys SSL) ListInstalled() ([]string, error) {
 		))
 	}
 	return domains, err
+}
+
+func (sys SSL) GetCertificate(domain string) (string, error) {
+	ns := fmt.Sprintf("project_%s", sys.p.ID())
+
+	target := fmt.Sprintf("%s/certs/%s_%s.crt", sys.s.SSL.RunPath, ns, domain)
+	if _, err := os.Stat(target); os.IsNotExist(err) {
+		return target, err
+	}
+	return target, nil
+}
+
+func (sys SSL) GetCertificateKey(domain string) (string, error) {
+	ns := fmt.Sprintf("project_%s", sys.p.ID())
+
+	target := fmt.Sprintf("%s/private/%s_%s.key", sys.s.SSL.RunPath, ns, domain)
+	if _, err := os.Stat(target); os.IsNotExist(err) {
+		return target, err
+	}
+	return target, nil
 }

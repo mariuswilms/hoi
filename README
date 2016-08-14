@@ -42,12 +42,9 @@ server. It features several modules ("runners") which take care of the needs
 of a project.
 
 - "web"
-  Serves the project under given domains.
+  Serves the project under given domains, taking care of SSL
+  certification and basic auth where needed.
   https://godoc.org/github.com/atelierdisko/hoi/runner#WebRunner
-
-- "ssl"
-  Manages certificates and keys.
-  https://godoc.org/github.com/atelierdisko/hoi/runner#SSLRunner
 
 - "php"
   Safely enables per project PHP(1) settings.

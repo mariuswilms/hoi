@@ -25,6 +25,7 @@ func NewWebRunner(s server.Config, p project.Config) *WebRunner {
 		p:     p,
 		build: builder.NewScopedBuilder(builder.KindWeb, "servers/*.conf", p, s),
 		sys:   system.NewNGINX(p, s),
+		ssl:   system.NewSSL(p, s),
 	}
 }
 
@@ -33,8 +34,9 @@ func NewWebRunner(s server.Config, p project.Config) *WebRunner {
 type WebRunner struct {
 	s     server.Config
 	p     project.Config
-	sys   *system.NGINX
 	build *builder.Builder
+	sys   *system.NGINX
+	ssl   *system.SSL
 }
 
 func (r WebRunner) Disable() error {
@@ -47,13 +49,21 @@ func (r WebRunner) Disable() error {
 			return err
 		}
 	}
+
+	domains, err := r.ssl.ListInstalled()
+	if err != nil {
+		return err
+	}
+	for _, domain := range domains {
+		if err := r.ssl.Uninstall(domain); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
 func (r WebRunner) Enable() error {
-	if len(r.p.Domain) == 0 {
-		return nil // nothing to do
-	}
 	files, err := r.build.ListAvailable()
 	if err != nil {
 		return err
@@ -79,6 +89,12 @@ func (r WebRunner) Build() error {
 		return nil // nothing to do
 	}
 
+	for domain, ssl := range r.p.GetCerts() {
+		if err := r.ssl.Install(domain, ssl); err != nil {
+			return err
+		}
+	}
+
 	if creds := r.p.GetCreds(); len(creds) != 0 {
 		var tmp []byte
 		buf := bytes.NewBuffer(tmp)
@@ -93,19 +109,20 @@ func (r WebRunner) Build() error {
 			return err
 		}
 	}
+
 	for k, v := range r.p.Domain {
 		if !v.SSL.IsEnabled() {
 			continue
 		}
 		e := r.p.Domain[k]
 
-		path, err := e.SSL.GetCertificate(r.p)
+		path, err := r.ssl.GetCertificate(v.FQDN)
 		if err != nil {
 			return err
 		}
 		e.SSL.Certificate = path
 
-		path, err = e.SSL.GetCertificateKey(r.p)
+		path, err = r.ssl.GetCertificateKey(v.FQDN)
 		if err != nil {
 			return err
 		}
