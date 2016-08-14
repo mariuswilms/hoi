@@ -19,26 +19,25 @@ ANY_DEPS = project server rpc builder runner system
 DEBUG ?= no
 
 define TEST_HOIFILE
-name = "foo"
-context = "stage"
-domain atelierdisko.de {
-	www = "drop"
-	aliases = ["disko.xyz", "disko.io"]
+name = "example"
+context = "prod"
+domain example.org {
+  SSL = {
+    certificate = "config/ssl/example.org.crt"
+    certificateKey = "config/ssl/example.org.key"
+  }
+  aliases = ["example.com", "example.net"]
 }
-cron high-freq {
-	schedule = "hourly"
-	command = "./bin/li3.php jobs runFrequency high"
+database example {
+  password = "s3cret"
 }
-cron medium-freq {
-	schedule = "daily"
-	command = "./bin/li3.php jobs runFrequency medium"
+cron reporter {
+  schedule = "daily"
+  command = "/bin/touch cron-run"
 }
-worker media-fix {
-	instances = 2
-	command = "./bin/cute-worker --scope={{.P.Name}}_{{.P.Context}}"
-}
-database {
-	password = "bar"
+worker media-processor {
+  instances = 2
+  command = "/bin/touch worker-run"
 }
 endef
 
@@ -74,13 +73,13 @@ test:
 	mkdir -p _test/etc/nginx/sites-enabled 
 	mkdir -p _test/etc/systemd/system
 	mkdir -p _test/etc/php/fpm/conf.d
-	mkdir -p _test/var/www/foo
-	mkdir -p _test/var/www/foo/assets 
-	mkdir -p _test/var/www/foo/media
-	mkdir -p _test/var/www/foo/media_versions
-	mkdir -p _test/var/www/foo/app/webroot
-	touch _test/var/www/foo/app/webroot/index.php
-	echo "$$TEST_HOIFILE" > _test/var/www/foo/Hoifile
+	mkdir -p _test/var/www/example
+	mkdir -p _test/var/www/example/assets 
+	mkdir -p _test/var/www/example/media
+	mkdir -p _test/var/www/example/media_versions
+	mkdir -p _test/var/www/example/app/webroot
+	touch _test/var/www/example/app/webroot/index.php
+	echo "$$TEST_HOIFILE" > _test/var/www/example/Hoifile
 	PREFIX=./_test DEBUG=$(DEBUG) make install
 	sed -i -e "s|Path = \"|Path = \"$(abspath ./_test)|g" ./_test/etc/hoi/hoid.conf
 	@echo 
@@ -90,7 +89,7 @@ test:
 	@echo 
 	@echo Terminal B:
 	@echo -----------
-	@echo ./_test/bin/hoictl --project=./_test/var/www/foo load
+	@echo ./_test/bin/hoictl --project=./_test/var/www/example load
 
 $(PREFIX)/bin/%: dist/%
 	install -m 555 $< $@
