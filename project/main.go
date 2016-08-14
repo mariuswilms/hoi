@@ -92,21 +92,21 @@ type Config struct {
 	Database map[string]DatabaseDirective
 }
 
-func (c Config) ID() string {
-	if c.Path == "" {
+func (cfg Config) ID() string {
+	if cfg.Path == "" {
 		log.Fatal(errors.New("no path to generate ID"))
 	}
-	return fmt.Sprintf("%x", adler32.Checksum([]byte(c.Path)))
+	return fmt.Sprintf("%x", adler32.Checksum([]byte(cfg.Path)))
 }
 
-func (c Config) PrettyName() string {
-	if c.Name != "" {
-		if c.Context != "" {
-			return fmt.Sprintf("%s@%s", c.Name, c.Context)
+func (cfg Config) PrettyName() string {
+	if cfg.Name != "" {
+		if cfg.Context != "" {
+			return fmt.Sprintf("%s@%s", cfg.Name, cfg.Context)
 		}
-		return fmt.Sprintf("%s@?", c.Name)
+		return fmt.Sprintf("%s@?", cfg.Name)
 	}
-	return fmt.Sprintf("? in %s", filepath.Base(c.Path))
+	return fmt.Sprintf("? in %s", filepath.Base(cfg.Path))
 }
 
 func ProjectPathToID(path string) string {
@@ -114,10 +114,10 @@ func ProjectPathToID(path string) string {
 }
 
 // Extracts username/password pairs from domain configuration.
-func (c Config) GetCreds() (map[string]string, error) {
+func (cfg Config) GetCreds() (map[string]string, error) {
 	creds := make(map[string]string)
 
-	for _, v := range c.Domain {
+	for _, v := range cfg.Domain {
 		if !v.Auth.IsEnabled() {
 			continue
 		}
@@ -127,7 +127,7 @@ func (c Config) GetCreds() (map[string]string, error) {
 }
 
 // Validates several aspects and looks for typical human errors.
-func (c Config) Validate() error {
+func (cfg Config) Validate() error {
 	stringInSlice := func(a string, list []string) bool {
 		for _, b := range list {
 			if b == a {
@@ -137,12 +137,12 @@ func (c Config) Validate() error {
 		return false
 	}
 
-	if c.Context == "" {
-		return fmt.Errorf("project has no context: %s", c.Path)
+	if cfg.Context == "" {
+		return fmt.Errorf("project has no context: %s", cfg.Path)
 	}
 
 	creds := make(map[string]string)
-	for k, v := range c.Domain {
+	for k, v := range cfg.Domain {
 		if !v.Auth.IsEnabled() {
 			continue
 		}
@@ -158,7 +158,7 @@ func (c Config) Validate() error {
 	}
 
 	seenDatabases := make([]string, 0)
-	for _, db := range c.Database {
+	for _, db := range cfg.Database {
 		if stringInSlice(db.Name, seenDatabases) {
 			return fmt.Errorf("found duplicate database name: %s", db.Name)
 		}
@@ -174,68 +174,68 @@ func (c Config) Validate() error {
 // Augments a project configuration as read from a Hoifile, so that
 // most configuration does not have to be given explictly and project
 // configuration can stay lean.
-func (c *Config) Augment() error {
-	log.Printf("discovering project config: %s", c.Path)
+func (cfg *Config) Augment() error {
+	log.Printf("discovering project config: %s", cfg.Path)
 
-	if c.Name == "" {
+	if cfg.Name == "" {
 		// Strips the directory name from known context suffix, the context
 		// may be added as suffixed later (see database name).
-		c.Name = strings.TrimSuffix(filepath.Base(c.Path), fmt.Sprintf("_%s", c.Context))
-		log.Printf("- guessed project name: %s", c.Name)
+		cfg.Name = strings.TrimSuffix(filepath.Base(cfg.Path), fmt.Sprintf("_%s", cfg.Context))
+		log.Printf("- guessed project name: %s", cfg.Name)
 	}
 
-	if _, err := os.Stat(c.Path + "/app/webroot/index.php"); err == nil {
+	if _, err := os.Stat(cfg.Path + "/app/webroot/index.php"); err == nil {
 		log.Print("- using PHP")
-		c.UsePHP = true
+		cfg.UsePHP = true
 
-		legacy, err := fileContainsString(c.Path+"/app/webroot/index.php", "cake")
+		legacy, err := fileContainsString(cfg.Path+"/app/webroot/index.php", "cake")
 		if err != nil {
 			return err
 		}
 		if legacy {
 			log.Print("- using legacy rewrites")
-			c.UsePHPLegacyRewrites = true
+			cfg.UsePHPLegacyRewrites = true
 		}
 		log.Print("- using large uploads")
-		c.UseLargeUploads = true
+		cfg.UseLargeUploads = true
 	}
 
-	if _, err := os.Stat(c.Path + "/assets"); err == nil {
+	if _, err := os.Stat(cfg.Path + "/assets"); err == nil {
 		log.Print("- will serve unified assets directory from: /assets")
-		c.UseAssets = true
+		cfg.UseAssets = true
 	}
-	if _, err := os.Stat(c.Path + "/media_versions"); err == nil {
+	if _, err := os.Stat(cfg.Path + "/media_versions"); err == nil {
 		log.Print("- will serve media versions from: /media_versions")
-		c.UseMediaVersions = true
+		cfg.UseMediaVersions = true
 	}
-	if _, err := os.Stat(c.Path + "/media"); err == nil {
+	if _, err := os.Stat(cfg.Path + "/media"); err == nil {
 		log.Print("- will serve media transfers from: /media")
-		c.UseMediaTransfers = true
+		cfg.UseMediaTransfers = true
 	}
-	if _, err := os.Stat(c.Path + "/files"); err == nil {
+	if _, err := os.Stat(cfg.Path + "/files"); err == nil {
 		log.Print("- will serve files from: /files")
-		c.UseFiles = true
+		cfg.UseFiles = true
 	}
-	if _, err := os.Stat(c.Path + "/app/webroot/css"); err == nil {
+	if _, err := os.Stat(cfg.Path + "/app/webroot/css"); err == nil {
 		log.Print("- using classic assets")
-		c.UseAssets = true
-		c.UseClassicAssets = true
+		cfg.UseAssets = true
+		cfg.UseClassicAssets = true
 	}
 
 	// Guessing will always give the same result, we can therefore only guess once.
 	guessedDBName := false
-	for k, _ := range c.Database {
-		e := c.Database[k]
+	for k, _ := range cfg.Database {
+		e := cfg.Database[k]
 		if e.Name == "" {
 			if guessedDBName {
-				return fmt.Errorf("more than one database name to guess; giving up on augmenting: %s", c.Path)
+				return fmt.Errorf("more than one database name to guess; giving up on augmenting: %s", cfg.Path)
 			}
 			// Production databases are not suffixed with context name. For other
 			// contexts the database name will look like "example_stage".
-			if c.Context == "prod" {
-				e.Name = c.Name
+			if cfg.Context == "prod" {
+				e.Name = cfg.Name
 			} else {
-				e.Name = fmt.Sprintf("%s_%s", c.Name, c.Context)
+				e.Name = fmt.Sprintf("%s_%s", cfg.Name, cfg.Context)
 			}
 			log.Printf("- guessed database name: %s", e.Name)
 			guessedDBName = true
@@ -243,10 +243,10 @@ func (c *Config) Augment() error {
 		if e.User == "" {
 			// It's OK to have the same user being reused for multiple database (not optimal but OK).
 			// The limitations as to the database names (which need to be unique) do not apply here.
-			e.User = c.Name
+			e.User = cfg.Name
 			log.Printf("- guessed database user: %s", e.User)
 		}
-		c.Database[k] = e
+		cfg.Database[k] = e
 	}
 	return nil
 }

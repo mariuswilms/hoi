@@ -27,6 +27,7 @@ type MySQL struct {
 func (sys MySQL) EnsureDatabase(database string) error {
 	sql := `CREATE DATABASE IF NOT EXISTS ? `
 
+	log.Printf("mysql: %s", sql)
 	res, err := sys.conn.Exec(sql, database)
 	if err != nil {
 		return err
@@ -40,6 +41,7 @@ func (sys MySQL) EnsureDatabase(database string) error {
 func (sys MySQL) EnsureUser(user string, password string) error {
 	sql := `CREATE USER IF NOT EXISTS '?'@'localhost' IDENTIFIED BY '?'`
 
+	log.Printf("mysql: %s", sql)
 	res, err := sys.conn.Exec(sql, user, password)
 	if err != nil {
 		return err
@@ -55,6 +57,8 @@ func (sys MySQL) EnsureUser(user string, password string) error {
 func (sys MySQL) EnsureGrant(user string, database string, privs []string) error {
 	for _, priv := range privs {
 		sql := `GRANT ? ON ?.* TO '?'@'localhost'`
+
+		log.Printf("mysql: %s", sql)
 		res, err := sys.conn.Exec(sql, priv, database, user)
 		if err != nil {
 			return err
@@ -70,6 +74,8 @@ func (sys MySQL) EnsureGrant(user string, database string, privs []string) error
 // level. MySQL does not include GRANT OPTION in ALL.
 func (sys MySQL) EnsureNoGrant(user string, database string) error {
 	sql := `REVOKE ALL PRIVILEGES, GRANT OPTION ON ?.* TO '?'@'localhost'`
+
+	log.Printf("mysql: %s", sql)
 	res, err := sys.conn.Exec(sql, database, user)
 	if err != nil {
 		return err
@@ -85,6 +91,8 @@ func (sys *MySQL) ReloadIfDirty() error {
 		return nil
 	}
 	sql := `FLUSH PRIVILEGES`
+
+	log.Printf("mysql: %s", sql)
 	if _, err := sys.conn.Exec(sql); err != nil {
 		log.Printf("MySQL reload: left in dirty state")
 		return err
