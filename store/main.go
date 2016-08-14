@@ -36,13 +36,14 @@ func New(file string) (*Store, error) {
 type Store struct {
 	// Global lock.
 	sync.RWMutex
-	// The database file, where store is persiting to.
+	// The database file handle, where store is persisting to.
 	file string
 	// Holds no pointers as it then would be possible to modify data outside lock.
 	data map[string]project.Config
 }
 
-// Deserialize
+// Loads database file contents into memory. Does not hold an open handle
+// on the file.
 func (s *Store) Load() error {
 	f, err := os.Open(s.file)
 	if err != nil {
@@ -71,7 +72,7 @@ func (s *Store) Load() error {
 	return nil
 }
 
-// Serialize
+// Persists data into database file.
 func (s *Store) Store() error {
 	// Swap contents at the very end, when we are sure that
 	// everything else worked.
