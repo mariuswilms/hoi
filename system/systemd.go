@@ -19,8 +19,10 @@ import (
 )
 
 // The hoi-internal kind of units we manage.
-const SYSTEMD_KIND_CRON = "cron"
-const SYSTEMD_KIND_WORKER = "worker"
+const (
+	SystemdKindCron   = "cron"
+	SystemdKindWorker = "worker"
+)
 
 func NewSystemd(kind string, p project.Config, s server.Config) *Systemd {
 	return &Systemd{kind: kind, p: p, s: s}

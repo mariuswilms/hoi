@@ -20,8 +20,8 @@ func NewWorkerRunner(s server.Config, p project.Config) *WorkerRunner {
 	return &WorkerRunner{
 		s:     s,
 		p:     p,
-		build: builder.NewBuilder(builder.KIND_WORKER, p, s),
-		sys:   system.NewSystemd(system.SYSTEMD_KIND_WORKER, p, s),
+		build: builder.NewBuilder(builder.KindWorker, p, s),
+		sys:   system.NewSystemd(system.SystemdKindWorker, p, s),
 	}
 }
 

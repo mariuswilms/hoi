@@ -18,10 +18,12 @@ import (
 	"github.com/atelierdisko/hoi/server"
 )
 
-const KIND_WEB = "web"
-const KIND_PHP = "php"
-const KIND_CRON = "cron"
-const KIND_WORKER = "worker"
+const (
+	KindWeb    = "web"
+	KindPHP    = "php"
+	KindCron   = "cron"
+	KindWorker = "worker"
+)
 
 func NewBuilder(kind string, p project.Config, s server.Config) *Builder {
 	return &Builder{kind: kind, p: p, s: s}

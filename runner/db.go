@@ -19,10 +19,10 @@ import (
 const (
 	// The minimum set of database level privileges for general project
 	// usage (non-administrative tasks).
-	DB_PRIVS = "DELETE,INSERT,SELECT,UPDATE"
+	DBPrivs = "DELETE,INSERT,SELECT,UPDATE"
 	// The minimum set of database level privileges for migrating
 	// the database in use by the project.
-	DB_ADMIN_PRIVS = "LOCK TABLES,ALTER,DROP,CREATE,INDEX"
+	DBAdminPrivs = "LOCK TABLES,ALTER,DROP,CREATE,INDEX"
 )
 
 func NewDBRunner(s server.Config, p project.Config, conn *sql.DB) *DBRunner {
@@ -50,7 +50,7 @@ func (r DBRunner) Clean() error {
 }
 
 func (r DBRunner) Enable() error {
-	privs := strings.Split(DB_PRIVS+","+DB_ADMIN_PRIVS, ",")
+	privs := strings.Split(DBPrivs+","+DBAdminPrivs, ",")
 
 	for _, db := range r.p.Database {
 		if err := r.sys.EnsureDatabase(db.Name); err != nil {

@@ -16,7 +16,7 @@ func NewPHPRunner(s server.Config, p project.Config) *PHPRunner {
 	return &PHPRunner{
 		s:     s,
 		p:     p,
-		build: builder.NewBuilder(builder.KIND_PHP, p, s),
+		build: builder.NewBuilder(builder.KindPHP, p, s),
 		sys:   system.NewPHP(p, s),
 	}
 }

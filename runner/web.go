@@ -23,7 +23,7 @@ func NewWebRunner(s server.Config, p project.Config) *WebRunner {
 	return &WebRunner{
 		s:     s,
 		p:     p,
-		build: builder.NewScopedBuilder(builder.KIND_WEB, "servers/*.conf", p, s),
+		build: builder.NewScopedBuilder(builder.KindWeb, "servers/*.conf", p, s),
 		sys:   system.NewNGINX(p, s),
 	}
 }
@@ -136,14 +136,14 @@ func (r WebRunner) Build() error {
 	return r.build.LoadWriteTemplates(tmplData)
 }
 
-const APR1abc string = "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+const apr1ABC string = "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 
 // 8 byte long salt from APR1 alphabet
 func generateAPR1Salt() string {
 	b := make([]byte, 8)
 
 	for i := range b {
-		b[i] = APR1abc[rand.Intn(len(APR1abc))]
+		b[i] = apr1ABC[rand.Intn(len(apr1ABC))]
 	}
 	return string(b)
 }
@@ -235,7 +235,7 @@ func computeAPR1(password string, salt string) string {
 		v := (uint(a) << 16) + (uint(b) << 8) + uint(c) // take our 24 input bits
 
 		for i := 0; i < 4; i++ { // and pump out a character for each 6 bits
-			result.WriteByte(APR1abc[v&0x3f])
+			result.WriteByte(apr1ABC[v&0x3f])
 			v >>= 6
 		}
 	}

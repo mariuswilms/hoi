@@ -20,8 +20,8 @@ func NewCronRunner(s server.Config, p project.Config) *CronRunner {
 	return &CronRunner{
 		s:     s,
 		p:     p,
-		build: builder.NewBuilder(builder.KIND_CRON, p, s),
-		sys:   system.NewSystemd(system.SYSTEMD_KIND_CRON, p, s),
+		build: builder.NewBuilder(builder.KindCron, p, s),
+		sys:   system.NewSystemd(system.SystemdKindCron, p, s),
 	}
 }
 
