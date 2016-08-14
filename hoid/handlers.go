@@ -45,11 +45,14 @@ func handleLoad(path string) error {
 
 	steps := make([]func() error, 0)
 	for _, r := range runners(*pCfg) {
-		steps = append(steps, r.Disable)
-		steps = append(steps, r.Clean)
-		steps = append(steps, r.Build)
-		steps = append(steps, r.Enable)
-		steps = append(steps, r.Commit)
+		steps = append(
+			steps,
+			r.Disable,
+			r.Clean,
+			r.Build,
+			r.Enable,
+			r.Commit,
+		)
 	}
 	if err := performSteps(*pCfg, steps); err != nil {
 		return err
@@ -75,9 +78,12 @@ func handleUnload(path string) error {
 
 	steps := make([]func() error, 0)
 	for _, r := range runners(pCfg) {
-		steps = append(steps, r.Disable)
-		steps = append(steps, r.Clean)
-		steps = append(steps, r.Commit)
+		steps = append(
+			steps,
+			r.Disable,
+			r.Clean,
+			r.Commit,
+		)
 	}
 	if err := performSteps(pCfg, steps); err != nil {
 		return err
@@ -122,11 +128,14 @@ func handleDomain(path string, dDrv *project.DomainDirective) error {
 
 	steps := make([]func() error, 0)
 	for _, r := range runners {
-		steps = append(steps, r.Disable)
-		steps = append(steps, r.Clean)
-		steps = append(steps, r.Build)
-		steps = append(steps, r.Enable)
-		steps = append(steps, r.Commit)
+		steps = append(
+			steps,
+			r.Disable,
+			r.Clean,
+			r.Build,
+			r.Enable,
+			r.Commit,
+		)
 	}
 	if err := performSteps(pCfg, steps); err != nil {
 		return err
