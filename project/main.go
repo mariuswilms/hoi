@@ -222,6 +222,20 @@ func (cfg *Config) Augment() error {
 		cfg.UseClassicAssets = true
 	}
 
+	// Guesses auth user names. An empty user name usually indicates that
+	// auth is disabled. However, here we interpret non empty passwords as an
+	// indicator for enabled auth. This will than trigger the correct behavior
+	// in GetCreds().
+	for k, _ := range cfg.Domain {
+		e := cfg.Domain[k]
+
+		if e.Auth.Password != "" {
+			e.Auth.User = cfg.Name
+			log.Printf("- guessed auth user: %s", e.Auth.User)
+		}
+		cfg.Domain[k] = e
+	}
+
 	// Guessing will always give the same result, we can therefore only guess once.
 	guessedDBName := false
 	for k, _ := range cfg.Database {
