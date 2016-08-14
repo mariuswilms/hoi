@@ -146,6 +146,9 @@ func (cfg Config) Validate() error {
 		if !v.Auth.IsEnabled() {
 			continue
 		}
+		if v.Auth.User == "" {
+			return fmt.Errorf("empty user for domain: %s", v.FQDN)
+		}
 		if v.Auth.Password == "" {
 			return fmt.Errorf("user %s has empty password for domain: %s", v.Auth.User, v.FQDN)
 		}
