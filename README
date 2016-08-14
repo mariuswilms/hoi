@@ -215,6 +215,7 @@ database foo { // optional database name
 	password = "s3cret"
 }
 
+
 Server Configuration: hoid.conf
 ===============================
 https://godoc.org/github.com/atelierdisko/hoi/server
@@ -233,6 +234,7 @@ Copyright & License
 Hoi is Copyright (c) 2016 Atelier Disko if not otherwise
 stated. Use of the source code is governed by a BSD-style
 license that can be found in the LICENSE file.
+
 
 Versions & Requirements
 =======================
