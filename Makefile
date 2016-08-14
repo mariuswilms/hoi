@@ -71,6 +71,7 @@ test:
 	mkdir -p _test/var/run
 	mkdir -p _test/var/lib
 	mkdir -p _test/etc/hoi 
+	mkdir -p _test/etc/ssl/{certs,private}
 	mkdir -p _test/etc/nginx/sites-enabled 
 	mkdir -p _test/etc/systemd/system
 	mkdir -p _test/etc/php5/fpm/conf.d

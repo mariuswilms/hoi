@@ -50,6 +50,7 @@ type Config struct {
 	BuildPath    string
 	Web          WebDirective
 	NGINX        NGINXDirective
+	SSL          SSLDirective
 	PHP          PHPDirective
 	Cron         CronDirective
 	Worker       WorkerDirective
@@ -64,6 +65,10 @@ type WebDirective struct {
 type NGINXDirective struct {
 	RunPath   string
 	UseLegacy bool
+}
+type SSLDirective struct {
+	Enabled bool
+	RunPath string
 }
 type PHPDirective struct {
 	Enabled bool

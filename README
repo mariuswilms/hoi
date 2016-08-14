@@ -45,6 +45,10 @@ of a project.
   Serves the project under given domains.
   https://godoc.org/github.com/atelierdisko/hoi/runner#WebRunner
 
+- "ssl"
+  Manages certificates and keys.
+  https://godoc.org/github.com/atelierdisko/hoi/runner#SSLRunner
+
 - "php"
   Safely enables per project PHP(1) settings.
   https://godoc.org/github.com/atelierdisko/hoi/runner#PHPRunner
@@ -118,6 +122,7 @@ A more advanced Hoifile might look like this:
     instances = 2
     command = "bin/process-media"
   }
+
 
 Server Configuration: hoid.conf
 ===============================

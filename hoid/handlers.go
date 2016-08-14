@@ -154,6 +154,9 @@ func runners(pCfg project.Config) []runner.Runnable {
 	if Config.Web.Enabled {
 		runners = append(runners, runner.NewWebRunner(*Config, pCfg))
 	}
+	if Config.SSL.Enabled {
+		runners = append(runners, runner.NewSSLRunner(*Config, pCfg))
+	}
 	if Config.PHP.Enabled {
 		runners = append(runners, runner.NewPHPRunner(*Config, pCfg))
 	}

@@ -7,7 +7,6 @@ package project
 
 import (
 	"errors"
-	"fmt"
 	"path/filepath"
 )
 
@@ -93,7 +92,7 @@ func (drv SSLDirective) IsEnabled() bool {
 	return drv.Certificate != "" && drv.CertificateKey != ""
 }
 
-func (drv SSLDirective) GetCertificate() (string, error) {
+func (drv SSLDirective) GetCertificate(p Config) (string, error) {
 	switch drv.Certificate {
 	case CertACME:
 		return "", errors.New("unimplemented")
@@ -102,14 +101,11 @@ func (drv SSLDirective) GetCertificate() (string, error) {
 	case CertSelfSigned:
 		return "", errors.New("unimplemented")
 	default:
-		if filepath.IsAbs(drv.Certificate) {
-			return drv.Certificate, fmt.Errorf("cert has absolute path: %s", drv.Certificate)
-		}
-		return drv.Certificate, nil
+		return filepath.Join(p.Path, drv.Certificate), nil
 	}
 }
 
-func (drv SSLDirective) GetCertificateKey() (string, error) {
+func (drv SSLDirective) GetCertificateKey(p Config) (string, error) {
 	switch drv.CertificateKey {
 	case CertACME:
 		return "", errors.New("unimplemented")
@@ -118,9 +114,6 @@ func (drv SSLDirective) GetCertificateKey() (string, error) {
 	case CertSelfSigned:
 		return "", errors.New("unimplemented")
 	default:
-		if filepath.IsAbs(drv.CertificateKey) {
-			return drv.CertificateKey, fmt.Errorf("cert key has absolute path: %s", drv.CertificateKey)
-		}
-		return drv.CertificateKey, nil
+		return filepath.Join(p.Path, drv.CertificateKey), nil
 	}
 }

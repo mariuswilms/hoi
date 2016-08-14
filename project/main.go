@@ -136,6 +136,19 @@ func (cfg Config) GetCreds() map[string]string {
 	return creds
 }
 
+// Extracts cert/cert key pairs mapped to domain FQDN from domain configuration.
+func (cfg Config) GetCerts() map[string]SSLDirective {
+	certs := make(map[string]SSLDirective)
+
+	for _, v := range cfg.Domain {
+		if !v.SSL.IsEnabled() {
+			continue
+		}
+		certs[v.FQDN] = v.SSL
+	}
+	return certs
+}
+
 // Validates several aspects and looks for typical human errors.
 func (cfg Config) Validate() error {
 	stringInSlice := func(a string, list []string) bool {
@@ -147,12 +160,15 @@ func (cfg Config) Validate() error {
 		return false
 	}
 
+	// Must have context, we can't autodetect this.
 	if cfg.Context == "" {
 		return fmt.Errorf("project has no context: %s", cfg.Path)
 	}
 
 	creds := make(map[string]string)
 	for k, v := range cfg.Domain {
+		// Auth credentials should be complete and not vary passwords between
+		// same users. The credentials are stored in one single file per project.
 		if !v.Auth.IsEnabled() {
 			continue
 		}
@@ -168,8 +184,26 @@ func (cfg Config) Validate() error {
 			}
 		}
 		creds[v.Auth.User] = v.Auth.Password
+
+		// Certificates should come with each project.
+		if v.SSL.IsEnabled() {
+			if v.SSL.Certificate == "" {
+				return fmt.Errorf("empty certificate path for domain: %s", v.FQDN)
+			}
+			if v.SSL.CertificateKey == "" {
+				return fmt.Errorf("empty certificate key path for domain: %s", v.FQDN)
+			}
+			if filepath.IsAbs(v.SSL.Certificate) {
+				return fmt.Errorf("certificate path is not relative: %s", v.SSL.Certificate)
+			}
+			if filepath.IsAbs(v.SSL.CertificateKey) {
+				return fmt.Errorf("certificate key path is not relative: %s", v.SSL.CertificateKey)
+			}
+		}
 	}
 
+	// Database names must be unique and users should for security reasons not
+	// have an empty password.
 	seenDatabases := make([]string, 0)
 	for _, db := range cfg.Database {
 		if stringInSlice(db.Name, seenDatabases) {

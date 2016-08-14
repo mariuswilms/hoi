@@ -99,13 +99,13 @@ func (r WebRunner) Build() error {
 		}
 		e := r.p.Domain[k]
 
-		path, err := e.SSL.GetCertificate()
+		path, err := e.SSL.GetCertificate(r.p)
 		if err != nil {
 			return err
 		}
 		e.SSL.Certificate = path
 
-		path, err = e.SSL.GetCertificateKey()
+		path, err = e.SSL.GetCertificateKey(r.p)
 		if err != nil {
 			return err
 		}
