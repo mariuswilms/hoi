@@ -4,3 +4,6 @@
 [submodule "vendor/github.com/jawher/mow.cli"]
 	path = vendor/github.com/jawher/mow.cli
 	url = https://github.com/jawher/mow.cli
+[submodule "vendor/github.com/go-sql-driver/mysql"]
+	path = vendor/github.com/go-sql-driver/mysql
+	url = https://github.com/go-sql-driver/mysql
