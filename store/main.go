@@ -45,6 +45,9 @@ type Store struct {
 // Loads database file contents into memory. Does not hold an open handle
 // on the file.
 func (s *Store) Load() error {
+	if _, err := os.Stat(s.file); os.IsNotExist(err) {
+		return nil // nothing to do
+	}
 	f, err := os.Open(s.file)
 	if err != nil {
 		return err
