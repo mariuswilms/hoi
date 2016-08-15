@@ -6,5 +6,9 @@ Description=Runs Cron Job {{.C.Name}} for project {{.P.Name}}@{{.P.Context}} on 
 
 [Timer]
 OnCalendar={{.C.Schedule}}
+{{if .S.Systemd.UseLegacy -}}
+AccuracySec=10min
+{{else -}}
 AccuracySec=1us
 RandomizedDelaySec=10min
+{{- end}}
