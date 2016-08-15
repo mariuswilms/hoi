@@ -28,7 +28,7 @@ type MySQL struct {
 func (sys MySQL) EnsureDatabase(database string) error {
 	sql := fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s", database)
 
-	log.Printf("MySQL: creating database %s", database)
+	log.Printf("MySQL: ensuring database '%s' exists", database)
 	res, err := sys.conn.Exec(sql)
 	if err != nil {
 		return err
