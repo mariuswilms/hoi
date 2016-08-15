@@ -159,8 +159,10 @@ The worker runner requires systemd(1)
 The PHP runner requires php(1)
   If you don't enable this runner you can drop this requirement.
 
-The DB runner requires mysqld(8)
-  If you don't enable this runner you can drop this requirement.
+The DB runner requires mysqld(8) or MariaDB
+  If you don't enable this runner you can drop this requirement. MySQL >= 5.7.6
+  or MariaDB >= 10.1.3 are required to use more efficient queries. By enabling
+  "useLegacy" older versions may be used.
 
 
 Development

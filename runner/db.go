@@ -67,8 +67,10 @@ func (r DBRunner) Enable() error {
 }
 
 func (r DBRunner) Disable() error {
+	privs := strings.Split(DBPrivs+","+DBAdminPrivs, ",")
+
 	for _, db := range r.p.Database {
-		if err := r.sys.EnsureNoGrant(db.User, db.Name); err != nil {
+		if err := r.sys.EnsureNoGrant(db.User, db.Name, privs); err != nil {
 			return err
 		}
 	}

@@ -7,6 +7,7 @@ package system
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 
 	"github.com/atelierdisko/hoi/project"
@@ -25,10 +26,10 @@ type MySQL struct {
 }
 
 func (sys MySQL) EnsureDatabase(database string) error {
-	sql := `CREATE DATABASE IF NOT EXISTS ? `
+	sql := fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s", database)
 
-	log.Printf("mysql: %s", sql)
-	res, err := sys.conn.Exec(sql, database)
+	log.Printf("MySQL: creating database %s", database)
+	res, err := sys.conn.Exec(sql)
 	if err != nil {
 		return err
 	}
@@ -38,11 +39,42 @@ func (sys MySQL) EnsureDatabase(database string) error {
 	return nil
 }
 
-func (sys MySQL) EnsureUser(user string, password string) error {
-	sql := `CREATE USER IF NOT EXISTS '?'@'localhost' IDENTIFIED BY '?'`
+func (sys MySQL) HasUser(user string) (bool, error) {
+	sql := `SELECT COUNT(*) FROM mysql.user WHERE User = ? AND Host = 'localhost'`
 
-	log.Printf("mysql: %s", sql)
-	res, err := sys.conn.Exec(sql, user, password)
+	log.Printf("MySQL: checking for user %s", user)
+	rows, err := sys.conn.Query(sql, user)
+	if err != nil {
+		return false, err
+	}
+	var count int
+	for rows.Next() {
+		if err := rows.Scan(&count); err != nil {
+			return false, err
+		}
+	}
+	return count > 0, nil
+}
+
+func (sys MySQL) EnsureUser(user string, password string) error {
+	log.Printf("MySQL: ensuring user '%s' with password '%s' exists", user, password)
+
+	// MySQL < 5.7.6 and MariaDB < 10.1.3 do not support IF NOT EXISTS.
+	var sql string
+	if sys.s.MySQL.UseLegacy {
+		hasUser, err := sys.HasUser(user)
+		if err != nil {
+			return err
+		}
+		if hasUser {
+			return nil
+		}
+		sql = fmt.Sprintf("CREATE USER '%s'@'localhost' IDENTIFIED BY '%s'", user, password)
+	} else {
+		sql = fmt.Sprintf("CREATE USER IF NOT EXISTS '%s'@'localhost' IDENTIFIED BY '%s'", user, password)
+	}
+
+	res, err := sys.conn.Exec(sql)
 	if err != nil {
 		return err
 	}
@@ -55,11 +87,18 @@ func (sys MySQL) EnsureUser(user string, password string) error {
 // Ensures at least the given privileges are granted to the user on database
 // level.
 func (sys MySQL) EnsureGrant(user string, database string, privs []string) error {
-	for _, priv := range privs {
-		sql := `GRANT ? ON ?.* TO '?'@'localhost'`
+	hasUser, err := sys.HasUser(user)
+	if err != nil {
+		return err
+	}
+	if !hasUser {
+		return nil // do not even try to grant
+	}
 
-		log.Printf("mysql: %s", sql)
-		res, err := sys.conn.Exec(sql, priv, database, user)
+	for _, priv := range privs {
+		log.Printf("MySQL: granting user %s privilege %s on %s", user, priv, database)
+		sql := fmt.Sprintf("GRANT %s ON %s.* TO '%s'@'localhost'", priv, database, user)
+		res, err := sys.conn.Exec(sql)
 		if err != nil {
 			return err
 		}
@@ -72,16 +111,27 @@ func (sys MySQL) EnsureGrant(user string, database string, privs []string) error
 
 // Ensures at least the given privileges are granted to the user on database
 // level. MySQL does not include GRANT OPTION in ALL.
-func (sys MySQL) EnsureNoGrant(user string, database string) error {
-	sql := `REVOKE ALL PRIVILEGES, GRANT OPTION ON ?.* TO '?'@'localhost'`
-
-	log.Printf("mysql: %s", sql)
-	res, err := sys.conn.Exec(sql, database, user)
+func (sys MySQL) EnsureNoGrant(user string, database string, privs []string) error {
+	hasUser, err := sys.HasUser(user)
 	if err != nil {
 		return err
 	}
-	if num, _ := res.RowsAffected(); num > 0 {
-		sys.dirty = true
+	if !hasUser {
+		return nil // do not even try to revoke grants
+	}
+
+	for _, priv := range privs {
+		log.Printf("MySQL: revoking user %s privilege %s on %s", user, priv, database)
+		sql := fmt.Sprintf("REVOKE %s ON %s.* FROM '%s'@'localhost'", priv, database, user)
+		res, err := sys.conn.Exec(sql)
+		if err != nil {
+			// Ignore "there is no such grant" errors, querying for privs is tedious.
+			log.Printf("MySQL: user %s has no privilege %s on %s; skipped", user, priv, database)
+			continue
+		}
+		if num, _ := res.RowsAffected(); num > 0 {
+			sys.dirty = true
+		}
 	}
 	return nil
 }
@@ -90,9 +140,9 @@ func (sys *MySQL) ReloadIfDirty() error {
 	if !sys.dirty {
 		return nil
 	}
-	sql := `FLUSH PRIVILEGES`
+	sql := "FLUSH PRIVILEGES"
 
-	log.Printf("mysql: %s", sql)
+	log.Printf("MySQL: reloading")
 	if _, err := sys.conn.Exec(sql); err != nil {
 		log.Printf("MySQL reload: left in dirty state")
 		return err

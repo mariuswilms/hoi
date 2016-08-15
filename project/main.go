@@ -199,18 +199,19 @@ func (cfg Config) Validate() error {
 			if filepath.IsAbs(v.SSL.CertificateKey) {
 				return fmt.Errorf("certificate key path is not relative: %s", v.SSL.CertificateKey)
 			}
+			// If a cert exists at path is validated when GetCertificate() is called. It can't happen
+			// here as it may return non-paths.
 		}
 	}
 
 	// Database names must be unique and users should for security reasons not
-	// have an empty password (except the context is "dev" where this might be
-	// intended to ease development).
+	// have an empty password (not even for dev contexts).
 	seenDatabases := make([]string, 0)
 	for _, db := range cfg.Database {
 		if stringInSlice(db.Name, seenDatabases) {
 			return fmt.Errorf("found duplicate database name: %s", db.Name)
 		}
-		if cfg.Context != "dev" && db.Password == "" {
+		if db.Password == "" {
 			return fmt.Errorf("user %s has empty password for database: %s", db.User, db.Name)
 		}
 		seenDatabases = append(seenDatabases, db.Name)

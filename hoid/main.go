@@ -72,7 +72,7 @@ func main() {
 
 		// Only connect if we need a connection later.
 		if Config.Database.Enabled {
-			dsn := fmt.Sprintf("%s:%s@%s/", Config.MySQL.User, Config.MySQL.Password, Config.MySQL.Host)
+			dsn := fmt.Sprintf("%s:%s@tcp(%s)/", Config.MySQL.User, Config.MySQL.Password, Config.MySQL.Host)
 			conn, err := sql.Open("mysql", dsn)
 			if err != nil {
 				log.Fatal(err)
