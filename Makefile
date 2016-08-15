@@ -4,7 +4,7 @@
 # license that can be found in the LICENSE file.
 
 PREFIX ?= /usr/local
-VERSION ?= 0.1.0-dev
+VERSION ?= 0.1.0
 
 HOID_GOFLAGS = -X main.Version=$(VERSION)
 HOID_GOFLAGS +=  -X main.SocketPath=$(abspath $(PREFIX)/var/run/hoid.socket)
