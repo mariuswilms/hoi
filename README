@@ -180,15 +180,3 @@ Hoi currently relies on a fixed set of technologies (see requirements) to do its
 job. However, changing this and implementing an abstraction layer with adapters
 are a possible future goal.
 
-Other planned runners are:
-- "backup"
-  Uses rsnapshot(1) to produce daily/weekly/monthly backups from your project
-  directory. If available will also include a dump of attached databases.
-  Generated snapshots may be pushed offsite via SSH.
-
-- "seal"
-  Uses the mtree(8) utility to generate so called manifests of your projects
-  contents and will regularly check the project against that manifest to detect
-  possible tampering.
-
-- "log"

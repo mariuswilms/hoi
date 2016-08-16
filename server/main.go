@@ -41,11 +41,8 @@ func NewFromString(s string) (*Config, error) {
 type Config struct {
 	// Use these user/group when possible i.e. in
 	// systemd unit definitions.
-	User  string
-	Group string
-	// E-Mail of administrator, who receives
-	// passwords and notifications.
-	Email        string
+	User         string
+	Group        string
 	TemplatePath string
 	BuildPath    string
 	Web          WebDirective
