@@ -6,13 +6,13 @@
 package builder
 
 import (
-	"html/template"
 	"io"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
+	"text/template"
 
 	"github.com/atelierdisko/hoi/project"
 	"github.com/atelierdisko/hoi/server"

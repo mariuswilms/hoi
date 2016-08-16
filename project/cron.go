@@ -9,9 +9,9 @@ import (
 	"bytes"
 	"fmt"
 	"hash/adler32"
-	"html/template"
 	"log"
 	"strings"
+	"text/template"
 )
 
 // Jobs that are run on a regular basis are configured via the cron

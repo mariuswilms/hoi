@@ -9,9 +9,9 @@ import (
 	"bytes"
 	"fmt"
 	"hash/adler32"
-	"html/template"
 	"log"
 	"strings"
+	"text/template"
 )
 
 type WorkerDirective struct {
