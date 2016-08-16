@@ -142,7 +142,8 @@ license that can be found in the LICENSE file.
 
 Versions & Requirements
 =======================
-The Go language >= 1.6 is required to build the project.
+The Go language >= 1.5 is required to build the project.
+ Must have go vendor support enabled.
 
 Hoi is continously tested on Linux and Darwin.
 
