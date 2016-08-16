@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"hash/adler32"
 	"log"
+	"path/filepath"
 	"strings"
 	"text/template"
 )
@@ -47,26 +48,39 @@ func (drv CronDirective) ID() string {
 	return drv.Name
 }
 
-// Returns the command string after parsing it as a template
-// using given project configuration. Tries to detect if parsing
-// is necessarry, as most often commands will not use templating.
+// Returns (parsed and) absolute command string.
+//
+// Command strings may use template syntax (project configuration
+// is made available as P). Will parse only when necessarry, most
+// commands will not use templating.
+//
+// When used inside systemd service unit files paths need to be
+// absolute. When a command string is non absolute it will be treated
+// as being relative to the project root directory and made absolute.
 func (drv CronDirective) GetCommand(p Config) (string, error) {
+	var cmd string
+
 	if !strings.Contains(drv.Command, "{{") {
-		return drv.Command, nil
-	}
-	log.Printf("parsing command template: %s", drv.Command)
+		cmd = drv.Command
+	} else {
+		log.Printf("parsing command template: %s", drv.Command)
 
-	cmdTmplData := struct {
-		P Config
-	}{
-		P: p,
-	}
-	buf := new(bytes.Buffer)
-	cmdT := template.New("cmd")
-	cmdT.Parse(drv.Command)
+		cmdTmplData := struct {
+			P Config
+		}{
+			P: p,
+		}
+		buf := new(bytes.Buffer)
+		cmdT := template.New("cmd")
+		cmdT.Parse(drv.Command)
 
-	if err := cmdT.Execute(buf, cmdTmplData); err != nil {
-		return "", err
+		if err := cmdT.Execute(buf, cmdTmplData); err != nil {
+			return "", err
+		}
+		cmd = buf.String()
 	}
-	return buf.String(), nil
+	if !filepath.IsAbs(cmd) {
+		cmd = filepath.Join(p.Path, cmd)
+	}
+	return cmd, nil
 }
