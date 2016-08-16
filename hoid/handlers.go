@@ -54,13 +54,14 @@ func handleLoad(path string) error {
 			r.Commit,
 		)
 	}
-	if err := performSteps(*pCfg, steps); err != nil {
-		return err
-	}
 
 	if err := Store.Write(pCfg.ID(), *pCfg); err != nil {
 		return err
 	}
+	if err := performSteps(*pCfg, steps); err != nil {
+		return err
+	}
+
 	log.Printf("[project %s] loaded :)", pCfg.PrettyName())
 	return nil
 }
@@ -74,7 +75,11 @@ func handleUnload(path string) error {
 		return fmt.Errorf("no project %s in store to unload", id)
 	}
 	log.Printf("unloading project: %s", id)
-	pCfg, _ := Store.Read(id)
+
+	pCfg, err := Store.Read(id)
+	if err != nil {
+		return err
+	}
 
 	steps := make([]func() error, 0)
 	for _, r := range runners(pCfg) {
@@ -85,13 +90,14 @@ func handleUnload(path string) error {
 			r.Commit,
 		)
 	}
-	if err := performSteps(pCfg, steps); err != nil {
-		return err
-	}
 
 	if err := Store.Delete(pCfg.ID()); err != nil {
 		return err
 	}
+	if err := performSteps(pCfg, steps); err != nil {
+		return err
+	}
+
 	log.Printf("[project %s] unloaded :(", pCfg.PrettyName())
 	return nil
 }
@@ -137,13 +143,14 @@ func handleDomain(path string, dDrv *project.DomainDirective) error {
 			r.Commit,
 		)
 	}
-	if err := performSteps(pCfg, steps); err != nil {
-		return err
-	}
 
 	if err := Store.Write(pCfg.ID(), pCfg); err != nil {
 		return err
 	}
+	if err := performSteps(pCfg, steps); err != nil {
+		return err
+	}
+
 	log.Printf("[project %s] added domain: %s", pCfg.PrettyName(), dDrv.FQDN)
 	return nil
 }
