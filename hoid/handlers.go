@@ -127,6 +127,8 @@ func handleDomain(path string, dDrv *project.DomainDirective) error {
 		return err
 	}
 
+	// Save us iterating through all runners, when the only one
+	// needed for domain updates is the web runner.
 	runners := make([]runner.Runnable, 0)
 	if Config.Web.Enabled {
 		runners = append(runners, runner.NewWebRunner(*Config, pCfg))
