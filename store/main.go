@@ -17,20 +17,18 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/atelierdisko/hoi/project"
 )
 
-func New(file string) (*Store, error) {
+func New(file string) *Store {
 	store := &Store{
 		file: file,
 		data: make(map[string]Entity),
 	}
-	if err := store.Load(); err != nil {
-		return store, err
-	}
 	log.Printf("in-memory store ready")
-	return store, nil
+	return store
 }
 
 type Entity struct {
@@ -43,7 +41,8 @@ type Store struct {
 	// The database file handle, where store is persisting to.
 	file string
 	// Holds no pointers as it then would be possible to modify data outside lock.
-	data map[string]Entity
+	data           map[string]Entity
+	autoSaverQuits chan struct{}
 }
 
 // Loads database file contents into memory. Does not hold an open handle
@@ -102,10 +101,36 @@ func (s Store) Store() error {
 	if _, err := io.Copy(f, b); err != nil {
 		return err
 	}
-	return nil
+	return f.Sync()
+}
+
+// Wil periodically update the database file.
+func (s *Store) InstallAutoStore() {
+	ticker := time.NewTicker(1 * time.Minute)
+	s.autoSaverQuits = make(chan struct{})
+	log.Print("will periodically sync to database file")
+
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				log.Print("auto storing")
+				s.Lock()
+				if err := s.Store(); err != nil {
+					log.Print("failed to auto store")
+				}
+				s.Unlock()
+			case <-s.autoSaverQuits:
+				log.Print("uninstalled auto store")
+				ticker.Stop()
+				return
+			}
+		}
+	}()
 }
 
 func (s *Store) Close() error {
+	close(s.autoSaverQuits)
 	s.Lock()
 	defer s.Unlock()
 	return s.Store()

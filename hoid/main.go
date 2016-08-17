@@ -64,10 +64,11 @@ func main() {
 			log.Fatal(err)
 		}
 
-		_store, err := store.New(DataPath)
-		if err != nil {
+		_store := store.New(DataPath)
+		if err := _store.Load(); err != nil {
 			log.Fatal(err)
 		}
+		_store.InstallAutoStore()
 		Store = _store // Assign to global
 
 		// Only connect if we need a connection later.
@@ -98,7 +99,10 @@ func main() {
 			log.Printf("caught signal %s: currently noop", sig)
 		default:
 			log.Printf("caught signal %s: shutting down", sig)
+			Store.Lock()
 			Store.Close()
+			Store.Unlock()
+
 			RPCServer.Close()
 
 			if MySQLConn != nil {
