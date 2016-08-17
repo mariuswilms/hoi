@@ -16,6 +16,7 @@ import (
 
 	"github.com/atelierdisko/hoi/project"
 	sRPC "github.com/atelierdisko/hoi/rpc"
+	"github.com/atelierdisko/hoi/store"
 	"github.com/jawher/mow.cli"
 )
 
@@ -76,24 +77,26 @@ func main() {
 	App.Command("status", "show status", func(cmd *cli.Cmd) {
 		cmd.Action = func() {
 			args := &sRPC.ServerAPIArgs{}
-			var reply map[string]project.Config
+			var reply []store.Entity
 			err := RPCClient.Call("Server.Status", args, &reply)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "error: %s\n", err)
+				fmt.Fprintf(os.Stderr, "got error: %s\n", err)
 				os.Exit(1)
 			}
 
 			if len(reply) != 0 {
-				fmt.Print("Projects:\n")
-				for _, p := range reply {
-					fmt.Printf("- %-20s in %s\n", p.PrettyName(), p.Path)
-					fmt.Printf("  **%s**\n", "loaded")
-					fmt.Printf("  %-10s: %d\n", "domain", len(p.Domain))
-					fmt.Printf("  %-10s: %d\n", "cron", len(p.Cron))
-					fmt.Printf("  %-10s: %d\n", "worker", len(p.Worker))
+				fmt.Printf("%d project/s:\n", len(reply))
+
+				for _, e := range reply {
+					fmt.Printf("- %-20s in %s\n", e.Project.PrettyName(), e.Project.Path)
+					fmt.Printf("  **%s**\n", e.Meta.Status)
+					fmt.Printf("  %-10s: %d\n", "domain", len(e.Project.Domain))
+					fmt.Printf("  %-10s: %d\n", "cron", len(e.Project.Cron))
+					fmt.Printf("  %-10s: %d\n", "worker", len(e.Project.Worker))
+					fmt.Printf("  %-10s: %d\n", "database", len(e.Project.Database))
 				}
 			} else {
-				fmt.Println("no projects loaded :(")
+				fmt.Println("no projects :(")
 			}
 		}
 	})

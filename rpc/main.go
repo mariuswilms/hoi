@@ -13,6 +13,7 @@ import (
 	"net/rpc"
 
 	"github.com/atelierdisko/hoi/project"
+	"github.com/atelierdisko/hoi/store"
 )
 
 type Server struct {
@@ -44,10 +45,10 @@ func (s *Server) Close() {
 type ServerAPIArgs struct{}
 
 type ServerAPI struct {
-	StatusHandler func() (map[string]project.Config, error)
+	StatusHandler func() ([]store.Entity, error)
 }
 
-func (s *ServerAPI) Status(args *ServerAPIArgs, reply *map[string]project.Config) error {
+func (s *ServerAPI) Status(args *ServerAPIArgs, reply *[]store.Entity) error {
 	log.Print("client request for: status")
 	data, err := s.StatusHandler()
 	*reply = data

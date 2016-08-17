@@ -24,7 +24,7 @@ import (
 func New(file string) (*Store, error) {
 	store := &Store{
 		file: file,
-		data: make(map[string]project.Config),
+		data: make(map[string]Entity),
 	}
 	if err := store.Load(); err != nil {
 		return store, err
@@ -33,13 +33,17 @@ func New(file string) (*Store, error) {
 	return store, nil
 }
 
+type Entity struct {
+	Project project.Config
+	Meta    project.Meta
+}
+
 type Store struct {
-	// Global lock.
 	sync.RWMutex
 	// The database file handle, where store is persisting to.
 	file string
 	// Holds no pointers as it then would be possible to modify data outside lock.
-	data map[string]project.Config
+	data map[string]Entity
 }
 
 // Loads database file contents into memory. Does not hold an open handle
@@ -61,13 +65,13 @@ func (s *Store) Load() error {
 		if len(fields) != 2 {
 			return errors.New("db file corrupt or in unrecognized format")
 		}
-		cfg, _ := project.New()
-		err := json.Unmarshal([]byte(fields[1]), cfg)
+		entity := &Entity{}
+		err := json.Unmarshal([]byte(fields[1]), entity)
 
 		if err != nil {
 			return err
 		}
-		s.data[fields[0]] = *cfg
+		s.data[fields[0]] = *entity
 	}
 	if err := scanner.Err(); err != nil {
 		return err
@@ -76,14 +80,14 @@ func (s *Store) Load() error {
 }
 
 // Persists data into database file.
-func (s *Store) Store() error {
+func (s Store) Store() error {
 	// Swap contents at the very end, when we are sure that
 	// everything else worked.
 	var buf []byte
 	b := bytes.NewBuffer(buf)
 
-	for id, cfg := range s.data {
-		c, err := json.Marshal(cfg)
+	for id, entity := range s.data {
+		c, err := json.Marshal(entity)
 		if err != nil {
 			return err
 		}
@@ -107,25 +111,33 @@ func (s *Store) Close() error {
 	return s.Store()
 }
 
-func (s *Store) Has(id string) bool {
+func (s Store) Has(id string) bool {
 	_, hasKey := s.data[id]
 	return hasKey
 }
 
-func (s *Store) Read(id string) (project.Config, error) {
-	pCfg, hasKey := s.data[id]
+func (s Store) Read(id string) (project.Config, error) {
+	entity, hasKey := s.data[id]
 	if !hasKey {
-		return pCfg, fmt.Errorf("failed to read from store: no id %s", id)
+		return entity.Project, fmt.Errorf("failed to read from store: no id %s", id)
 	}
-	return pCfg, nil
+	return entity.Project, nil
 }
 
-func (s *Store) ReadAll() map[string]project.Config {
-	return s.data
+func (s Store) ReadAll() []Entity {
+	all := make([]Entity, len(s.data))
+
+	for _, entity := range s.data {
+		all = append(all, entity)
+	}
+	return all
 }
 
-func (s *Store) Write(id string, cfg project.Config) error {
-	s.data[id] = cfg
+func (s *Store) Write(id string, pCfg project.Config) error {
+	s.data[id] = Entity{
+		Project: pCfg,
+		Meta:    project.Meta{Status: project.StatusUnknown},
+	}
 	return nil
 }
 
@@ -137,8 +149,19 @@ func (s *Store) Delete(id string) error {
 	return nil
 }
 
-func (s *Store) Stats() string {
-	s.RLock()
-	defer s.RUnlock()
-	return fmt.Sprintf("STATS STORE count:%d", len(s.data))
+func (s Store) ReadStatus(id string) (project.MetaStatus, error) {
+	if _, hasKey := s.data[id]; !hasKey {
+		return project.StatusUnknown, fmt.Errorf("failed to read status: no id %s", id)
+	}
+	return s.data[id].Meta.Status, nil
+}
+
+func (s *Store) WriteStatus(id string, status project.MetaStatus) error {
+	if _, hasKey := s.data[id]; !hasKey {
+		return fmt.Errorf("failed to write status %s: no id %s", status, id)
+	}
+	entity := s.data[id]
+	entity.Meta.Status = status
+	s.data[id] = entity
+	return nil
 }

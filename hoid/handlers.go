@@ -13,9 +13,10 @@ import (
 
 	"github.com/atelierdisko/hoi/project"
 	"github.com/atelierdisko/hoi/runner"
+	"github.com/atelierdisko/hoi/store"
 )
 
-func handleStatus() (map[string]project.Config, error) {
+func handleStatus() ([]store.Entity, error) {
 	Store.RLock()
 	defer Store.RUnlock()
 	return Store.ReadAll(), nil
@@ -58,11 +59,15 @@ func handleLoad(path string) error {
 	if err := Store.Write(pCfg.ID(), *pCfg); err != nil {
 		return err
 	}
+	Store.WriteStatus(pCfg.ID(), project.StatusLoading)
+
 	if err := performSteps(*pCfg, steps); err != nil {
+		Store.WriteStatus(pCfg.ID(), project.StatusFailed)
 		return err
 	}
 
-	log.Printf("[project %s] loaded :)", pCfg.PrettyName())
+	log.Printf("[project %s] active :)", pCfg.PrettyName())
+	Store.WriteStatus(pCfg.ID(), project.StatusActive)
 	return nil
 }
 
@@ -75,6 +80,7 @@ func handleUnload(path string) error {
 		return fmt.Errorf("no project %s in store to unload", id)
 	}
 	log.Printf("unloading project: %s", id)
+	Store.WriteStatus(id, project.StatusUnloading)
 
 	pCfg, err := Store.Read(id)
 	if err != nil {
@@ -92,9 +98,11 @@ func handleUnload(path string) error {
 	}
 
 	if err := Store.Delete(pCfg.ID()); err != nil {
+		Store.WriteStatus(pCfg.ID(), project.StatusFailed)
 		return err
 	}
 	if err := performSteps(pCfg, steps); err != nil {
+		Store.WriteStatus(pCfg.ID(), project.StatusFailed)
 		return err
 	}
 
@@ -149,11 +157,15 @@ func handleDomain(path string, dDrv *project.DomainDirective) error {
 	if err := Store.Write(pCfg.ID(), pCfg); err != nil {
 		return err
 	}
+	Store.WriteStatus(pCfg.ID(), project.StatusUpdating)
+
 	if err := performSteps(pCfg, steps); err != nil {
+		Store.WriteStatus(pCfg.ID(), project.StatusFailed)
 		return err
 	}
 
 	log.Printf("[project %s] added domain: %s", pCfg.PrettyName(), dDrv.FQDN)
+	Store.WriteStatus(pCfg.ID(), project.StatusActive)
 	return nil
 }
 
