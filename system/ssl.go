@@ -14,6 +14,7 @@ import (
 
 	"github.com/atelierdisko/hoi/project"
 	"github.com/atelierdisko/hoi/server"
+	"github.com/atelierdisko/hoi/util"
 )
 
 func NewSSL(p project.Config, s server.Config) *SSL {
