@@ -39,7 +39,7 @@ func (sys *SSL) Install(domain string, ssl project.SSLDirective) error {
 	}
 	target := fmt.Sprintf("%s/certs/%s_%s.crt", sys.s.SSL.RunPath, ns, domain)
 	log.Printf("SSL install: %s -> %s", path, target)
-	if err := os.Symlink(path, target); err != nil {
+	if err := util.CopyFile(path, target); err != nil {
 		return err
 	}
 
@@ -49,7 +49,7 @@ func (sys *SSL) Install(domain string, ssl project.SSLDirective) error {
 	}
 	target = fmt.Sprintf("%s/private/%s_%s.key", sys.s.SSL.RunPath, ns, domain)
 	log.Printf("SSL install: %s -> %s", path, target)
-	if err := os.Symlink(path, target); err != nil {
+	if err := util.CopyFile(path, target); err != nil {
 		return err
 	}
 

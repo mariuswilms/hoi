@@ -7,7 +7,6 @@ package system
 
 import (
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -16,6 +15,7 @@ import (
 
 	"github.com/atelierdisko/hoi/project"
 	"github.com/atelierdisko/hoi/server"
+	"github.com/atelierdisko/hoi/util"
 )
 
 // The hoi-internal kind of units we manage.
@@ -41,7 +41,7 @@ func (sys Systemd) Install(path string) error {
 
 	log.Printf("systemd install: %s -> %s", path, target)
 	if sys.s.Systemd.UseLegacy {
-		return copyFile(path, target)
+		return util.CopyFile(path, target)
 	}
 	return os.Symlink(path, target)
 }
@@ -132,28 +132,4 @@ func (sys Systemd) Stop(unit string) error {
 	log.Printf("systemd stop: %s", ns+"_"+unit)
 
 	return exec.Command("systemctl", "stop", ns+"_"+unit).Run()
-}
-
-func copyFile(src string, dst string) error {
-	info, err := os.Stat(src)
-	if err != nil {
-		return err
-	}
-
-	s, err := os.Open(src)
-	if err != nil {
-		return err
-	}
-	defer s.Close()
-
-	d, err := os.OpenFile(dst, os.O_WRONLY|os.O_CREATE, info.Mode())
-	if err != nil {
-		return err
-	}
-	defer d.Close()
-
-	if _, err := io.Copy(d, s); err != nil {
-		return err
-	}
-	return nil
 }
