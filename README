@@ -8,15 +8,15 @@
 
 Synopsis
 --------
-Hoi is a host management program that orchestrates other host services, so
-projects can be hosted with the execution of just one command. It automates
-setting up several aspects of a project i.e. SSL certificates, databases,
-cron jobs, and HTTP auth for staging areas.
+Hoi is a host management program that orchestrates other services, so projects
+can be hosted with the execution of just one command. It automates setting up
+several aspects of a project i.e. SSL certificates, databases, cron jobs and
+HTTP auth for staging areas.
 
 Aspects of a project are defined by the Hoifile, a short and sweet per project
 configuration file.
 
-In architecting Hoi we made sure to stay very pragmatic, this hoi uses a
+In architecting hoi we made sure to stay very pragmatic, thus hoi uses a
 pre-defined set of established/no-nonsense technologies.
 
 -- Hoi is currently in development and until it reaches 1.0, it --
