@@ -16,8 +16,8 @@ cron jobs, and HTTP auth for staging areas.
 Aspects of a project are defined by the Hoifile, a short and sweet per project
 configuration file.
 
-Hoi uses pre-defined set of established technologies and tries to be as
-pragmatic as possible.
+In architecting Hoi we made sure to stay very pragmatic, this hoi uses a
+pre-defined set of established/no-nonsense technologies.
 
 -- Hoi is currently in development and until it reaches 1.0, it --
 -- should be considered not ready for general production use.   --
