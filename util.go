@@ -31,5 +31,5 @@ func CopyFile(src string, dst string) error {
 	if _, err := io.Copy(d, s); err != nil {
 		return err
 	}
-	return nil
+	return d.Sync()
 }
