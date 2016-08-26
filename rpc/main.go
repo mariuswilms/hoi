@@ -49,10 +49,11 @@ type ServerAPI struct {
 }
 
 func (s *ServerAPI) Status(args *ServerAPIArgs, reply *[]store.Entity) error {
-	log.Print("client request for: status")
+	log.Print("client requested status")
+
 	data, err := s.StatusHandler()
 	*reply = data
-	return err
+	return logIfError(err)
 }
 
 type ProjectAPI struct {
@@ -67,17 +68,27 @@ type ProjectAPIArgs struct {
 }
 
 func (p *ProjectAPI) Load(args *ProjectAPIArgs, reply *bool) error {
-	log.Print("client request for: load")
+	log.Print("client requested load")
 	*reply = true
-	return p.LoadHandler(args.Path)
+
+	return logIfError(p.LoadHandler(args.Path))
 }
 func (p *ProjectAPI) Unload(args *ProjectAPIArgs, reply *bool) error {
-	log.Print("client request for: unload")
+	log.Print("client requested unload")
 	*reply = true
-	return p.UnloadHandler(args.Path)
+
+	return logIfError(p.UnloadHandler(args.Path))
 }
 func (p *ProjectAPI) Domain(args *ProjectAPIArgs, reply *bool) error {
-	log.Print("client request for: domain")
+	log.Print("client requested domain")
 	*reply = true
-	return p.DomainHandler(args.Path, args.Domain)
+
+	return logIfError(p.DomainHandler(args.Path, args.Domain))
+}
+
+func logIfError(err error) error {
+	if err != nil {
+		log.Print(err)
+	}
+	return err
 }

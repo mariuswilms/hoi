@@ -39,7 +39,7 @@ func (sys *SSL) Install(domain string, ssl project.SSLDirective) error {
 		return err
 	}
 	target := fmt.Sprintf("%s/certs/%s_%s.crt", sys.s.SSL.RunPath, ns, domain)
-	log.Printf("SSL install: %s -> %s", path, target)
+	log.Printf("SSL is installing: %s -> %s", path, target)
 	if err := util.CopyFile(path, target); err != nil {
 		return err
 	}
@@ -49,7 +49,7 @@ func (sys *SSL) Install(domain string, ssl project.SSLDirective) error {
 		return err
 	}
 	target = fmt.Sprintf("%s/private/%s_%s.key", sys.s.SSL.RunPath, ns, domain)
-	log.Printf("SSL install: %s -> %s", path, target)
+	log.Printf("SSL is installing: %s -> %s", path, target)
 	if err := util.CopyFile(path, target); err != nil {
 		return err
 	}
@@ -61,13 +61,13 @@ func (sys *SSL) Uninstall(domain string) error {
 	ns := fmt.Sprintf("project_%s", sys.p.ID())
 
 	target := fmt.Sprintf("%s/certs/%s_%s.crt", sys.s.SSL.RunPath, ns, domain)
-	log.Printf("SSL uninstall: %s", target)
+	log.Printf("SSL is uninstalling: %s", target)
 	if err := os.Remove(target); err != nil {
 		return err
 	}
 
 	target = fmt.Sprintf("%s/private/%s_%s.key", sys.s.SSL.RunPath, ns, domain)
-	log.Printf("SSL uninstall: %s", target)
+	log.Printf("SSL is uninstalling: %s", target)
 	if err := os.Remove(target); err != nil {
 		return err
 	}

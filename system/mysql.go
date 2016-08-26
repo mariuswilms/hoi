@@ -29,7 +29,7 @@ type MySQL struct {
 func (sys MySQL) EnsureDatabase(database string) error {
 	sql := fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s", database)
 
-	log.Printf("MySQL: ensuring database '%s' exists", database)
+	log.Printf("MySQL is ensuring database '%s' exists", database)
 	res, err := sys.conn.Exec(sql)
 	if err != nil {
 		return err
@@ -43,7 +43,7 @@ func (sys MySQL) EnsureDatabase(database string) error {
 func (sys MySQL) HasUser(user string) (bool, error) {
 	sql := `SELECT COUNT(*) FROM mysql.user WHERE User = ? AND Host = 'localhost'`
 
-	log.Printf("MySQL: checking for user %s", user)
+	log.Printf("MySQL is checking for user %s", user)
 	rows, err := sys.conn.Query(sql, user)
 	if err != nil {
 		return false, err
@@ -58,7 +58,7 @@ func (sys MySQL) HasUser(user string) (bool, error) {
 }
 
 func (sys MySQL) EnsureUser(user string, password string) error {
-	log.Printf("MySQL: ensuring user '%s' with password '%s' exists", user, password)
+	log.Printf("MySQL is ensuring user '%s' with password '%s' exists", user, password)
 
 	// MySQL < 5.7.6 and MariaDB < 10.1.3 do not support IF NOT EXISTS.
 	var sql string
@@ -97,7 +97,7 @@ func (sys MySQL) EnsureGrant(user string, database string, privs []string) error
 	}
 
 	for _, priv := range privs {
-		log.Printf("MySQL: granting user %s privilege %s on %s", user, priv, database)
+		log.Printf("MySQL is granting user %s privilege %s on %s", user, priv, database)
 		sql := fmt.Sprintf("GRANT %s ON %s.* TO '%s'@'localhost'", priv, database, user)
 		res, err := sys.conn.Exec(sql)
 		if err != nil {
@@ -122,12 +122,12 @@ func (sys MySQL) EnsureNoGrant(user string, database string, privs []string) err
 	}
 
 	for _, priv := range privs {
-		log.Printf("MySQL: revoking user %s privilege %s on %s", user, priv, database)
+		log.Printf("MySQL is revoking user %s privilege %s on %s", user, priv, database)
 		sql := fmt.Sprintf("REVOKE %s ON %s.* FROM '%s'@'localhost'", priv, database, user)
 		res, err := sys.conn.Exec(sql)
 		if err != nil {
 			// Ignore "there is no such grant" errors, querying for privs is tedious.
-			log.Printf("MySQL: user %s has no privilege %s on %s; skipped", user, priv, database)
+			log.Printf("MySQL skipped revoke for user %s, has no privilege %s on %s; skipped", user, priv, database)
 			continue
 		}
 		if num, _ := res.RowsAffected(); num > 0 {
@@ -145,8 +145,7 @@ func (sys *MySQL) ReloadIfDirty() error {
 
 	log.Printf("MySQL: reloading")
 	if _, err := sys.conn.Exec(sql); err != nil {
-		log.Printf("MySQL reload: left in dirty state")
-		return err
+		return fmt.Errorf("MySQL is left in dirty state")
 	}
 	sys.dirty = false
 	return nil

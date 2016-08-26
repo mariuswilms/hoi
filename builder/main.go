@@ -58,13 +58,13 @@ func (b Builder) ListAvailable() ([]string, error) {
 
 func (b Builder) Clean() error {
 	dir := filepath.Join(b.s.BuildPath, b.kind, b.p.ID())
-	log.Printf("[project %s] cleaning build directory: %s", b.p.PrettyName(), dir)
+	log.Printf("cleaning build directory for project %s: %s", b.p.PrettyName(), dir)
 
 	return os.RemoveAll(dir)
 }
 
 func (b Builder) WriteSensitiveFile(name string, reader io.Reader) error {
-	log.Printf("[project %s] writing sensitive file: %s", b.p.PrettyName(), name)
+	log.Printf("writing sensitive file for project %s: %s", b.p.PrettyName(), name)
 
 	dir := filepath.Join(b.s.BuildPath, b.kind, b.p.ID())
 
@@ -84,12 +84,12 @@ func (b Builder) WriteSensitiveFile(name string, reader io.Reader) error {
 }
 
 func (b Builder) LoadTemplate(name string) (*template.Template, error) {
-	log.Printf("[project %s] loading: %s", b.p.PrettyName(), name)
+	log.Printf("loading template for project %s: %s", b.p.PrettyName(), name)
 	return loadTemplate(filepath.Join(b.s.TemplatePath, b.kind, name))
 }
 
 func (b Builder) WriteTemplate(name string, t *template.Template, tmplData interface{}) error {
-	log.Printf("[project %s] writing: %s", b.p.PrettyName(), name)
+	log.Printf("compling template for project %s: %s", b.p.PrettyName(), name)
 
 	dir := filepath.Join(b.s.BuildPath, b.kind, b.p.ID())
 
@@ -102,7 +102,7 @@ func (b Builder) WriteTemplate(name string, t *template.Template, tmplData inter
 }
 
 func (b Builder) WriteSensitiveTemplate(name string, t *template.Template, tmplData interface{}) error {
-	log.Printf("[project %s] writing sensitive: %s", b.p.PrettyName(), name)
+	log.Printf("compiling sensitive template for project %s: %s", b.p.PrettyName(), name)
 
 	dir := filepath.Join(b.s.BuildPath, b.kind, b.p.ID())
 
@@ -120,7 +120,7 @@ func (b Builder) LoadWriteTemplates(tmplData interface{}) error {
 	sPath := filepath.Join(b.s.TemplatePath, b.kind)
 	tPath := filepath.Join(b.s.BuildPath, b.kind, b.p.ID())
 
-	log.Printf("[project %s] load/write templates: %s -> %s", b.p.PrettyName(), sPath, tPath)
+	log.Printf("loading/compiling templates for project %s: %s -> %s", b.p.PrettyName(), sPath, tPath)
 
 	if _, err := os.Stat(sPath); os.IsNotExist(err) {
 		return err
@@ -177,7 +177,7 @@ func (b Builder) LoadWriteTemplates(tmplData interface{}) error {
 }
 
 func loadTemplate(path string) (*template.Template, error) {
-	log.Printf("loading: %s", path)
+	log.Printf("loading template: %s", path)
 
 	bytes, err := ioutil.ReadFile(path)
 	if err != nil {
@@ -189,7 +189,7 @@ func loadTemplate(path string) (*template.Template, error) {
 
 // FIXME clean up partially written file
 func writeTemplate(t *template.Template, dst string, perm os.FileMode, tmplData interface{}) error {
-	log.Printf("writing: %s", dst)
+	log.Printf("compiling template to: %s", dst)
 
 	fh, err := os.OpenFile(dst, os.O_CREATE|os.O_RDWR, perm)
 	if err != nil {

@@ -80,7 +80,7 @@ func main() {
 				log.Fatal(err)
 			}
 			MySQLConn = conn // Assign to global.
-			log.Printf("connected to MySQL")
+			log.Printf("MySQL connection ready")
 		}
 	}
 

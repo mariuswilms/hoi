@@ -29,7 +29,7 @@ func NewPHP(p project.Config, s server.Config) *PHP {
 func (sys *PHP) Install(path string) error {
 	target := fmt.Sprintf("%s/99-project-%s.ini", sys.s.PHP.RunPath, sys.p.ID())
 
-	log.Printf("PHP install: %s -> %s", path, target)
+	log.Printf("PHP is installing: %s -> %s", path, target)
 
 	sys.dirty = true
 	return os.Symlink(path, target)
@@ -38,14 +38,14 @@ func (sys *PHP) Install(path string) error {
 func (sys *PHP) Uninstall() error {
 	target := fmt.Sprintf("%s/99-project-%s.ini", sys.s.PHP.RunPath, sys.p.ID())
 
-	log.Printf("PHP uninstall: %s", target)
+	log.Printf("PHP is uninstalling: %s", target)
 
 	sys.dirty = true
 	return os.Remove(target)
 }
 
 func (sys PHP) Reload() error {
-	log.Printf("PHP reload")
+	log.Printf("PHP is reloading")
 	return exec.Command("systemctl", "reload", "php5-fpm").Run()
 }
 
@@ -53,10 +53,10 @@ func (sys *PHP) ReloadIfDirty() error {
 	if !sys.dirty {
 		return nil
 	}
-	log.Printf("PHP reload")
+	log.Printf("PHP is reloading")
 
 	if err := exec.Command("systemctl", "reload", "php5-fpm").Run(); err != nil {
-		log.Printf("PHP reload: left in dirty state")
+		log.Printf("PHP is left in dirty state")
 		return err
 	}
 	sys.dirty = false

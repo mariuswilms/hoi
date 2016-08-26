@@ -30,18 +30,15 @@ func handleLoad(path string) error {
 
 	pCfg, err := project.NewFromFile(path + "/Hoifile")
 	if err != nil {
-		log.Printf("[project %s] failed to parse Hoifile: %s", pCfg.PrettyName(), err)
-		return err
+		return fmt.Errorf("failed to parse Hoifile in project %s: %s", pCfg.PrettyName(), err)
 	}
 
 	if err = pCfg.Augment(); err != nil {
-		log.Printf("[project %s] failed to discover config: %s", pCfg.PrettyName(), err)
-		return err
+		return fmt.Errorf("failed to discover configuration of project %s: %s", pCfg.PrettyName(), err)
 	}
 
 	if err = pCfg.Validate(); err != nil {
-		log.Printf("[project %s] did not validate: %s", pCfg.PrettyName(), err)
-		return err
+		return fmt.Errorf("cannot load project %s, config did not validate: %s", pCfg.PrettyName(), err)
 	}
 
 	steps := make([]func() error, 0)
@@ -66,7 +63,7 @@ func handleLoad(path string) error {
 		return err
 	}
 
-	log.Printf("[project %s] active :)", pCfg.PrettyName())
+	log.Printf("project %s is now active :)", pCfg.PrettyName())
 	Store.WriteStatus(pCfg.ID(), project.StatusActive)
 	return nil
 }
@@ -79,7 +76,7 @@ func handleUnload(path string) error {
 	if !Store.Has(id) {
 		return fmt.Errorf("no project %s in store to unload", id)
 	}
-	log.Printf("unloading project: %s", id)
+	log.Printf("unloading project %s", id)
 	Store.WriteStatus(id, project.StatusUnloading)
 
 	pCfg, err := Store.Read(id)
@@ -106,7 +103,7 @@ func handleUnload(path string) error {
 		return err
 	}
 
-	log.Printf("[project %s] unloaded :(", pCfg.PrettyName())
+	log.Printf("project %s unloaded :(", pCfg.PrettyName())
 	return nil
 }
 
@@ -131,8 +128,7 @@ func handleDomain(path string, dDrv *project.DomainDirective) error {
 	}
 
 	if err := pCfg.Validate(); err != nil {
-		log.Printf("[project %s] did not validate: %s", pCfg.PrettyName(), err)
-		return err
+		return fmt.Errorf("cannot load project %s, config did not validate: %s", pCfg.PrettyName(), err)
 	}
 
 	// Save us iterating through all runners, when the only one
@@ -164,7 +160,7 @@ func handleDomain(path string, dDrv *project.DomainDirective) error {
 		return err
 	}
 
-	log.Printf("[project %s] added domain: %s", pCfg.PrettyName(), dDrv.FQDN)
+	log.Printf("added domain %s to projects %s", dDrv.FQDN, pCfg.PrettyName())
 	Store.WriteStatus(pCfg.ID(), project.StatusActive)
 	return nil
 }
@@ -197,8 +193,7 @@ func performSteps(pCfg project.Config, steps []func() error) error {
 	}
 	for _, s := range steps {
 		if err := s(); err != nil {
-			log.Printf("[project %s] step %s failed: %s", pCfg.PrettyName(), getFuncName(s), err)
-			return err
+			return fmt.Errorf("in project %s step %s failed: %s", pCfg.PrettyName(), getFuncName(s), err)
 		}
 	}
 	return nil
