@@ -14,7 +14,7 @@ import (
 
 func TestStore(t *testing.T) {
 	file := "/tmp/store-test.db"
-	store, _ := New(file)
+	store := New(file)
 	cfg, _ := project.NewFromString("name = \"test\"")
 
 	if err := store.Write("fookey", *cfg); err != nil {
@@ -29,7 +29,7 @@ func TestStore(t *testing.T) {
 
 func TestLoad(t *testing.T) {
 	file := "/tmp/store-test.db"
-	store, _ := New(file)
+	store := New(file)
 	cfg, _ := project.NewFromString("name = \"test\"")
 
 	if err := store.Write("fookey", *cfg); err != nil {
@@ -40,14 +40,26 @@ func TestLoad(t *testing.T) {
 	}
 	store.Close()
 
-	store, err := New(file)
-	if err != nil {
-		t.Error(err)
-	}
+	store = New(file)
+	store.Load()
 	if !store.Has("fookey") {
 		t.Error("no key fookey")
 	}
 
 	store.Close()
 	os.Remove(file)
+}
+
+func TestStoreCount(t *testing.T) {
+	file := "/tmp/store-test.db"
+	store := New(file)
+	cfg, _ := project.NewFromString("name = \"test\"")
+
+	if err := store.Write("fookey", *cfg); err != nil {
+		t.Error(err)
+	}
+	if len(store.data) != 1 {
+		t.Errorf("expected a single entry")
+	}
+	store.Close()
 }

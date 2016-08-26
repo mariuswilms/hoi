@@ -70,6 +70,7 @@ func main() {
 		}
 		_store.InstallAutoStore()
 		Store = _store // Assign to global
+		log.Printf("store backend ready")
 
 		// Only connect if we need a connection later.
 		if Config.Database.Enabled {

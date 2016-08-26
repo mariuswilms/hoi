@@ -23,12 +23,10 @@ import (
 )
 
 func New(file string) *Store {
-	store := &Store{
+	return &Store{
 		file: file,
 		data: make(map[string]Entity),
 	}
-	log.Printf("in-memory store ready")
-	return store
 }
 
 type Entity struct {
@@ -51,6 +49,8 @@ func (s *Store) Load() error {
 	if _, err := os.Stat(s.file); os.IsNotExist(err) {
 		return nil // nothing to do
 	}
+	log.Printf("loading db file: %s", s.file)
+
 	f, err := os.Open(s.file)
 	if err != nil {
 		return err
@@ -72,10 +72,7 @@ func (s *Store) Load() error {
 		}
 		s.data[fields[0]] = *entity
 	}
-	if err := scanner.Err(); err != nil {
-		return err
-	}
-	return nil
+	return scanner.Err()
 }
 
 // Persists data into database file.
@@ -130,9 +127,12 @@ func (s *Store) InstallAutoStore() {
 }
 
 func (s *Store) Close() error {
-	close(s.autoSaverQuits)
+	if s.autoSaverQuits != nil {
+		close(s.autoSaverQuits)
+	}
 	s.Lock()
 	defer s.Unlock()
+
 	return s.Store()
 }
 
