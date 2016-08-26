@@ -100,10 +100,7 @@ func main() {
 			log.Printf("caught signal %s: currently noop", sig)
 		default:
 			log.Printf("caught signal %s: shutting down", sig)
-			Store.Lock()
 			Store.Close()
-			Store.Unlock()
-
 			RPCServer.Close()
 
 			if MySQLConn != nil {
