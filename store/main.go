@@ -108,6 +108,9 @@ func (s Store) Store() error {
 
 // Wil periodically update the database file.
 func (s *Store) InstallAutoStore() {
+	if s.autoSaverQuits != nil {
+		panic("auto saver already installed")
+	}
 	ticker := time.NewTicker(1 * time.Minute)
 	s.autoSaverQuits = make(chan struct{})
 	log.Print("will periodically sync to database file")
