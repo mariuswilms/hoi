@@ -54,6 +54,19 @@ func (sys *NGINX) Uninstall(server string) error {
 	return os.Remove(target)
 }
 
+func (sys *NGINX) Reload() error {
+	log.Printf("NGINX is reloading")
+
+	NGINXLock.Lock()
+	defer NGINXLock.Unlock()
+
+	if err := exec.Command("systemctl", "reload", "nginx").Run(); err != nil {
+		return fmt.Errorf("NGINX possibly left in dirty state: %s", err)
+	}
+	NGINXDirty = false
+	return nil
+}
+
 func (sys *NGINX) ReloadIfDirty() error {
 	if !NGINXDirty {
 		return nil

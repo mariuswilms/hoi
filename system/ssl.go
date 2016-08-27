@@ -17,6 +17,12 @@ import (
 	"github.com/atelierdisko/hoi/util"
 )
 
+var (
+	// no need for mutex: all actions are atomic, we
+	// do not reload the whole configuration
+	SSLDirty bool
+)
+
 func NewSSL(p project.Config, s server.Config) *SSL {
 	return &SSL{p: p, s: s}
 }
@@ -38,11 +44,13 @@ func (sys *SSL) Install(domain string, ssl project.SSLDirective) error {
 	if err != nil {
 		return err
 	}
+
 	target := fmt.Sprintf("%s/certs/%s_%s.crt", sys.s.SSL.RunPath, ns, domain)
 	log.Printf("SSL is installing: %s -> %s", path, target)
 	if err := util.CopyFile(path, target); err != nil {
 		return err
 	}
+	SSLDirty = true
 
 	path, err = ssl.GetCertificateKey(sys.p)
 	if err != nil {
@@ -65,6 +73,7 @@ func (sys *SSL) Uninstall(domain string) error {
 	if err := os.Remove(target); err != nil {
 		return err
 	}
+	SSLDirty = true
 
 	target = fmt.Sprintf("%s/private/%s_%s.key", sys.s.SSL.RunPath, ns, domain)
 	log.Printf("SSL is uninstalling: %s", target)

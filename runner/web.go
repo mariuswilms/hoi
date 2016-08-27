@@ -77,7 +77,14 @@ func (r WebRunner) Enable() error {
 }
 
 func (r WebRunner) Commit() error {
-	return r.nginx.ReloadIfDirty()
+	if !system.SSLDirty {
+		return r.nginx.ReloadIfDirty()
+	}
+	if err := r.nginx.Reload(); err != nil {
+		return err
+	}
+	system.SSLDirty = false
+	return nil
 }
 
 func (r WebRunner) Clean() error {
