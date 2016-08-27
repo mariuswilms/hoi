@@ -166,12 +166,11 @@ The web runner requires nginx(8) and openssl(1)
   available in NGINX >= 1.7.1. To lower this version requirement the "useLegacy"
   option can be enabled (which will log to STDERR instead).
 
-The cron runner requires systemd(1)
-The worker runner requires systemd(1)
+The cron and worker runners require systemd(1)
   Recent systemd versions are always supported, older ones (i.e. 215) are
   probably supported via the "useLegacy" option.
 
-The PHP runner requires php(1)
+The PHP runner requires php-fpm(8)
   If you don't enable this runner you can drop this requirement.
 
 The DB runner requires mysqld(8) or MariaDB
