@@ -16,8 +16,6 @@ HOICTL_GOFLAGS +=  -X main.SocketPath=$(abspath $(PREFIX)/var/run/hoid.socket)
 
 ANY_DEPS = builder project rpc runner server store system util
 
-DEBUG ?= no
-
 define TEST_HOIFILE
 name = "example"
 context = "prod"
@@ -84,7 +82,7 @@ test:
 	mkdir -p _test/var/www/example/app/webroot
 	touch _test/var/www/example/app/webroot/index.php
 	echo "$$TEST_HOIFILE" > _test/var/www/example/Hoifile
-	PREFIX=./_test DEBUG=$(DEBUG) make install
+	PREFIX=./_test make install
 	sed -i -e "s|Path = \"|Path = \"$(abspath ./_test)|g" ./_test/etc/hoi/hoid.conf
 	@echo 
 	@echo Terminal A:
