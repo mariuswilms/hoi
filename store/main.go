@@ -150,7 +150,7 @@ func (s Store) Read(id string) (project.Config, error) {
 }
 
 func (s Store) ReadAll() []Entity {
-	all := make([]Entity, len(s.data))
+	all := make([]Entity, 0, len(s.data))
 
 	for _, entity := range s.data {
 		all = append(all, entity)
