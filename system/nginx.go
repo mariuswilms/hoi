@@ -12,19 +12,25 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/atelierdisko/hoi/project"
 	"github.com/atelierdisko/hoi/server"
 )
 
+var (
+	NGINXLock  sync.RWMutex
+	NGINXDirty bool
+)
+
+func NewNGINX(p project.Config, s server.Config) *NGINX {
+	return &NGINX{p: p, s: s}
+}
+
 type NGINX struct {
 	p     project.Config
 	s     server.Config
 	dirty bool
-}
-
-func NewNGINX(p project.Config, s server.Config) *NGINX {
-	return &NGINX{p: p, s: s}
 }
 
 // Installs just the server configuration.
@@ -34,7 +40,7 @@ func (sys *NGINX) Install(path string) error {
 
 	log.Printf("NGINX is installing: %s -> %s", path, target)
 
-	sys.dirty = true
+	NGINXDirty = true
 	return os.Symlink(path, target)
 }
 
@@ -44,26 +50,23 @@ func (sys *NGINX) Uninstall(server string) error {
 
 	log.Printf("NGINX is uninstalling: %s", target)
 
-	sys.dirty = true
+	NGINXDirty = true
 	return os.Remove(target)
 }
 
-func (sys NGINX) Reload() error {
-	log.Printf("NGINX is reloading")
-	return exec.Command("systemctl", "reload", "nginx").Run()
-}
-
 func (sys *NGINX) ReloadIfDirty() error {
-	if !sys.dirty {
+	if !NGINXDirty {
 		return nil
 	}
 	log.Printf("NGINX is reloading")
 
+	NGINXLock.Lock()
+	defer NGINXLock.Unlock()
+
 	if err := exec.Command("systemctl", "reload", "nginx").Run(); err != nil {
-		log.Printf("NGINX is left in dirty state")
-		return err
+		return fmt.Errorf("NGINX left in dirty state: %s", err)
 	}
-	sys.dirty = false
+	NGINXDirty = false
 	return nil
 }
 

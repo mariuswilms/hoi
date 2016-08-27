@@ -15,6 +15,12 @@ import (
 	"github.com/atelierdisko/hoi/server"
 )
 
+var (
+	// no need for mutex: all actions are atomic, we
+	// do not reload the whole configuration
+	MySQLDirty bool
+)
+
 func NewMySQL(p project.Config, s server.Config, conn *sql.DB) *MySQL {
 	return &MySQL{p: p, s: s, conn: conn}
 }
@@ -35,7 +41,7 @@ func (sys MySQL) EnsureDatabase(database string) error {
 		return err
 	}
 	if num, _ := res.RowsAffected(); num > 0 {
-		sys.dirty = true
+		MySQLDirty = true
 	}
 	return nil
 }
@@ -80,7 +86,7 @@ func (sys MySQL) EnsureUser(user string, password string) error {
 		return err
 	}
 	if num, _ := res.RowsAffected(); num > 0 {
-		sys.dirty = true
+		MySQLDirty = true
 	}
 	return nil
 }
@@ -104,7 +110,7 @@ func (sys MySQL) EnsureGrant(user string, database string, privs []string) error
 			return err
 		}
 		if num, _ := res.RowsAffected(); num > 0 {
-			sys.dirty = true
+			MySQLDirty = true
 		}
 	}
 	return nil
@@ -131,22 +137,22 @@ func (sys MySQL) EnsureNoGrant(user string, database string, privs []string) err
 			continue
 		}
 		if num, _ := res.RowsAffected(); num > 0 {
-			sys.dirty = true
+			MySQLDirty = true
 		}
 	}
 	return nil
 }
 
 func (sys *MySQL) ReloadIfDirty() error {
-	if !sys.dirty {
+	if !MySQLDirty {
 		return nil
 	}
-	sql := "FLUSH PRIVILEGES"
+	log.Printf("MySQL is reloading")
 
-	log.Printf("MySQL: reloading")
+	sql := "FLUSH PRIVILEGES"
 	if _, err := sys.conn.Exec(sql); err != nil {
-		return fmt.Errorf("MySQL is left in dirty state")
+		return fmt.Errorf("MySQL left in dirty state")
 	}
-	sys.dirty = false
+	MySQLDirty = false
 	return nil
 }

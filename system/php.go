@@ -10,19 +10,24 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"sync"
 
 	"github.com/atelierdisko/hoi/project"
 	"github.com/atelierdisko/hoi/server"
 )
 
-type PHP struct {
-	p     project.Config
-	s     server.Config
-	dirty bool
-}
+var (
+	PHPLock  sync.RWMutex
+	PHPDirty bool
+)
 
 func NewPHP(p project.Config, s server.Config) *PHP {
 	return &PHP{p: p, s: s}
+}
+
+type PHP struct {
+	p project.Config
+	s server.Config
 }
 
 // Installs just the server configuration.
@@ -31,7 +36,7 @@ func (sys *PHP) Install(path string) error {
 
 	log.Printf("PHP is installing: %s -> %s", path, target)
 
-	sys.dirty = true
+	PHPDirty = true
 	return os.Symlink(path, target)
 }
 
@@ -40,26 +45,23 @@ func (sys *PHP) Uninstall() error {
 
 	log.Printf("PHP is uninstalling: %s", target)
 
-	sys.dirty = true
+	PHPDirty = true
 	return os.Remove(target)
 }
 
-func (sys PHP) Reload() error {
-	log.Printf("PHP is reloading")
-	return exec.Command("systemctl", "reload", "php5-fpm").Run()
-}
-
 func (sys *PHP) ReloadIfDirty() error {
-	if !sys.dirty {
+	if !PHPDirty {
 		return nil
 	}
 	log.Printf("PHP is reloading")
 
+	PHPLock.Lock()
+	defer PHPLock.Unlock()
+
 	if err := exec.Command("systemctl", "reload", "php5-fpm").Run(); err != nil {
-		log.Printf("PHP is left in dirty state")
-		return err
+		return fmt.Errorf("PHP left in dirty state: %s", err)
 	}
-	sys.dirty = false
+	PHPDirty = false
 	return nil
 }
 
