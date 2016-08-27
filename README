@@ -99,14 +99,6 @@ automatically once the project is loaded.
 It uses a directive based configuration syntax similar to the NGINX
 configuration files.
 
-To load a project, it must contain a Hoifile:
-$ cd /var/www/foo
-$ hoictl load
-
-Already loaded configuration can be manipulated i.e. by adding an
-alias to a domain:
-$ hoictl domain example.org --alias=example.com
-
 A minimal Hoifile has 3 lines:
   name = "example"
   context = "prod"
@@ -133,6 +125,14 @@ A more advanced Hoifile might look like this:
     instances = 2
     command = "bin/process-media"
   }
+
+Once a project contains a Hoifile, it's loaded with a single command:
+$ cd /var/www/foo
+$ hoictl load
+
+The loaded configuration can be further manipulated i.e. by adding an
+alias to a domain:
+$ hoictl domain example.org --alias=example.com
 
 
 Server Configuration: hoid.conf
