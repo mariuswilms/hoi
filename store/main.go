@@ -70,7 +70,9 @@ func (s *Store) Load() error {
 		if err != nil {
 			return err
 		}
+		s.Lock()
 		s.data[fields[0]] = *entity
+		s.Unlock()
 	}
 	return scanner.Err()
 }
@@ -82,6 +84,7 @@ func (s Store) Store() error {
 	var buf []byte
 	b := bytes.NewBuffer(buf)
 
+	s.RLock()
 	for id, entity := range s.data {
 		c, err := json.Marshal(entity)
 		if err != nil {
@@ -89,6 +92,8 @@ func (s Store) Store() error {
 		}
 		b.WriteString(fmt.Sprintf("%s#%s\n", id, string(c)))
 	}
+	s.RUnlock()
+
 	f, err := os.OpenFile(s.file, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		return err
@@ -130,18 +135,21 @@ func (s *Store) Close() error {
 	if s.autoSaverQuits != nil {
 		close(s.autoSaverQuits)
 	}
-	s.Lock()
-	defer s.Unlock()
-
 	return s.Store()
 }
 
 func (s Store) Has(id string) bool {
+	s.RLock()
+	defer s.RUnlock()
+
 	_, hasKey := s.data[id]
 	return hasKey
 }
 
 func (s Store) Read(id string) (project.Config, error) {
+	s.RLock()
+	defer s.RUnlock()
+
 	entity, hasKey := s.data[id]
 	if !hasKey {
 		return entity.Project, fmt.Errorf("failed to read from store: no id %s", id)
@@ -150,6 +158,9 @@ func (s Store) Read(id string) (project.Config, error) {
 }
 
 func (s Store) ReadAll() []Entity {
+	s.RLock()
+	defer s.RUnlock()
+
 	all := make([]Entity, 0, len(s.data))
 
 	for _, entity := range s.data {
@@ -159,6 +170,9 @@ func (s Store) ReadAll() []Entity {
 }
 
 func (s *Store) Write(id string, pCfg project.Config) error {
+	s.Lock()
+	defer s.Unlock()
+
 	s.data[id] = Entity{
 		Project: pCfg,
 		Meta:    project.Meta{Status: project.StatusUnknown},
@@ -167,6 +181,9 @@ func (s *Store) Write(id string, pCfg project.Config) error {
 }
 
 func (s *Store) Delete(id string) error {
+	s.Lock()
+	defer s.Unlock()
+
 	if _, hasKey := s.data[id]; !hasKey {
 		return fmt.Errorf("failed to delete from store: no id %s", id)
 	}
@@ -175,6 +192,9 @@ func (s *Store) Delete(id string) error {
 }
 
 func (s Store) ReadStatus(id string) (project.MetaStatus, error) {
+	s.RLock()
+	defer s.RUnlock()
+
 	if _, hasKey := s.data[id]; !hasKey {
 		return project.StatusUnknown, fmt.Errorf("failed to read status: no id %s", id)
 	}
@@ -182,6 +202,9 @@ func (s Store) ReadStatus(id string) (project.MetaStatus, error) {
 }
 
 func (s *Store) WriteStatus(id string, status project.MetaStatus) error {
+	s.Lock()
+	defer s.Unlock()
+
 	if _, hasKey := s.data[id]; !hasKey {
 		return fmt.Errorf("failed to write status %s: no id %s", status, id)
 	}

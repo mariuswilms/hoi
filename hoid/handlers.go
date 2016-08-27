@@ -17,15 +17,10 @@ import (
 )
 
 func handleStatus() ([]store.Entity, error) {
-	Store.RLock()
-	defer Store.RUnlock()
 	return Store.ReadAll(), nil
 }
 
 func handleLoad(path string) error {
-	Store.Lock()
-	defer Store.Unlock()
-
 	log.Printf("loading project from: %s", path)
 
 	pCfg, err := project.NewFromFile(path + "/Hoifile")
@@ -69,8 +64,6 @@ func handleLoad(path string) error {
 }
 
 func handleUnload(path string) error {
-	Store.Lock()
-	defer Store.Unlock()
 	id := project.ProjectPathToID(path)
 
 	if !Store.Has(id) {
@@ -108,8 +101,6 @@ func handleUnload(path string) error {
 }
 
 func handleDomain(path string, dDrv *project.DomainDirective) error {
-	Store.Lock()
-	defer Store.Unlock()
 	id := project.ProjectPathToID(path)
 
 	if !Store.Has(id) {
