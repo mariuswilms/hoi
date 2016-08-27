@@ -187,22 +187,35 @@ func (cfg Config) Validate() error {
 		}
 		creds[v.Auth.User] = v.Auth.Password
 
-		// Certificates should come with each project.
 		if v.SSL.IsEnabled() {
-			if v.SSL.Certificate == "" {
-				return fmt.Errorf("empty certificate path for domain: %s", v.FQDN)
-			}
 			if v.SSL.CertificateKey == "" {
-				return fmt.Errorf("empty certificate key path for domain: %s", v.FQDN)
+				return fmt.Errorf("SSL enabled but no certificate key for domain: %s", v.FQDN)
 			}
-			if filepath.IsAbs(v.SSL.Certificate) {
-				return fmt.Errorf("certificate path is not relative: %s", v.SSL.Certificate)
+			if string(v.SSL.CertificateKey[0]) == "!" {
+				if v.SSL.Certificate != v.SSL.CertificateKey {
+					return fmt.Errorf("special action requested for key but not for cert: %s != %s", v.SSL.Certificate, v.SSL.CertificateKey)
+				}
+			} else {
+				if filepath.IsAbs(v.SSL.CertificateKey) {
+					return fmt.Errorf("certificate key path is not relative: %s", v.SSL.CertificateKey)
+				}
 			}
-			if filepath.IsAbs(v.SSL.CertificateKey) {
-				return fmt.Errorf("certificate key path is not relative: %s", v.SSL.CertificateKey)
+
+			if v.SSL.Certificate == "" {
+				return fmt.Errorf("SSL enabled but no certificate for domain: %s", v.FQDN)
 			}
-			// If a cert exists at path is validated when GetCertificate() is called. It can't happen
-			// here as it may return non-paths.
+			if string(v.SSL.Certificate[0]) == "!" {
+				if v.SSL.CertificateKey != v.SSL.Certificate {
+					return fmt.Errorf("special action requested for cert but not for key: %s != %s", v.SSL.Certificate, v.SSL.CertificateKey)
+				}
+				if cfg.Context == "prod" && v.SSL.Certificate == CertSelfSigned {
+					return fmt.Errorf("self-signed certs are not allowed in %s contexts", cfg.Context)
+				}
+			} else {
+				if filepath.IsAbs(v.SSL.Certificate) {
+					return fmt.Errorf("certificate path is not relative: %s", v.SSL.Certificate)
+				}
+			}
 		}
 	}
 

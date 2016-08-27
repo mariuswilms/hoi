@@ -76,20 +76,16 @@ func (drv SSLDirective) IsEnabled() bool {
 	return drv.Certificate != "" && drv.CertificateKey != ""
 }
 
-func (drv SSLDirective) GetCertificate(p Config) (string, error) {
-	switch drv.Certificate {
-	case CertSelfSigned:
-		return CertSelfSigned, nil
-	default:
-		return filepath.Join(p.Path, drv.Certificate), nil
+func (drv SSLDirective) GetCertificateKey(p Config) string {
+	if string(drv.CertificateKey[0]) != "!" {
+		return filepath.Join(p.Path, drv.CertificateKey)
 	}
+	return drv.Certificate
 }
 
-func (drv SSLDirective) GetCertificateKey(p Config) (string, error) {
-	switch drv.CertificateKey {
-	case CertSelfSigned:
-		return CertSelfSigned, nil
-	default:
-		return filepath.Join(p.Path, drv.CertificateKey), nil
+func (drv SSLDirective) GetCertificate(p Config) string {
+	if string(drv.Certificate[0]) != "!" {
+		return filepath.Join(p.Path, drv.Certificate)
 	}
+	return drv.Certificate
 }

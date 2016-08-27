@@ -41,10 +41,7 @@ type SSL struct {
 func (sys *SSL) Install(domain string, ssl project.SSLDirective) error {
 	ns := fmt.Sprintf("project_%s", sys.p.ID)
 
-	path, err := ssl.GetCertificateKey(sys.p)
-	if err != nil {
-		return err
-	}
+	path := ssl.GetCertificateKey(sys.p)
 	targetKey := fmt.Sprintf("%s/private/%s_%s.key", sys.s.SSL.RunPath, ns, domain)
 	log.Printf("SSL is installing: %s -> %s", path, targetKey)
 
@@ -61,10 +58,7 @@ func (sys *SSL) Install(domain string, ssl project.SSLDirective) error {
 	}
 	SSLDirty = true
 
-	path, err = ssl.GetCertificate(sys.p)
-	if err != nil {
-		return err
-	}
+	path = ssl.GetCertificate(sys.p)
 	targetCert := fmt.Sprintf("%s/certs/%s_%s.crt", sys.s.SSL.RunPath, ns, domain)
 	log.Printf("SSL is installing: %s -> %s", path, targetCert)
 
