@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -40,26 +41,51 @@ type SSL struct {
 func (sys *SSL) Install(domain string, ssl project.SSLDirective) error {
 	ns := fmt.Sprintf("project_%s", sys.p.ID)
 
-	path, err := ssl.GetCertificate(sys.p)
+	path, err := ssl.GetCertificateKey(sys.p)
 	if err != nil {
 		return err
 	}
+	targetKey := fmt.Sprintf("%s/private/%s_%s.key", sys.s.SSL.RunPath, ns, domain)
+	log.Printf("SSL is installing: %s -> %s", path, targetKey)
 
-	target := fmt.Sprintf("%s/certs/%s_%s.crt", sys.s.SSL.RunPath, ns, domain)
-	log.Printf("SSL is installing: %s -> %s", path, target)
-	if err := util.CopyFile(path, target); err != nil {
-		return err
+	switch path {
+	case project.CertSelfSigned:
+		cmd := []string{"genrsa", "-out", targetKey, "2048"}
+		if err := exec.Command("openssl", cmd...).Run(); err != nil {
+			return err
+		}
+	default:
+		if err := util.CopyFile(path, targetKey); err != nil {
+			return err
+		}
 	}
 	SSLDirty = true
 
-	path, err = ssl.GetCertificateKey(sys.p)
+	path, err = ssl.GetCertificate(sys.p)
 	if err != nil {
 		return err
 	}
-	target = fmt.Sprintf("%s/private/%s_%s.key", sys.s.SSL.RunPath, ns, domain)
-	log.Printf("SSL is installing: %s -> %s", path, target)
-	if err := util.CopyFile(path, target); err != nil {
-		return err
+	targetCert := fmt.Sprintf("%s/certs/%s_%s.crt", sys.s.SSL.RunPath, ns, domain)
+	log.Printf("SSL is installing: %s -> %s", path, targetCert)
+
+	switch path {
+	case project.CertSelfSigned:
+		cmd := []string{
+			"req", "-new",
+			"-x509",
+			"-sha256",
+			"-nodes",
+			"-days 365",
+			"-key", targetKey,
+			"-out", targetCert,
+		}
+		if err := exec.Command("openssl", cmd...).Run(); err != nil {
+			return err
+		}
+	default:
+		if err := util.CopyFile(path, targetCert); err != nil {
+			return err
+		}
 	}
 
 	return nil

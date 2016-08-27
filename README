@@ -161,7 +161,7 @@ The Go language >= 1.5 is required to build the project.
 
 Hoi is continously tested on Linux and Darwin.
 
-The web runner requires nginx(8)
+The web runner requires nginx(8) and openssl(1)
   The default template for NGINX will log to syslog/journald. This feature is
   available in NGINX >= 1.7.1. To lower this version requirement the "useLegacy"
   option can be enabled (which will log to STDERR instead).

@@ -5,10 +5,7 @@
 
 package project
 
-import (
-	"errors"
-	"path/filepath"
-)
+import "path/filepath"
 
 const (
 	// Advices to keep the www prefix. This will not deploy any
@@ -82,7 +79,7 @@ func (drv SSLDirective) IsEnabled() bool {
 func (drv SSLDirective) GetCertificate(p Config) (string, error) {
 	switch drv.Certificate {
 	case CertSelfSigned:
-		return "", errors.New("unimplemented")
+		return CertSelfSigned, nil
 	default:
 		return filepath.Join(p.Path, drv.Certificate), nil
 	}
@@ -91,7 +88,7 @@ func (drv SSLDirective) GetCertificate(p Config) (string, error) {
 func (drv SSLDirective) GetCertificateKey(p Config) (string, error) {
 	switch drv.CertificateKey {
 	case CertSelfSigned:
-		return "", errors.New("unimplemented")
+		return CertSelfSigned, nil
 	default:
 		return filepath.Join(p.Path, drv.CertificateKey), nil
 	}
