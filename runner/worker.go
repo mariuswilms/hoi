@@ -117,7 +117,7 @@ func (r WorkerRunner) Build() error {
 			W: v,
 		}
 		err = r.build.WriteTemplate(
-			fmt.Sprintf("%s@.service", v.ID()),
+			fmt.Sprintf("%s@.service", v.GetID()),
 			tS,
 			tmplData,
 		)

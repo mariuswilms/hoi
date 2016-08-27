@@ -123,7 +123,7 @@ func (r CronRunner) Build() error {
 			C: v,
 		}
 		err = r.build.WriteTemplate(
-			fmt.Sprintf("%s.service", v.ID()),
+			fmt.Sprintf("%s.service", v.GetID()),
 			tS,
 			tmplData,
 		)
@@ -131,7 +131,7 @@ func (r CronRunner) Build() error {
 			return err
 		}
 		err = r.build.WriteTemplate(
-			fmt.Sprintf("%s.timer", v.ID()),
+			fmt.Sprintf("%s.timer", v.GetID()),
 			tT,
 			tmplData,
 		)

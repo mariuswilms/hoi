@@ -35,7 +35,7 @@ type WorkerDirective struct {
 // Generates the ID for the directive, prefers the plain Name, if that
 // is not present falls back to hasing the contents of Command, as
 // these (together with the project ID) are assumed to be unique enough.
-func (drv WorkerDirective) ID() string {
+func (drv WorkerDirective) GetID() string {
 	if drv.Name == "" {
 		return fmt.Sprintf("%x", adler32.Checksum([]byte(drv.Command)))
 	}
