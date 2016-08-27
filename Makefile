@@ -14,7 +14,7 @@ HOID_GOFLAGS +=  -X main.DataPath=$(abspath $(PREFIX)/var/lib/hoid.db)
 HOICTL_GOFLAGS = -X main.Version=$(VERSION)
 HOICTL_GOFLAGS +=  -X main.SocketPath=$(abspath $(PREFIX)/var/run/hoid.socket)
 
-ANY_DEPS = project server rpc builder runner system
+ANY_DEPS = builder project rpc runner server store system util
 
 DEBUG ?= no
 
