@@ -4,9 +4,9 @@ package project
 
 import "fmt"
 
-const _MetaStatus_name = "StatusLoadingStatusUnloadingStatusUpdatingStatusActiveStatusFailedStatusUnknown"
+const _MetaStatus_name = "StatusUnknownStatusLoadingStatusUnloadingStatusUpdatingStatusActiveStatusFailed"
 
-var _MetaStatus_index = [...]uint8{0, 13, 28, 42, 54, 66, 79}
+var _MetaStatus_index = [...]uint8{0, 13, 26, 41, 55, 67, 79}
 
 func (i MetaStatus) String() string {
 	if i < 0 || i >= MetaStatus(len(_MetaStatus_index)-1) {

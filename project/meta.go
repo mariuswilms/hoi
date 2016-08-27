@@ -6,12 +6,12 @@
 package project
 
 const (
-	StatusLoading MetaStatus = iota
+	StatusUnknown MetaStatus = iota
+	StatusLoading
 	StatusUnloading
 	StatusUpdating
 	StatusActive
 	StatusFailed
-	StatusUnknown
 )
 
 //go:generate stringer -type=MetaStatus
