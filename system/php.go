@@ -32,7 +32,7 @@ type PHP struct {
 
 // Installs just the server configuration.
 func (sys *PHP) Install(path string) error {
-	target := fmt.Sprintf("%s/99-project-%s.ini", sys.s.PHP.RunPath, sys.p.ID())
+	target := fmt.Sprintf("%s/99-project-%s.ini", sys.s.PHP.RunPath, sys.p.ID)
 
 	log.Printf("PHP is installing: %s -> %s", path, target)
 
@@ -41,7 +41,7 @@ func (sys *PHP) Install(path string) error {
 }
 
 func (sys *PHP) Uninstall() error {
-	target := fmt.Sprintf("%s/99-project-%s.ini", sys.s.PHP.RunPath, sys.p.ID())
+	target := fmt.Sprintf("%s/99-project-%s.ini", sys.s.PHP.RunPath, sys.p.ID)
 
 	log.Printf("PHP is uninstalling: %s", target)
 
@@ -66,7 +66,7 @@ func (sys *PHP) ReloadIfDirty() error {
 }
 
 func (sys PHP) IsInstalled() bool {
-	file := fmt.Sprintf("%s/99-project-%s.ini", sys.s.PHP.RunPath, sys.p.ID())
+	file := fmt.Sprintf("%s/99-project-%s.ini", sys.s.PHP.RunPath, sys.p.ID)
 	_, err := os.Stat(file)
 	return !os.IsNotExist(err)
 }

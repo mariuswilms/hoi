@@ -40,11 +40,11 @@ type Builder struct {
 }
 
 func (b Builder) Path() string {
-	return filepath.Join(b.s.BuildPath, b.kind, b.p.ID())
+	return filepath.Join(b.s.BuildPath, b.kind, b.p.ID)
 }
 
 func (b Builder) ListAvailable() ([]string, error) {
-	path := filepath.Join(b.s.BuildPath, b.kind, b.p.ID())
+	path := filepath.Join(b.s.BuildPath, b.kind, b.p.ID)
 	files := make([]string, 0)
 
 	if _, err := os.Stat(path); os.IsNotExist(err) {
@@ -57,7 +57,7 @@ func (b Builder) ListAvailable() ([]string, error) {
 }
 
 func (b Builder) Clean() error {
-	dir := filepath.Join(b.s.BuildPath, b.kind, b.p.ID())
+	dir := filepath.Join(b.s.BuildPath, b.kind, b.p.ID)
 	log.Printf("cleaning build directory for project %s: %s", b.p.PrettyName(), dir)
 
 	return os.RemoveAll(dir)
@@ -66,7 +66,7 @@ func (b Builder) Clean() error {
 func (b Builder) WriteSensitiveFile(name string, reader io.Reader) error {
 	log.Printf("writing sensitive file for project %s: %s", b.p.PrettyName(), name)
 
-	dir := filepath.Join(b.s.BuildPath, b.kind, b.p.ID())
+	dir := filepath.Join(b.s.BuildPath, b.kind, b.p.ID)
 
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		if err := os.MkdirAll(dir, 0755); err != nil {
@@ -91,7 +91,7 @@ func (b Builder) LoadTemplate(name string) (*template.Template, error) {
 func (b Builder) WriteTemplate(name string, t *template.Template, tmplData interface{}) error {
 	log.Printf("compling template for project %s: %s", b.p.PrettyName(), name)
 
-	dir := filepath.Join(b.s.BuildPath, b.kind, b.p.ID())
+	dir := filepath.Join(b.s.BuildPath, b.kind, b.p.ID)
 
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		if err := os.MkdirAll(dir, 0755); err != nil {
@@ -104,7 +104,7 @@ func (b Builder) WriteTemplate(name string, t *template.Template, tmplData inter
 func (b Builder) WriteSensitiveTemplate(name string, t *template.Template, tmplData interface{}) error {
 	log.Printf("compiling sensitive template for project %s: %s", b.p.PrettyName(), name)
 
-	dir := filepath.Join(b.s.BuildPath, b.kind, b.p.ID())
+	dir := filepath.Join(b.s.BuildPath, b.kind, b.p.ID)
 
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		if err := os.MkdirAll(dir, 0750); err != nil {
@@ -118,7 +118,7 @@ func (b Builder) WriteSensitiveTemplate(name string, t *template.Template, tmplD
 // generates files off templates found there.
 func (b Builder) LoadWriteTemplates(tmplData interface{}) error {
 	sPath := filepath.Join(b.s.TemplatePath, b.kind)
-	tPath := filepath.Join(b.s.BuildPath, b.kind, b.p.ID())
+	tPath := filepath.Join(b.s.BuildPath, b.kind, b.p.ID)
 
 	log.Printf("loading/compiling templates for project %s: %s -> %s", b.p.PrettyName(), sPath, tPath)
 

@@ -8,7 +8,6 @@
 package project
 
 import (
-	"errors"
 	"fmt"
 	"hash/adler32"
 	"io/ioutil"
@@ -20,12 +19,19 @@ import (
 	"github.com/hashicorp/hcl"
 )
 
-func New() (*Config, error) {
-	cfg := &Config{}
+func New(id string) (*Config, error) {
+	cfg := &Config{
+		ID: id,
+	}
 	return cfg, nil
 }
+
+// Assumes f is in the root of the project.
 func NewFromFile(f string) (*Config, error) {
-	cfg := &Config{}
+	cfg := &Config{
+		ID:   PathToID(filepath.Dir(f)),
+		Path: filepath.Dir(f),
+	}
 
 	b, err := ioutil.ReadFile(f)
 	if err != nil {
@@ -37,11 +43,12 @@ func NewFromFile(f string) (*Config, error) {
 		return cfg, fmt.Errorf("failed to parse config file %s: %s", f, err)
 
 	}
-	cfg.Path = filepath.Dir(f)
 	return cfg, nil
 }
 func NewFromString(s string) (*Config, error) {
-	cfg := &Config{}
+	cfg := &Config{
+		ID: fmt.Sprintf("memory:%x", adler32.Checksum([]byte(s))),
+	}
 	return decodeInto(cfg, s)
 }
 
@@ -53,6 +60,8 @@ func NewFromString(s string) (*Config, error) {
 // configuration is filled in by discovering the projects needs (through
 // Augment()).
 type Config struct {
+	// The ID of the project, will be computed for you.
+	ID string
 	// The absolute path to the project root; required but will
 	// be provided by hoictl mostly automatically.
 	Path string
@@ -102,13 +111,6 @@ type Config struct {
 	Database map[string]DatabaseDirective
 }
 
-func (cfg Config) ID() string {
-	if cfg.Path == "" {
-		log.Fatal(errors.New("no path to generate ID"))
-	}
-	return fmt.Sprintf("%x", adler32.Checksum([]byte(cfg.Path)))
-}
-
 func (cfg Config) PrettyName() string {
 	if cfg.Name != "" {
 		if cfg.Context != "" {
@@ -119,7 +121,7 @@ func (cfg Config) PrettyName() string {
 	return fmt.Sprintf("? in %s", filepath.Base(cfg.Path))
 }
 
-func ProjectPathToID(path string) string {
+func PathToID(path string) string {
 	return fmt.Sprintf("%x", adler32.Checksum([]byte(path)))
 }
 

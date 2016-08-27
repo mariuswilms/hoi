@@ -35,7 +35,7 @@ type NGINX struct {
 
 // Installs just the server configuration.
 func (sys *NGINX) Install(path string) error {
-	ns := fmt.Sprintf("project_%s", sys.p.ID())
+	ns := fmt.Sprintf("project_%s", sys.p.ID)
 	target := fmt.Sprintf("%s/%s_%s", sys.s.NGINX.RunPath, ns, filepath.Base(path))
 
 	log.Printf("NGINX is installing: %s -> %s", path, target)
@@ -45,7 +45,7 @@ func (sys *NGINX) Install(path string) error {
 }
 
 func (sys *NGINX) Uninstall(server string) error {
-	ns := fmt.Sprintf("project_%s", sys.p.ID())
+	ns := fmt.Sprintf("project_%s", sys.p.ID)
 	target := fmt.Sprintf("%s/%s_%s", sys.s.NGINX.RunPath, ns, server)
 
 	log.Printf("NGINX is uninstalling: %s", target)
@@ -71,7 +71,7 @@ func (sys *NGINX) ReloadIfDirty() error {
 }
 
 func (sys NGINX) ListInstalled() ([]string, error) {
-	ns := fmt.Sprintf("project_%s", sys.p.ID())
+	ns := fmt.Sprintf("project_%s", sys.p.ID)
 
 	files, err := filepath.Glob(fmt.Sprintf("%s/%s_*", sys.s.NGINX.RunPath, ns))
 	if err != nil {

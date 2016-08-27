@@ -32,7 +32,7 @@ type SSL struct {
 }
 
 func (sys *SSL) Install(domain string, ssl project.SSLDirective) error {
-	ns := fmt.Sprintf("project_%s", sys.p.ID())
+	ns := fmt.Sprintf("project_%s", sys.p.ID)
 
 	path, err := ssl.GetCertificate(sys.p)
 	if err != nil {
@@ -58,7 +58,7 @@ func (sys *SSL) Install(domain string, ssl project.SSLDirective) error {
 }
 
 func (sys *SSL) Uninstall(domain string) error {
-	ns := fmt.Sprintf("project_%s", sys.p.ID())
+	ns := fmt.Sprintf("project_%s", sys.p.ID)
 
 	target := fmt.Sprintf("%s/certs/%s_%s.crt", sys.s.SSL.RunPath, ns, domain)
 	log.Printf("SSL is uninstalling: %s", target)
@@ -78,7 +78,7 @@ func (sys *SSL) Uninstall(domain string) error {
 // Checks just the keys subdirectory, if cert is missing
 // this is an error that may or may not be detected by install/uninstall.
 func (sys SSL) ListInstalled() ([]string, error) {
-	ns := fmt.Sprintf("project_%s", sys.p.ID())
+	ns := fmt.Sprintf("project_%s", sys.p.ID)
 	domains := make([]string, 0)
 
 	files, err := filepath.Glob(fmt.Sprintf("%s/private/%s_*.key", sys.s.SSL.RunPath, ns))
@@ -95,7 +95,7 @@ func (sys SSL) ListInstalled() ([]string, error) {
 }
 
 func (sys SSL) GetCertificate(domain string) (string, error) {
-	ns := fmt.Sprintf("project_%s", sys.p.ID())
+	ns := fmt.Sprintf("project_%s", sys.p.ID)
 
 	target := fmt.Sprintf("%s/certs/%s_%s.crt", sys.s.SSL.RunPath, ns, domain)
 	if _, err := os.Stat(target); os.IsNotExist(err) {
@@ -105,7 +105,7 @@ func (sys SSL) GetCertificate(domain string) (string, error) {
 }
 
 func (sys SSL) GetCertificateKey(domain string) (string, error) {
-	ns := fmt.Sprintf("project_%s", sys.p.ID())
+	ns := fmt.Sprintf("project_%s", sys.p.ID)
 
 	target := fmt.Sprintf("%s/private/%s_%s.key", sys.s.SSL.RunPath, ns, domain)
 	if _, err := os.Stat(target); os.IsNotExist(err) {

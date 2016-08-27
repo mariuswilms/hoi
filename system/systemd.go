@@ -36,7 +36,7 @@ type Systemd struct {
 
 // When installing unit files, they are prefixed as to namespace them by project.
 func (sys Systemd) Install(path string) error {
-	ns := fmt.Sprintf("project_%s_%s", sys.p.ID(), sys.kind)
+	ns := fmt.Sprintf("project_%s_%s", sys.p.ID, sys.kind)
 	target := fmt.Sprintf("%s/%s_%s", sys.s.Systemd.RunPath, ns, filepath.Base(path))
 
 	log.Printf("Systemd is installing: %s -> %s", path, target)
@@ -47,7 +47,7 @@ func (sys Systemd) Install(path string) error {
 }
 
 func (sys Systemd) Uninstall(unit string) error {
-	ns := fmt.Sprintf("project_%s_%s", sys.p.ID(), sys.kind)
+	ns := fmt.Sprintf("project_%s_%s", sys.p.ID, sys.kind)
 	target := fmt.Sprintf("%s/%s_%s", sys.s.Systemd.RunPath, ns, unit)
 
 	log.Printf("Systemd is uninstalling: %s", target)
@@ -56,7 +56,7 @@ func (sys Systemd) Uninstall(unit string) error {
 
 // Lists installed service units. Strips project namespace.
 func (sys Systemd) ListInstalledServices() ([]string, error) {
-	ns := fmt.Sprintf("project_%s_%s", sys.p.ID(), sys.kind)
+	ns := fmt.Sprintf("project_%s_%s", sys.p.ID, sys.kind)
 	units := make([]string, 0)
 
 	out, err := exec.Command("systemctl", "list-units", fmt.Sprintf("'%s_*.service'", ns), "--no-legend", "--no-pager").Output()
@@ -78,7 +78,7 @@ func (sys Systemd) ListInstalledServices() ([]string, error) {
 
 // Lists installed timer  units. Strips project namespace.
 func (sys Systemd) ListInstalledTimers() ([]string, error) {
-	ns := fmt.Sprintf("project_%s_%s", sys.p.ID(), sys.kind)
+	ns := fmt.Sprintf("project_%s_%s", sys.p.ID, sys.kind)
 	units := make([]string, 0)
 
 	out, err := exec.Command("systemctl", "list-units", fmt.Sprintf("'%s_*.timer'", ns), "--no-legend", "--no-pager").Output()
@@ -98,7 +98,7 @@ func (sys Systemd) ListInstalledTimers() ([]string, error) {
 }
 
 func (sys Systemd) EnableAndStart(unit string) error {
-	ns := fmt.Sprintf("project_%s_%s", sys.p.ID(), sys.kind)
+	ns := fmt.Sprintf("project_%s_%s", sys.p.ID, sys.kind)
 	log.Printf("Systemd is enabling+starting: %s", ns+"_"+unit)
 
 	if sys.s.Systemd.UseLegacy {
@@ -113,7 +113,7 @@ func (sys Systemd) EnableAndStart(unit string) error {
 
 // Disable needs unit name, doesn't work on full path.
 func (sys Systemd) StopAndDisable(unit string) error {
-	ns := fmt.Sprintf("project_%s_%s", sys.p.ID(), sys.kind)
+	ns := fmt.Sprintf("project_%s_%s", sys.p.ID, sys.kind)
 	log.Printf("Systemd is stopping+disabling: %s", ns+"_"+unit)
 
 	if sys.s.Systemd.UseLegacy {
@@ -128,7 +128,7 @@ func (sys Systemd) StopAndDisable(unit string) error {
 
 // Disable needs unit name, doesn't work on full path.
 func (sys Systemd) Stop(unit string) error {
-	ns := fmt.Sprintf("project_%s_%s", sys.p.ID(), sys.kind)
+	ns := fmt.Sprintf("project_%s_%s", sys.p.ID, sys.kind)
 	log.Printf("systemd is stopping: %s", ns+"_"+unit)
 
 	return exec.Command("systemctl", "stop", ns+"_"+unit).Run()

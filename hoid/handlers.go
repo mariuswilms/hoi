@@ -48,23 +48,23 @@ func handleLoad(path string) error {
 		)
 	}
 
-	if err := Store.Write(pCfg.ID(), *pCfg); err != nil {
+	if err := Store.Write(pCfg.ID, *pCfg); err != nil {
 		return err
 	}
-	Store.WriteStatus(pCfg.ID(), project.StatusLoading)
+	Store.WriteStatus(pCfg.ID, project.StatusLoading)
 
 	if err := performSteps(*pCfg, steps); err != nil {
-		Store.WriteStatus(pCfg.ID(), project.StatusFailed)
+		Store.WriteStatus(pCfg.ID, project.StatusFailed)
 		return err
 	}
 
 	log.Printf("project %s is now active :)", pCfg.PrettyName())
-	Store.WriteStatus(pCfg.ID(), project.StatusActive)
+	Store.WriteStatus(pCfg.ID, project.StatusActive)
 	return nil
 }
 
 func handleUnload(path string) error {
-	id := project.ProjectPathToID(path)
+	id := project.PathToID(path)
 
 	if !Store.Has(id) {
 		return fmt.Errorf("no project %s in store to unload", id)
@@ -87,12 +87,12 @@ func handleUnload(path string) error {
 		)
 	}
 
-	if err := Store.Delete(pCfg.ID()); err != nil {
-		Store.WriteStatus(pCfg.ID(), project.StatusFailed)
+	if err := Store.Delete(pCfg.ID); err != nil {
+		Store.WriteStatus(pCfg.ID, project.StatusFailed)
 		return err
 	}
 	if err := performSteps(pCfg, steps); err != nil {
-		Store.WriteStatus(pCfg.ID(), project.StatusFailed)
+		Store.WriteStatus(pCfg.ID, project.StatusFailed)
 		return err
 	}
 
@@ -101,7 +101,7 @@ func handleUnload(path string) error {
 }
 
 func handleDomain(path string, dDrv *project.DomainDirective) error {
-	id := project.ProjectPathToID(path)
+	id := project.PathToID(path)
 
 	if !Store.Has(id) {
 		return fmt.Errorf("no project %s in store to add domain to", id)
@@ -141,18 +141,18 @@ func handleDomain(path string, dDrv *project.DomainDirective) error {
 		)
 	}
 
-	if err := Store.Write(pCfg.ID(), pCfg); err != nil {
+	if err := Store.Write(pCfg.ID, pCfg); err != nil {
 		return err
 	}
-	Store.WriteStatus(pCfg.ID(), project.StatusUpdating)
+	Store.WriteStatus(pCfg.ID, project.StatusUpdating)
 
 	if err := performSteps(pCfg, steps); err != nil {
-		Store.WriteStatus(pCfg.ID(), project.StatusFailed)
+		Store.WriteStatus(pCfg.ID, project.StatusFailed)
 		return err
 	}
 
 	log.Printf("added domain %s to projects %s", dDrv.FQDN, pCfg.PrettyName())
-	Store.WriteStatus(pCfg.ID(), project.StatusActive)
+	Store.WriteStatus(pCfg.ID, project.StatusActive)
 	return nil
 }
 
