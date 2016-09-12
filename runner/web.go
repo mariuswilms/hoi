@@ -112,7 +112,7 @@ func (r WebRunner) Build() error {
 		for user, password := range creds {
 			buf.WriteString(fmt.Sprintf("%s:%s\n", user, computeAPR1(password, salt)))
 		}
-		if err := r.build.WriteSensitiveFile("password", buf); err != nil {
+		if err := r.build.WriteSensitiveFile("passwords", buf); err != nil {
 			return err
 		}
 	}
