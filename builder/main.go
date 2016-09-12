@@ -63,8 +63,8 @@ func (b Builder) Clean() error {
 	return os.RemoveAll(dir)
 }
 
-func (b Builder) WriteSensitiveFile(name string, reader io.Reader) error {
-	log.Printf("writing sensitive file for project %s: %s", b.p.PrettyName(), name)
+func (b Builder) WriteFile(name string, reader io.Reader) error {
+	log.Printf("writing file for project %s: %s", b.p.PrettyName(), name)
 
 	dir := filepath.Join(b.s.BuildPath, b.kind, b.p.ID)
 
@@ -73,7 +73,7 @@ func (b Builder) WriteSensitiveFile(name string, reader io.Reader) error {
 			return err
 		}
 	}
-	writer, err := os.OpenFile(filepath.Join(dir, name), os.O_CREATE|os.O_RDWR, 0640)
+	writer, err := os.OpenFile(filepath.Join(dir, name), os.O_CREATE|os.O_RDWR, 0644)
 	if err != nil {
 		return err
 	}
