@@ -94,6 +94,7 @@ func (s Store) Store() error {
 	}
 	s.RUnlock()
 
+	// Atomic, we don't need locks, last writer wins.
 	f, err := os.OpenFile(s.file, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		return err
@@ -120,11 +121,9 @@ func (s *Store) InstallAutoStore() {
 			select {
 			case <-ticker.C:
 				log.Print("auto storing")
-				s.Lock()
 				if err := s.Store(); err != nil {
 					log.Print("failed to auto store")
 				}
-				s.Unlock()
 			case <-s.autoSaverQuits:
 				log.Print("uninstalled auto store")
 				ticker.Stop()
