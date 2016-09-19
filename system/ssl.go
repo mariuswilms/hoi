@@ -69,12 +69,14 @@ func (sys *SSL) Install(domain string, ssl project.SSLDirective) error {
 			"-x509",
 			"-sha256",
 			"-nodes",
-			"-days 365",
+			"-days", "365",
 			"-key", targetKey,
 			"-out", targetCert,
+			"-subj", "/C=DE/ST=Hamburg/L=Hamburg/O=None/OU=None/CN=" + domain,
 		}
 		if err := exec.Command("openssl", cmd...).Run(); err != nil {
-			return err
+			return nil // TODO even when cmd succeeds, it exits with != 0.
+			// return fmt.Errorf("failed executing openssl command with %+v, got: %s", cmd, err)
 		}
 	default:
 		if err := util.CopyFile(path, targetCert); err != nil {
