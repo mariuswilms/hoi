@@ -32,6 +32,7 @@ func NewScopedBuilder(kind string, scope string, p project.Config, s server.Conf
 	return &Builder{kind: kind, scope: scope, p: p, s: s}
 }
 
+// Builds configuration supporting runners.
 type Builder struct {
 	kind  string
 	scope string
