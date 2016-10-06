@@ -5,8 +5,6 @@
 
 package project
 
-import "path/filepath"
-
 const (
 	// Advices to keep the www prefix. This will not deploy any
 	// redirects and just leave the two domains untouched.
@@ -74,18 +72,4 @@ type SSLDirective struct {
 
 func (drv SSLDirective) IsEnabled() bool {
 	return drv.Certificate != "" && drv.CertificateKey != ""
-}
-
-func (drv SSLDirective) GetCertificateKey(p Config) string {
-	if string(drv.CertificateKey[0]) != "!" {
-		return filepath.Join(p.Path, drv.CertificateKey)
-	}
-	return drv.Certificate
-}
-
-func (drv SSLDirective) GetCertificate(p Config) string {
-	if string(drv.Certificate[0]) != "!" {
-		return filepath.Join(p.Path, drv.Certificate)
-	}
-	return drv.Certificate
 }
