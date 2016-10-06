@@ -54,8 +54,14 @@ type Config struct {
 	Systemd      SystemdDirective
 	Database     DatabaseDirective
 	MySQL        MySQLDirective
+	Volume       VolumeDirective
 }
 
+type VolumeDirective struct {
+	Enabled           bool
+	TemporaryRunPath  string
+	PersistentRunPath string
+}
 type WebDirective struct {
 	Enabled bool
 }

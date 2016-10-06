@@ -139,6 +139,8 @@ type Config struct {
 	Worker map[string]WorkerDirective
 	// Databases for the project.
 	Database map[string]DatabaseDirective
+	// Volumes for the project
+	Volume map[string]VolumeDirective
 }
 
 func (cfg Config) PrettyName() string {
@@ -196,6 +198,8 @@ func (cfg Config) Validate() error {
 		return false
 	}
 
+	// Basic
+	//
 	// Must have context, we can't autodetect this.
 	if cfg.Context == ContextUnknown {
 		return fmt.Errorf("project has no context: %s", cfg.Path)
@@ -209,6 +213,8 @@ func (cfg Config) Validate() error {
 
 	creds := make(map[string]string)
 	for k, v := range cfg.Domain {
+		// Authentication
+		//
 		// Auth credentials should be complete and not vary passwords between
 		// same users. The credentials are stored in one single file per project.
 		if !v.Auth.IsEnabled() {
@@ -227,6 +233,8 @@ func (cfg Config) Validate() error {
 		}
 		creds[v.Auth.User] = v.Auth.Password
 
+		// SSL
+		//
 		if v.SSL.IsEnabled() {
 			if v.SSL.CertificateKey == "" {
 				return fmt.Errorf("SSL enabled but no certificate key for domain: %s", v.FQDN)
@@ -259,6 +267,8 @@ func (cfg Config) Validate() error {
 		}
 	}
 
+	// Database
+	//
 	// Database names must be unique and users should for security reasons not
 	// have an empty password (not even for dev contexts).
 	seenDatabases := make([]string, 0)
@@ -272,6 +282,14 @@ func (cfg Config) Validate() error {
 		seenDatabases = append(seenDatabases, db.Name)
 	}
 
+	// Volume
+	//
+	for _, volume := range cfg.Volume {
+		if filepath.IsAbs(volume.Path) {
+			return fmt.Errorf("volume path is not relative: %s", volume.Path)
+		}
+	}
+
 	return nil
 }
 
@@ -280,6 +298,21 @@ func (cfg Config) Validate() error {
 // configuration can stay lean.
 func (cfg *Config) Augment() error {
 	log.Printf("discovering project config: %s", cfg.Path)
+
+	// Volumes might not yet be mounted, still we want to serve
+	// data from them. On the other hand directories might simply
+	// exists without being placed on a volume.
+	hasDirectory := func(path string) bool {
+		if _, err := os.Stat(path); err == nil {
+			return true
+		}
+		for _, volume := range cfg.Volume {
+			if volume.GetAbsolutePath(*cfg) == path {
+				return true
+			}
+		}
+		return false
+	}
 
 	if cfg.Name == "" {
 		// Strips the directory name from known context suffix, the
@@ -374,25 +407,25 @@ func (cfg *Config) Augment() error {
 	}
 
 	// FIXME: Check if these are in project root or webroot.
-	if _, err := os.Stat(cfg.GetAbsoluteWebroot() + "/css"); err == nil {
+	if hasDirectory(cfg.GetAbsoluteWebroot() + "/css") {
 		log.Print("- using classic assets")
 		cfg.UseAssets = true
 		cfg.UseClassicAssets = true
-	} else if _, err := os.Stat(cfg.Path + "/assets"); err == nil {
+	} else if hasDirectory(cfg.Path + "/assets") {
 		log.Print("- will serve unified assets directory from: /assets")
 		cfg.UseAssets = true
 	}
 
-	if _, err := os.Stat(cfg.Path + "/media_versions"); err == nil {
+	if hasDirectory(cfg.Path + "/media_versions") {
 		log.Print("- will serve media versions from: /media_versions")
 		cfg.UseMediaVersions = true
 	}
-	if _, err := os.Stat(cfg.Path + "/media"); err == nil {
+	if hasDirectory(cfg.Path + "/media") {
 		log.Print("- will serve media transfers from: /media")
 		cfg.UseMediaTransfers = true
 	}
 
-	if _, err := os.Stat(cfg.Path + "/files"); err == nil {
+	if hasDirectory(cfg.Path + "/files") {
 		log.Print("- will serve files from: /files")
 		cfg.UseFiles = true
 	}
@@ -460,11 +493,15 @@ func decodeInto(cfg *Config, s string) (*Config, error) {
 	if err := hcl.Decode(cfg, s); err != nil {
 		return cfg, err
 	}
+
+	// key is FQDN
 	for k, _ := range cfg.Domain {
 		e := cfg.Domain[k]
 		e.FQDN = k
 		cfg.Domain[k] = e
 	}
+
+	// key is Name
 	for k, _ := range cfg.Cron {
 		e := cfg.Cron[k]
 		e.Name = k
@@ -479,6 +516,11 @@ func decodeInto(cfg *Config, s string) (*Config, error) {
 		e := cfg.Database[k]
 		e.Name = k
 		cfg.Database[k] = e
+	}
+	for k, _ := range cfg.Volume {
+		e := cfg.Volume[k]
+		e.Path = k
+		cfg.Volume[k] = e
 	}
 	return cfg, nil
 }

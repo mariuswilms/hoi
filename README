@@ -76,6 +76,10 @@ of a project.
   Creates databases and users with minimum set of privileges.
   https://godoc.org/github.com/atelierdisko/hoi/runner#DBRunner
 
+- "volume"
+  Mounts persistent and/or temporary volumes into the project.
+  https://godoc.org/github.com/atelierdisko/hoi/runner#VolumeRunner
+
 
 Installation
 ============
@@ -114,7 +118,7 @@ A more advanced Hoifile might look like this:
     }
     aliases = ["example.com", "example.net"]
   }
-  database example {
+  database {
     password = "s3cret"
   }
   cron reporter {

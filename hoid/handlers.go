@@ -237,6 +237,9 @@ func runners(pCfg project.Config) []runner.Runnable {
 	if Config.Worker.Enabled {
 		runners = append(runners, runner.NewWorkerRunner(*Config, pCfg))
 	}
+	if Config.Volume.Enabled {
+		runners = append(runners, runner.NewVolumeRunner(*Config, pCfg))
+	}
 
 	return runners
 }

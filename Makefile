@@ -38,6 +38,20 @@ worker media-processor {
   instances = 2
   command = "/bin/touch worker-run"
 }
+
+volume tmp {
+  type = "temporary"
+}
+volume log {
+  type = "temporary"
+}
+volume media {
+  type = "persistent"
+}
+volume media_versions {
+  type = "persistent"
+}
+
 endef
 
 CONF_FILES = $(patsubst conf/%,$(PREFIX)/etc/hoi/%,$(filter-out %/hoid.service,$(shell find conf -type f)))

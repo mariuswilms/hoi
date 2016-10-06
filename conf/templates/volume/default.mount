@@ -1,0 +1,11 @@
+[Unit]
+Description=Volume Mount at {{.V.Name}} for project {{.P.Name}}@{{.P.Context}}
+
+[Mount]
+What=
+Where={{.V.GetAbsolutePath}}
+Type=none
+Options=bind
+
+[Install]
+WantedBy=default.target
