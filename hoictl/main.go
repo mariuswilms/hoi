@@ -54,6 +54,8 @@ func projectDirectory(path string) string {
 	return ""
 }
 
+// TODO: hoictl workers start/stop
+// TODO: hoictl crons start/stop
 func main() {
 	log.SetFlags(0) // disable prefix, we are invoked directly.
 
