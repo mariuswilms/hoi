@@ -248,6 +248,8 @@ func (cfg *Config) Augment() error {
 		log.Printf("- guessed project name: %s", cfg.Name)
 	}
 
+	// TODO Discover webroot in any directory.
+	// FIXME How do we handle multiple front controllers per project?
 	if _, err := os.Stat(cfg.Path + "/app/webroot/index.php"); err == nil {
 		log.Print("- using PHP")
 		cfg.UsePHP = true
