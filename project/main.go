@@ -177,7 +177,7 @@ func (cfg Config) Validate() error {
 		if v.Auth.User == "" {
 			return fmt.Errorf("empty user for domain: %s", v.FQDN)
 		}
-		if v.Auth.Password == "" {
+		if cfg.Context != "dev" && v.Auth.Password == "" {
 			return fmt.Errorf("user %s has empty password for domain: %s", v.Auth.User, v.FQDN)
 		}
 		if _, hasKey := creds[k]; hasKey {
@@ -226,7 +226,7 @@ func (cfg Config) Validate() error {
 		if stringInSlice(db.Name, seenDatabases) {
 			return fmt.Errorf("found duplicate database name: %s", db.Name)
 		}
-		if db.Password == "" {
+		if cfg.Context != "dev" && db.Password == "" {
 			return fmt.Errorf("user %s has empty password for database: %s", db.User, db.Name)
 		}
 		seenDatabases = append(seenDatabases, db.Name)
