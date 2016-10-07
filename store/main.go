@@ -120,7 +120,6 @@ func (s *Store) InstallAutoStore() {
 		for {
 			select {
 			case <-ticker.C:
-				log.Print("auto storing")
 				if err := s.Store(); err != nil {
 					log.Print("failed to auto store")
 				}
