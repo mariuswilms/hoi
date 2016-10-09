@@ -316,14 +316,14 @@ func (cfg *Config) Augment() error {
 		log.Printf("- found webroot in: %s", cfg.Webroot)
 	}
 
-	if _, err := os.Stat(cfg.Webroot + "/index.php"); err == nil {
+	if _, err := os.Stat(cfg.GetAbsoluteWebroot() + "/index.php"); err == nil {
 		log.Print("- using PHP")
 		cfg.UsePHP = true
 
 		// Detect oldish versions of CakePHP by inspecting the front controller
 		// file for certain string patterns. CakePHP version >= use uppercased "Cake"
 		// string.
-		legacy, err := fileContainsString(cfg.Webroot+"/index.php", "cake")
+		legacy, err := fileContainsString(cfg.GetAbsoluteWebroot()+"/index.php", "cake")
 		if err != nil {
 			return err
 		}
