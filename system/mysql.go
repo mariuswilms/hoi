@@ -49,8 +49,25 @@ func (sys MySQL) EnsureDatabase(database string) error {
 func (sys MySQL) HasUser(user string) (bool, error) {
 	sql := `SELECT COUNT(*) FROM mysql.user WHERE User = ? AND Host = 'localhost'`
 
-	log.Printf("MySQL is checking for user %s", user)
+	log.Printf("MySQL is checking for user: %s", user)
 	rows, err := sys.conn.Query(sql, user)
+	if err != nil {
+		return false, err
+	}
+	var count int
+	for rows.Next() {
+		if err := rows.Scan(&count); err != nil {
+			return false, err
+		}
+	}
+	return count > 0, nil
+}
+
+func (sys MySQL) HasPassword(user string, password string) (bool, error) {
+	sql := `SELECT COUNT(*) FROM mysql.user WHERE User = ? AND Host = 'localhost' AND Password = PASSWORD(?)`
+
+	log.Printf("MySQL is checking if user %s has password: %s", user, password)
+	rows, err := sys.conn.Query(sql, user, password)
 	if err != nil {
 		return false, err
 	}
@@ -65,22 +82,39 @@ func (sys MySQL) HasUser(user string) (bool, error) {
 
 func (sys MySQL) EnsureUser(user string, password string) error {
 	log.Printf("MySQL is ensuring user '%s' with password '%s' exists", user, password)
-
-	// MySQL < 5.7.6 and MariaDB < 10.1.3 do not support IF NOT EXISTS.
 	var sql string
-	if sys.s.MySQL.UseLegacy {
-		hasUser, err := sys.HasUser(user)
+
+	hasUser, err := sys.HasUser(user)
+	if err != nil {
+		return err
+	}
+	if hasUser {
+		hasPassword, err := sys.HasPassword(user, password)
 		if err != nil {
 			return err
 		}
-		if hasUser {
+		if hasPassword {
 			return nil
 		}
-		sql = fmt.Sprintf("CREATE USER '%s'@'localhost' IDENTIFIED BY '%s'", user, password)
-	} else {
-		sql = fmt.Sprintf("CREATE USER IF NOT EXISTS '%s'@'localhost' IDENTIFIED BY '%s'", user, password)
+
+		if sys.s.MySQL.UseLegacy {
+			// PASSWORD() is deprecated and should be used in legacy systems only.
+			sql = fmt.Sprintf("SET PASSWORD FOR '%s'@'localhost' = PASSWORD('%s')", user, password)
+		} else {
+			// ALTER USER to change password is supported since MySQL 5.7.6
+			sql = fmt.Sprintf("ALTER USER '%s'@'localhost' IDENTIFIED BY '%s'", user, password)
+		}
+		res, err := sys.conn.Exec(sql)
+		if err != nil {
+			return err
+		}
+		if num, _ := res.RowsAffected(); num > 0 {
+			MySQLDirty = true
+		}
+		return nil
 	}
 
+	sql = fmt.Sprintf("CREATE USER '%s'@'localhost' IDENTIFIED BY '%s'", user, password)
 	res, err := sys.conn.Exec(sql)
 	if err != nil {
 		return err

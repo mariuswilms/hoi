@@ -378,10 +378,10 @@ func (cfg *Config) Augment() error {
 			if guessedDBName {
 				return fmt.Errorf("more than one database name to guess; giving up on augmenting: %s", cfg.Path)
 			}
-			// Production databases are not suffixed with context
-			// name. For other contexts the database name will look
-			// like "example_stage".
-			if cfg.Context == "prod" {
+			// Production and local development databases are not
+			// suffixed with context name. For other contexts the
+			// database name will look like "example_stage".
+			if cfg.Context == "prod" || cfg.Context == "dev" {
 				e.Name = cfg.Name
 			} else {
 				e.Name = fmt.Sprintf("%s_%s", cfg.Name, cfg.Context)
@@ -390,11 +390,9 @@ func (cfg *Config) Augment() error {
 			guessedDBName = true
 		}
 		if e.User == "" {
-			// It's OK to have the same user being reused for multiple
-			// database (not optimal but OK). The limitations as to
-			// the database names (which need to be unique) do not
-			// apply here.
-			e.User = cfg.Name
+			// User name corresponds to database name and follows the
+			// same suffixing rules as the database name.
+			e.User = e.Name
 			log.Printf("- guessed database user: %s", e.User)
 		}
 		cfg.Database[k] = e
