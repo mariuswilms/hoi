@@ -35,10 +35,9 @@ type MySQL struct {
 func (sys MySQL) EnsureDatabase(database string) error {
 	sql := fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s", database)
 
-	log.Printf("MySQL is ensuring database '%s' exists", database)
 	res, err := sys.conn.Exec(sql)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed creating MySQL database '%s': %s", database, err)
 	}
 	if num, _ := res.RowsAffected(); num > 0 {
 		MySQLDirty = true
@@ -49,10 +48,9 @@ func (sys MySQL) EnsureDatabase(database string) error {
 func (sys MySQL) HasUser(user string) (bool, error) {
 	sql := `SELECT COUNT(*) FROM mysql.user WHERE User = ? AND Host = 'localhost'`
 
-	log.Printf("MySQL is checking for user: %s", user)
 	rows, err := sys.conn.Query(sql, user)
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("failed to check for MySQL user '%s': %s", user, err)
 	}
 	var count int
 	for rows.Next() {
@@ -66,10 +64,9 @@ func (sys MySQL) HasUser(user string) (bool, error) {
 func (sys MySQL) HasPassword(user string, password string) (bool, error) {
 	sql := `SELECT COUNT(*) FROM mysql.user WHERE User = ? AND Host = 'localhost' AND Password = PASSWORD(?)`
 
-	log.Printf("MySQL is checking if user %s has password: %s", user, password)
 	rows, err := sys.conn.Query(sql, user, password)
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("failed to to verify MySQL user '%s' has password '%s': %s", user, password, err)
 	}
 	var count int
 	for rows.Next() {
@@ -81,7 +78,6 @@ func (sys MySQL) HasPassword(user string, password string) (bool, error) {
 }
 
 func (sys MySQL) EnsureUser(user string, password string) error {
-	log.Printf("MySQL is ensuring user '%s' with password '%s' exists", user, password)
 	var sql string
 
 	hasUser, err := sys.HasUser(user)
@@ -106,7 +102,7 @@ func (sys MySQL) EnsureUser(user string, password string) error {
 		}
 		res, err := sys.conn.Exec(sql)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed setting new password '%s' for MySQL user '%s': %s", password, user, err)
 		}
 		if num, _ := res.RowsAffected(); num > 0 {
 			MySQLDirty = true
@@ -117,7 +113,7 @@ func (sys MySQL) EnsureUser(user string, password string) error {
 	sql = fmt.Sprintf("CREATE USER '%s'@'localhost' IDENTIFIED BY '%s'", user, password)
 	res, err := sys.conn.Exec(sql)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed creating MySQL user '%s' with password '%s': %s", user, password, err)
 	}
 	if num, _ := res.RowsAffected(); num > 0 {
 		MySQLDirty = true
@@ -137,11 +133,10 @@ func (sys MySQL) EnsureGrant(user string, database string, privs []string) error
 	}
 
 	for _, priv := range privs {
-		log.Printf("MySQL is granting user %s privilege %s on %s", user, priv, database)
 		sql := fmt.Sprintf("GRANT %s ON %s.* TO '%s'@'localhost'", priv, database, user)
 		res, err := sys.conn.Exec(sql)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed granting MySQL user '%s' privilege '%s' on '%s': %s", user, priv, database, err)
 		}
 		if num, _ := res.RowsAffected(); num > 0 {
 			MySQLDirty = true
@@ -162,12 +157,11 @@ func (sys MySQL) EnsureNoGrant(user string, database string, privs []string) err
 	}
 
 	for _, priv := range privs {
-		log.Printf("MySQL is revoking user %s privilege %s on %s", user, priv, database)
 		sql := fmt.Sprintf("REVOKE %s ON %s.* FROM '%s'@'localhost'", priv, database, user)
 		res, err := sys.conn.Exec(sql)
 		if err != nil {
 			// Ignore "there is no such grant" errors, querying for privs is tedious.
-			log.Printf("MySQL skipped revoke for user %s, has no privilege %s on %s; skipped", user, priv, database)
+			log.Printf("skipped revoke for MySQL user %s, has no privilege %s on %s; skipped", user, priv, database)
 			continue
 		}
 		if num, _ := res.RowsAffected(); num > 0 {
@@ -181,11 +175,9 @@ func (sys *MySQL) ReloadIfDirty() error {
 	if !MySQLDirty {
 		return nil
 	}
-	log.Printf("MySQL is reloading")
-
 	sql := "FLUSH PRIVILEGES"
 	if _, err := sys.conn.Exec(sql); err != nil {
-		return fmt.Errorf("MySQL left in dirty state")
+		return fmt.Errorf("failed to reload MySQL, has been left in dirty state: %s", err)
 	}
 	MySQLDirty = false
 	return nil

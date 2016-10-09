@@ -39,19 +39,26 @@ func (sys Systemd) Install(path string) error {
 	ns := fmt.Sprintf("project_%s_%s", sys.p.ID, sys.kind)
 	target := fmt.Sprintf("%s/%s_%s", sys.s.Systemd.RunPath, ns, filepath.Base(path))
 
-	log.Printf("Systemd is installing: %s -> %s", path, target)
 	if sys.s.Systemd.UseLegacy {
-		return util.CopyFile(path, target)
+		if err := util.CopyFile(path, target); err != nil {
+			return fmt.Errorf("failed to copy systemd unit %s -> %s: %s", path, target, err)
+		}
+	} else {
+		if err := osSymlink(path, target); err != nil {
+			return fmt.Errorf("failed to symlink systemd unit %s -> %s: %s", path, target, err)
+		}
 	}
-	return os.Symlink(path, target)
+	return nil
 }
 
 func (sys Systemd) Uninstall(unit string) error {
 	ns := fmt.Sprintf("project_%s_%s", sys.p.ID, sys.kind)
 	target := fmt.Sprintf("%s/%s_%s", sys.s.Systemd.RunPath, ns, unit)
 
-	log.Printf("Systemd is uninstalling: %s", target)
-	return os.Remove(target)
+	if err := os.Remove(target); err != nil {
+		return fmt.Errorf("failed to remove systemd unit %s: %s", target, err)
+	}
+	return nil
 }
 
 // Lists installed service units. Strips project namespace.
@@ -72,7 +79,7 @@ func (sys Systemd) ListInstalledServices() ([]string, error) {
 			units = append(units, strings.TrimPrefix(fields[0], ns+"_"))
 		}
 	}
-	log.Printf("Systemd found %d installed service unit/s:\n%v", len(units), units)
+	log.Printf("found %d installed service unit/s:\n%v", len(units), units)
 	return units, err
 }
 
@@ -93,43 +100,58 @@ func (sys Systemd) ListInstalledTimers() ([]string, error) {
 			units = append(units, strings.TrimPrefix(fields[0], ns+"_"))
 		}
 	}
-	log.Printf("Systemd found %d installed timer unit/s:\n%v", len(units), units)
+	log.Printf("found %d installed timer unit/s:\n%v", len(units), units)
 	return units, err
 }
 
 func (sys Systemd) EnableAndStart(unit string) error {
 	ns := fmt.Sprintf("project_%s_%s", sys.p.ID, sys.kind)
-	log.Printf("Systemd is enabling+starting: %s", ns+"_"+unit)
+	target := ns + "_" + unit
 
 	if sys.s.Systemd.UseLegacy {
 		// --now cannot be used with at least 215
-		if err := exec.Command("systemctl", "enable", ns+"_"+unit).Run(); err != nil {
-			return err
+		if err := exec.Command("systemctl", "enable", target).Run(); err != nil {
+			return fmt.Errorf("failed to enable systemd unit %s: %s", target, err)
 		}
-		return exec.Command("systemctl", "start", ns+"_"+unit).Run()
+		if err := exec.Command("systemctl", "start", target).Run(); err != nil {
+			return fmt.Errorf("failed to start systemd unit %s: %s", target, err)
+		}
+	} else {
+		if err := exec.Command("systemctl", "enable", "--now", target).Run(); err != nil {
+			return fmt.Errorf("failed to enable+start systemd unit %s: %s", target, err)
+		}
 	}
-	return exec.Command("systemctl", "enable", "--now", ns+"_"+unit).Run()
+	return nil
 }
 
 // Disable needs unit name, doesn't work on full path.
 func (sys Systemd) StopAndDisable(unit string) error {
 	ns := fmt.Sprintf("project_%s_%s", sys.p.ID, sys.kind)
-	log.Printf("Systemd is stopping+disabling: %s", ns+"_"+unit)
+	target := ns + "_" + unit
 
 	if sys.s.Systemd.UseLegacy {
 		// --now cannot be used with at least 215
-		if err := exec.Command("systemctl", "stop", ns+"_"+unit).Run(); err != nil {
-			return err
+		if err := exec.Command("systemctl", "stop", target).Run(); err != nil {
+			return fmt.Errorf("failed to disable systemd unit %s: %s", target, err)
 		}
-		return exec.Command("systemctl", "disable", ns+"_"+unit).Run()
+		if err := exec.Command("systemctl", "disable", target).Run(); err != nil {
+			return fmt.Errorf("failed to disable systemd unit %s: %s", target, err)
+		}
+	} else {
+		if err := exec.Command("systemctl", "disable", "--now", target).Run(); err != nil {
+			return fmt.Errorf("failed to stop+disable systemd unit %s: %s", target, err)
+		}
 	}
-	return exec.Command("systemctl", "disable", "--now", ns+"_"+unit).Run()
+	return nil
 }
 
 // Disable needs unit name, doesn't work on full path.
 func (sys Systemd) Stop(unit string) error {
 	ns := fmt.Sprintf("project_%s_%s", sys.p.ID, sys.kind)
-	log.Printf("systemd is stopping: %s", ns+"_"+unit)
+	target := ns + "_" + unit
 
-	return exec.Command("systemctl", "stop", ns+"_"+unit).Run()
+	if err := exec.Command("systemctl", "stop", target).Run(); err != nil {
+		return fmt.Errorf("failed to stop systemd unit %s: %s", target, err)
+	}
+	return nil
 }

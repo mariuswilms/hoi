@@ -7,7 +7,6 @@ package system
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -42,24 +41,22 @@ func (sys *SSL) Install(domain string, ssl project.SSLDirective) error {
 	ns := fmt.Sprintf("project_%s", sys.p.ID)
 
 	targetKey := fmt.Sprintf("%s/private/%s_%s.key", sys.s.SSL.RunPath, ns, domain)
-	log.Printf("SSL is installing: %s -> %s", ssl.CertificateKey, targetKey)
 
 	switch ssl.CertificateKey {
 	case project.CertSelfSigned:
 		cmd := []string{"genrsa", "-out", targetKey, "2048"}
 		if err := exec.Command("openssl", cmd...).Run(); err != nil {
-			return err
+			return fmt.Errorf("failed to generate self signed SSL cert key to %s: %s", targetKey, err)
 		}
 	default:
 		path := filepath.Join(sys.p.Path, ssl.CertificateKey)
 		if err := util.CopyFile(path, targetKey); err != nil {
-			return err
+			return fmt.Errorf("failed to copy SSL cert key %s -> %s: %s", path, targetKey, err)
 		}
 	}
-	SSLDirty = true
+	SSLDirty = true // is now dirty, ensure is set, we might exit below
 
 	targetCert := fmt.Sprintf("%s/certs/%s_%s.crt", sys.s.SSL.RunPath, ns, domain)
-	log.Printf("SSL is installing: %s -> %s", ssl.Certificate, targetCert)
 
 	switch ssl.Certificate {
 	case project.CertSelfSigned:
@@ -80,7 +77,7 @@ func (sys *SSL) Install(domain string, ssl project.SSLDirective) error {
 	default:
 		path := filepath.Join(sys.p.Path, ssl.Certificate)
 		if err := util.CopyFile(path, targetCert); err != nil {
-			return err
+			fmt.Errorf("failed to copy SSL cert %s -> %s: %s", ssl.Certificate, targetCert, err)
 		}
 	}
 
@@ -91,16 +88,14 @@ func (sys *SSL) Uninstall(domain string) error {
 	ns := fmt.Sprintf("project_%s", sys.p.ID)
 
 	target := fmt.Sprintf("%s/certs/%s_%s.crt", sys.s.SSL.RunPath, ns, domain)
-	log.Printf("SSL is uninstalling: %s", target)
 	if err := os.Remove(target); err != nil {
-		return err
+		return fmt.Errorf("failed to uninstall SSL cert %s: %s", target, err)
 	}
 	SSLDirty = true
 
 	target = fmt.Sprintf("%s/private/%s_%s.key", sys.s.SSL.RunPath, ns, domain)
-	log.Printf("SSL is uninstalling: %s", target)
 	if err := os.Remove(target); err != nil {
-		return err
+		return fmt.Errorf("failed to uninstall SSL cert key %s: %s", target, err)
 	}
 
 	return nil
@@ -114,7 +109,7 @@ func (sys SSL) ListInstalled() ([]string, error) {
 
 	files, err := filepath.Glob(fmt.Sprintf("%s/private/%s_*.key", sys.s.SSL.RunPath, ns))
 	if err != nil {
-		return domains, err
+		return domains, fmt.Errorf("failed listing installed SSL certs: %s", err)
 	}
 	for _, f := range files {
 		domains = append(domains, strings.TrimSuffix(

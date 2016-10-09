@@ -7,7 +7,6 @@ package system
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -38,30 +37,30 @@ func (sys *NGINX) Install(path string) error {
 	ns := fmt.Sprintf("project_%s", sys.p.ID)
 	target := fmt.Sprintf("%s/%s_%s", sys.s.NGINX.RunPath, ns, filepath.Base(path))
 
-	log.Printf("NGINX is installing: %s -> %s", path, target)
-
+	if err := os.Symlink(path, target); err != nil {
+		return fmt.Errorf("NGINX failed to install %s -> %s: %s", path, target, err)
+	}
 	NGINXDirty = true
-	return os.Symlink(path, target)
+	return nil
 }
 
 func (sys *NGINX) Uninstall(server string) error {
 	ns := fmt.Sprintf("project_%s", sys.p.ID)
 	target := fmt.Sprintf("%s/%s_%s", sys.s.NGINX.RunPath, ns, server)
 
-	log.Printf("NGINX is uninstalling: %s", target)
-
+	if err := os.Remove(target); err != nil {
+		return fmt.Errorf("NGINX failed to uninstall %s: %s", target, err)
+	}
 	NGINXDirty = true
-	return os.Remove(target)
+	return nil
 }
 
 func (sys *NGINX) Reload() error {
-	log.Printf("NGINX is reloading")
-
 	NGINXLock.Lock()
 	defer NGINXLock.Unlock()
 
 	if err := exec.Command("systemctl", "reload", "nginx").Run(); err != nil {
-		return fmt.Errorf("NGINX possibly left in dirty state: %s", err)
+		return fmt.Errorf("failed to reload NGINX; possibly left in dirty state: %s", err)
 	}
 	NGINXDirty = false
 	return nil
@@ -71,13 +70,11 @@ func (sys *NGINX) ReloadIfDirty() error {
 	if !NGINXDirty {
 		return nil
 	}
-	log.Printf("NGINX is reloading")
-
 	NGINXLock.Lock()
 	defer NGINXLock.Unlock()
 
 	if err := exec.Command("systemctl", "reload", "nginx").Run(); err != nil {
-		return fmt.Errorf("NGINX left in dirty state: %s", err)
+		return fmt.Errorf("failed to reload NGINX; left in dirty state: %s", err)
 	}
 	NGINXDirty = false
 	return nil
@@ -88,7 +85,7 @@ func (sys NGINX) ListInstalled() ([]string, error) {
 
 	files, err := filepath.Glob(fmt.Sprintf("%s/%s_*", sys.s.NGINX.RunPath, ns))
 	if err != nil {
-		return files, err
+		return files, fmt.Errorf("failed to list projects installed in NGINX: %s", err)
 	}
 	servers := make([]string, 0)
 	for _, f := range files {

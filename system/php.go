@@ -7,7 +7,6 @@ package system
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"sync"
@@ -34,32 +33,32 @@ type PHP struct {
 func (sys PHP) Install(path string) error {
 	target := fmt.Sprintf("%s/99-project-%s.ini", sys.s.PHP.RunPath, sys.p.ID)
 
-	log.Printf("PHP is installing: %s -> %s", path, target)
-
+	if err := os.Symlink(path, target); err != nil {
+		return fmt.Errorf("PHP failed to install %s -> %s: %s", path, target, err)
+	}
 	PHPDirty = true
-	return os.Symlink(path, target)
+	return nil
 }
 
 func (sys PHP) Uninstall() error {
 	target := fmt.Sprintf("%s/99-project-%s.ini", sys.s.PHP.RunPath, sys.p.ID)
 
-	log.Printf("PHP is uninstalling: %s", target)
-
+	if err := os.Remove(target); err != nil {
+		return fmt.Errorf("PHPfailed to uninstall %s: %s", target, err)
+	}
 	PHPDirty = true
-	return os.Remove(target)
+	return nil
 }
 
 func (sys PHP) ReloadIfDirty() error {
 	if !PHPDirty {
 		return nil
 	}
-	log.Printf("PHP is reloading")
-
 	PHPLock.Lock()
 	defer PHPLock.Unlock()
 
 	if err := exec.Command("systemctl", "reload", "php5-fpm").Run(); err != nil {
-		return fmt.Errorf("PHP left in dirty state: %s", err)
+		return fmt.Errorf("failed to reload PHP; left in dirty state: %s", err)
 	}
 	PHPDirty = false
 	return nil
