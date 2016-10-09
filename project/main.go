@@ -333,7 +333,12 @@ func (cfg *Config) Augment() error {
 		}
 	}
 
-	if _, err := os.Stat(cfg.Path + "/assets"); err == nil {
+	// FIXME Check if these are in project root or webroot.
+	if _, err := os.Stat(cfg.GetAbsoluteWebroot() + "/css"); err == nil {
+		log.Print("- using classic assets")
+		cfg.UseAssets = true
+		cfg.UseClassicAssets = true
+	} else if _, err := os.Stat(cfg.Path + "/assets"); err == nil {
 		log.Print("- will serve unified assets directory from: /assets")
 		cfg.UseAssets = true
 	}
@@ -348,11 +353,6 @@ func (cfg *Config) Augment() error {
 	if _, err := os.Stat(cfg.Path + "/files"); err == nil {
 		log.Print("- will serve files from: /files")
 		cfg.UseFiles = true
-	}
-	if _, err := os.Stat(cfg.Path + "/app/webroot/css"); err == nil {
-		log.Print("- using classic assets")
-		cfg.UseAssets = true
-		cfg.UseClassicAssets = true
 	}
 
 	// Guesses auth user names. An empty user name usually indicates

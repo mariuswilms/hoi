@@ -19,6 +19,7 @@ ANY_DEPS = builder project rpc runner server store system util
 define TEST_HOIFILE
 name = "example"
 context = "prod"
+
 domain example.org {
   SSL = {
     certificate = "config/ssl/example.org.crt"
