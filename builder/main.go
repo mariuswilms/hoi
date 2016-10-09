@@ -138,6 +138,9 @@ func (b Builder) LoadWriteTemplates(tmplData interface{}) error {
 	templates := make(map[string]*template.Template) // Keyed by target path.
 
 	err := filepath.Walk(sPath, func(path string, f os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
 		xPath := exchanger.Replace(path)
 
 		if f.IsDir() {
