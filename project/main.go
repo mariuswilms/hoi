@@ -90,8 +90,8 @@ type Config struct {
 	// defaults to "56". Will be used to run projects without PHP 7.0
 	// compatibility side by side with those that are compatible.
 	PHPVersion string
-	// Whether we should enable large uploads inside NGINX (>100MB an
-	// <550MB); will be autodetected.
+	// Whether the app can receive large uploads. Normally upload size
+	// is limited to 20MB. With large uploads enabled the new limit is 550MB.
 	UseLargeUploads bool
 	// Whether media versions should be served.
 	UseMediaVersions bool
@@ -331,8 +331,6 @@ func (cfg *Config) Augment() error {
 			log.Print("- using legacy rewrites")
 			cfg.UsePHPLegacyRewrites = true
 		}
-		log.Print("- using large uploads")
-		cfg.UseLargeUploads = true
 	}
 
 	if _, err := os.Stat(cfg.Path + "/assets"); err == nil {
