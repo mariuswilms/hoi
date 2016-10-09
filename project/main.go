@@ -53,6 +53,16 @@ func NewFromString(s string) (*Config, error) {
 	return decodeInto(cfg, s)
 }
 
+type ContextType string
+
+// List of possible project contexts.
+const (
+	ContextUnknown     ContextType = ""
+	ContextDevelopment             = "dev"
+	ContextStaging                 = "stage"
+	ContextProduction              = "prod"
+)
+
 // The main project configuration is provided by the Hoifile: a per
 // project configuration file which defines the needs of a project hoi
 // will try to fullfill.
@@ -72,9 +82,9 @@ type Config struct {
 	//   acme       -> acme
 	//   acme_stage -> acme
 	Name string
-	// The name of the context the project is running in. Usually
+	// The name of the context the project is running in:
 	// one of "dev", "stage" or "prod"; required.
-	Context string
+	Context ContextType
 	// A path relative to the project path. If the special value "." is given
 	// webroot is equal to the project path. A webroot is the directory exposed
 	// under the root of the domains any may contain a front controller; optional,
@@ -119,7 +129,7 @@ type Config struct {
 
 func (cfg Config) PrettyName() string {
 	if cfg.Name != "" {
-		if cfg.Context != "" {
+		if cfg.Context != ContextUnknown {
 			return fmt.Sprintf("%s@%s", cfg.Name, cfg.Context)
 		}
 		return fmt.Sprintf("%s@?", cfg.Name)
@@ -173,7 +183,7 @@ func (cfg Config) Validate() error {
 	}
 
 	// Must have context, we can't autodetect this.
-	if cfg.Context == "" {
+	if cfg.Context == ContextUnknown {
 		return fmt.Errorf("project has no context: %s", cfg.Path)
 	}
 
@@ -193,7 +203,7 @@ func (cfg Config) Validate() error {
 		if v.Auth.User == "" {
 			return fmt.Errorf("empty user for domain: %s", v.FQDN)
 		}
-		if cfg.Context != "dev" && v.Auth.Password == "" {
+		if cfg.Context != ContextDevelopment && v.Auth.Password == "" {
 			return fmt.Errorf("user %s has empty password for domain: %s", v.Auth.User, v.FQDN)
 		}
 		if _, hasKey := creds[k]; hasKey {
@@ -224,7 +234,7 @@ func (cfg Config) Validate() error {
 				if v.SSL.CertificateKey != v.SSL.Certificate {
 					return fmt.Errorf("special action requested for cert but not for key: %s != %s", v.SSL.Certificate, v.SSL.CertificateKey)
 				}
-				if cfg.Context == "prod" && v.SSL.Certificate == CertSelfSigned {
+				if cfg.Context == ContextProduction && v.SSL.Certificate == CertSelfSigned {
 					return fmt.Errorf("self-signed certs are not allowed in %s contexts", cfg.Context)
 				}
 			} else {
@@ -242,7 +252,7 @@ func (cfg Config) Validate() error {
 		if stringInSlice(db.Name, seenDatabases) {
 			return fmt.Errorf("found duplicate database name: %s", db.Name)
 		}
-		if cfg.Context != "dev" && db.Password == "" {
+		if cfg.Context != ContextDevelopment && db.Password == "" {
 			return fmt.Errorf("user %s has empty password for database: %s", db.User, db.Name)
 		}
 		seenDatabases = append(seenDatabases, db.Name)
@@ -381,7 +391,7 @@ func (cfg *Config) Augment() error {
 			// Production and local development databases are not
 			// suffixed with context name. For other contexts the
 			// database name will look like "example_stage".
-			if cfg.Context == "prod" || cfg.Context == "dev" {
+			if cfg.Context == ContextProduction || cfg.Context == ContextDevelopment {
 				e.Name = cfg.Name
 			} else {
 				e.Name = fmt.Sprintf("%s_%s", cfg.Name, cfg.Context)
