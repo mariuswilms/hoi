@@ -5,10 +5,7 @@
 
 package project
 
-import (
-	"fmt"
-	"testing"
-)
+import "testing"
 
 func TestDecodeRoot(t *testing.T) {
 	hoifile := `
@@ -82,7 +79,6 @@ domain "example.com" {
 	if err != nil {
 		t.Error(err)
 	}
-	fmt.Printf("%+v", cfg)
 	if cfg.Domain["example.com"].FQDN != "example.com" {
 		t.Error("failed to compare FQDN")
 	}
