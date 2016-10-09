@@ -8,6 +8,7 @@
 package project
 
 import (
+	"errors"
 	"fmt"
 	"hash/adler32"
 	"io/ioutil"
@@ -74,6 +75,11 @@ type Config struct {
 	// The name of the context the project is running in. Usually
 	// one of "dev", "stage" or "prod"; required.
 	Context string
+	// A path relative to the project path. If the special value "." is given
+	// webroot is equal to the project path. A webroot is the directory exposed
+	// under the root of the domains any may contain a front controller; optional,
+	// will be autodetected.
+	Webroot string
 	// Whether PHP is used at all; optional, will be autodetected.
 	UsePHP bool
 	// Whether we can use try_files in NGINX for rewrites into the
@@ -151,6 +157,10 @@ func (cfg Config) GetCerts() map[string]SSLDirective {
 	return certs
 }
 
+func (cfg Config) GetAbsoluteWebroot() string {
+	return filepath.Join(cfg.Path, cfg.Webroot)
+}
+
 // Validates several aspects and looks for typical human errors.
 func (cfg Config) Validate() error {
 	stringInSlice := func(a string, list []string) bool {
@@ -165,6 +175,12 @@ func (cfg Config) Validate() error {
 	// Must have context, we can't autodetect this.
 	if cfg.Context == "" {
 		return fmt.Errorf("project has no context: %s", cfg.Path)
+	}
+
+	if cfg.Webroot == "" {
+		return fmt.Errorf("project has no webroot: %s", cfg.Path)
+	} else if filepath.IsAbs(cfg.Webroot) {
+		return fmt.Errorf("webroot must not be absolute: %s", cfg.Webroot)
 	}
 
 	creds := make(map[string]string)
@@ -248,13 +264,66 @@ func (cfg *Config) Augment() error {
 		log.Printf("- guessed project name: %s", cfg.Name)
 	}
 
-	// TODO Discover webroot in any directory.
-	// FIXME How do we handle multiple front controllers per project?
-	if _, err := os.Stat(cfg.Path + "/app/webroot/index.php"); err == nil {
+	// Discover the webroot by looking a common names and files
+	// contained within such a directory. We must take care to not
+	// mistakenly expose a directory publicly with contains sensitive
+	// material.
+	//
+	// If we find a directory named "webroot" this is a strong
+	// indication it is intended as such.
+	//
+	// When not finding any directory with this name we'll start
+	// looking into the root directory for index.php or index.html
+	// files in order to confirm root is the webroot.
+	//
+	// No other directories except they are named "webroot" or the
+	// root directory can become webroot.
+	var breakWalk = errors.New("stopped walk early")
+
+	// For performance reasons look in common places first, than
+	// fallback to walking the entire tree.
+	if _, err := os.Stat(cfg.Path + "/app/webroot"); err == nil {
+		cfg.Webroot = "app/webroot"
+	} else {
+		err := filepath.Walk(cfg.Path, func(path string, f os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+			if !f.IsDir() {
+				return filepath.SkipDir
+			}
+			if f.Name() != "webroot" {
+				return filepath.SkipDir
+			}
+			cfg.Webroot = path
+			return breakWalk
+		})
+		if err != nil && err != breakWalk {
+			return fmt.Errorf("failed to detect webroot: %s", err)
+		}
+
+		if cfg.Webroot == "" {
+			_, errPHP := os.Stat(cfg.Path + "/index.php")
+			_, errHTML := os.Stat(cfg.Path + "/index.html")
+			if errPHP == nil || errHTML == nil {
+				cfg.Webroot = "."
+			}
+		}
+	}
+	if cfg.Webroot == "" {
+		return fmt.Errorf("failed to detect webroot in: %s", cfg.Path)
+	} else {
+		log.Printf("- found webroot in: %s", cfg.Webroot)
+	}
+
+	if _, err := os.Stat(cfg.Webroot + "/index.php"); err == nil {
 		log.Print("- using PHP")
 		cfg.UsePHP = true
 
-		legacy, err := fileContainsString(cfg.Path+"/app/webroot/index.php", "cake")
+		// Detect oldish versions of CakePHP by inspecting the front controller
+		// file for certain string patterns. CakePHP version >= use uppercased "Cake"
+		// string.
+		legacy, err := fileContainsString(cfg.Webroot+"/index.php", "cake")
 		if err != nil {
 			return err
 		}
