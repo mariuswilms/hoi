@@ -90,7 +90,7 @@ func TestSimpleDomain(t *testing.T) {
 `
 	cfg, err := NewFromString(hoifile)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	if len(cfg.Domain) != 1 || cfg.Domain["example.org"].FQDN != "example.org" {
 		t.Error("failed to use simple domain syntax")
