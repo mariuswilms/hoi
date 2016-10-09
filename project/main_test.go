@@ -15,7 +15,7 @@ PHPVersion = 56
 `
 	cfg, err := NewFromString(hoifile)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	if cfg.Name != "foo" {
 		t.Error("Name is not foo")
@@ -31,7 +31,7 @@ cron medium-freq {
 `
 	cfg, err := NewFromString(hoifile)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	if len(cfg.Cron) != 2 {
 		t.Error("No 2 crons parsed")
@@ -45,7 +45,7 @@ cron high-freq {
 `
 	cfg, err := NewFromString(hoifile)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	if cfg.Cron["high-freq"].Name != "high-freq" {
 		t.Error("failed to parse name")
@@ -59,7 +59,7 @@ domain "example.com" {
 `
 	cfg, err := NewFromString(hoifile)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	if cfg.Domain["example.com"].FQDN != "example.com" {
 		t.Error("failed to compare FQDN")
@@ -77,7 +77,7 @@ domain "example.com" {
 `
 	cfg, err := NewFromString(hoifile)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	if cfg.Domain["example.com"].FQDN != "example.com" {
 		t.Error("failed to compare FQDN")
