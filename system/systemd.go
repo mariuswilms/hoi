@@ -44,7 +44,7 @@ func (sys Systemd) Install(path string) error {
 			return fmt.Errorf("failed to copy systemd unit %s -> %s: %s", path, target, err)
 		}
 	} else {
-		if err := osSymlink(path, target); err != nil {
+		if err := os.Symlink(path, target); err != nil {
 			return fmt.Errorf("failed to symlink systemd unit %s -> %s: %s", path, target, err)
 		}
 	}
