@@ -45,10 +45,10 @@ type DomainDirective struct {
 // contexts. When both User and Password are empty, auth will be
 // disabled altogether.
 type AuthDirective struct {
-	// If Password is given, User becomes optional and will be
-	// default to the project name.
+	// If Password is given, User becomes optional and will
+	// default to the naked project name.
 	User string
-	// Required; must be non-empty.
+	// Required; must be non-empty except in dev contexts.
 	Password string
 }
 
