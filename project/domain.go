@@ -37,7 +37,8 @@ type DomainDirective struct {
 	// different configuration add it as an additional domain.
 	Aliases []string
 	// A list of domains that should redirect to this domain;
-	// optional; by default empty.
+	// optional; by default empty. Both the www. prefixed and
+	// the naked domain will be redirected.
 	Redirects []string
 }
 
