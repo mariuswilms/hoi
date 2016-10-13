@@ -4,7 +4,7 @@
 # license that can be found in the LICENSE file.
 
 PREFIX ?= /usr/local
-VERSION ?= 0.2.0-dev
+VERSION ?= head-$(shell git rev-parse HEAD)
 
 HOID_GOFLAGS = -X main.Version=$(VERSION)
 HOID_GOFLAGS +=  -X main.SocketPath=$(abspath $(PREFIX)/var/run/hoid.socket)
