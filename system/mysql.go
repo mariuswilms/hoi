@@ -62,7 +62,7 @@ func (sys MySQL) HasUser(user string) (bool, error) {
 }
 
 func (sys MySQL) HasPassword(user string, password string) (bool, error) {
-	sql := `SELECT COUNT(*) FROM mysql.user WHERE User = ? AND Host = 'localhost' AND Password = PASSWORD(?)`
+	sql := `SELECT COUNT(*) FROM mysql.user WHERE User = ? AND Host = 'localhost' AND CAST(Password as Binary) = PASSWORD(?)`
 
 	rows, err := sys.conn.Query(sql, user, password)
 	if err != nil {
