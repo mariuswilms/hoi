@@ -92,10 +92,14 @@ type Config struct {
 	Webroot string
 	// Whether PHP is used at all; optional, will be autodetected.
 	UsePHP bool
+	// Whether we want to use "pretty URLs" by rewriting the incoming
+	// URLs as a GET parameter of the front controller file.
+	//   /foo/bar -> /index.html?/foo/bar
+	UseFrontController bool
 	// Whether we can use try_files in NGINX for rewrites into the
-	// front controller or not; optional will be autodetected. Older
+	// front controller or not; optional and will be autodetected. Older
 	// PHP frameworks will need this.
-	UsePHPLegacyRewrites bool
+	UseLegacyFrontController bool
 	// The PHP Version in short simple form (5.6.3 -> 56); optional,
 	// defaults to "56". Will be used to run projects without PHP 7.0
 	// compatibility side by side with those that are compatible.
@@ -328,10 +332,22 @@ func (cfg *Config) Augment() error {
 		log.Printf("- found webroot in: %s", cfg.Webroot)
 	}
 
+	// FIXME: Always enabled until we can detect when to enable or found
+	//        a way how one can turn this off via Hoifile (undefined in Hoifile = false).
+	if _, err := os.Stat(cfg.GetAbsoluteWebroot() + "/index.html"); err == nil {
+		log.Print("- found HTML front controller")
+		cfg.UseFrontController = true
+	}
+
 	if _, err := os.Stat(cfg.GetAbsoluteWebroot() + "/index.php"); err == nil {
 		log.Print("- using PHP")
 		cfg.UsePHP = true
 
+		log.Print("- found PHP front controller")
+		cfg.UseFrontController = true
+	}
+
+	if cfg.UsePHP && cfg.UseFrontController {
 		// Detect oldish versions of CakePHP by inspecting the front controller
 		// file for certain string patterns. CakePHP version >= use uppercased "Cake"
 		// string.
@@ -340,12 +356,12 @@ func (cfg *Config) Augment() error {
 			return err
 		}
 		if legacy {
-			log.Print("- using legacy rewrites")
-			cfg.UsePHPLegacyRewrites = true
+			log.Print("- using legacy front controller")
+			cfg.UseLegacyFrontController = true
 		}
 	}
 
-	// FIXME Check if these are in project root or webroot.
+	// FIXME: Check if these are in project root or webroot.
 	if _, err := os.Stat(cfg.GetAbsoluteWebroot() + "/css"); err == nil {
 		log.Print("- using classic assets")
 		cfg.UseAssets = true
