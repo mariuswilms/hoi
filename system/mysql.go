@@ -66,7 +66,7 @@ func (sys MySQL) HasPassword(user string, password string) (bool, error) {
 
 	rows, err := sys.conn.Query(sql, user, password)
 	if err != nil {
-		return false, fmt.Errorf("failed to to verify MySQL user '%s' has password '%s': %s", user, password, err)
+		return false, fmt.Errorf("failed to verify MySQL user '%s' has password '%s': %s", user, password, err)
 	}
 	var count int
 	for rows.Next() {
