@@ -100,6 +100,8 @@ type Config struct {
 	// defaults to "56". Will be used to run projects without PHP 7.0
 	// compatibility side by side with those that are compatible.
 	PHPVersion string
+	// Whether the app can receive uploads at all (limited to 20MB).
+	UseUploads bool
 	// Whether the app can receive large uploads. Normally upload size
 	// is limited to 20MB. With large uploads enabled the new limit is 550MB.
 	UseLargeUploads bool
@@ -352,6 +354,7 @@ func (cfg *Config) Augment() error {
 		log.Print("- will serve unified assets directory from: /assets")
 		cfg.UseAssets = true
 	}
+
 	if _, err := os.Stat(cfg.Path + "/media_versions"); err == nil {
 		log.Print("- will serve media versions from: /media_versions")
 		cfg.UseMediaVersions = true
@@ -360,9 +363,15 @@ func (cfg *Config) Augment() error {
 		log.Print("- will serve media transfers from: /media")
 		cfg.UseMediaTransfers = true
 	}
+
 	if _, err := os.Stat(cfg.Path + "/files"); err == nil {
 		log.Print("- will serve files from: /files")
 		cfg.UseFiles = true
+	}
+
+	if cfg.UseMediaTransfers {
+		log.Print("- enabling uploads")
+		cfg.UseUploads = true
 	}
 
 	// Guesses auth user names. An empty user name usually indicates
