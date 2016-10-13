@@ -96,3 +96,21 @@ func TestSimpleDomain(t *testing.T) {
 		t.Error("failed to use simple domain syntax")
 	}
 }
+
+func TestDomainRedirectsGetParsed(t *testing.T) {
+	hoifile := `
+	domain example.org {
+		redirects = [
+			"uor.org",
+			"uor.com"
+		]
+	}
+`
+	cfg, err := NewFromString(hoifile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(cfg.Domain["example.org"].Redirects) != 2 {
+		t.Error("did not parse 2 redirects")
+	}
+}
