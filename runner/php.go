@@ -37,7 +37,7 @@ type PHPRunner struct {
 }
 
 func (r PHPRunner) Build() error {
-	if !r.p.UsePHP {
+	if r.p.Kind != project.KindPHP {
 		return nil // nothing to do
 	}
 	tS, err := r.build.LoadTemplate("php.ini")
@@ -59,7 +59,7 @@ func (r PHPRunner) Clean() error {
 }
 
 func (r PHPRunner) Enable() error {
-	if !r.p.UsePHP {
+	if r.p.Kind != project.KindPHP {
 		return nil // nothing to do
 	}
 	files, err := r.build.ListAvailable()

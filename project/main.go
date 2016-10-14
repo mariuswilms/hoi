@@ -63,6 +63,14 @@ const (
 	ContextProduction              = "prod"
 )
 
+type KindType string
+
+const (
+	KindUnknown KindType = ""
+	KindPHP     KindType = "php"
+	KindStatic  KindType = "static"
+)
+
 // The main project configuration is provided by the Hoifile: a per
 // project configuration file which defines the needs of a project hoi
 // will try to fullfill.
@@ -85,13 +93,13 @@ type Config struct {
 	// The name of the context the project is running in:
 	// one of "dev", "stage" or "prod"; required.
 	Context ContextType
+	// Type of the project; autodetected.
+	Kind KindType
 	// A path relative to the project path. If the special value "." is given
 	// webroot is equal to the project path. A webroot is the directory exposed
 	// under the root of the domains any may contain a front controller; optional,
 	// will be autodetected.
 	Webroot string
-	// Whether PHP is used at all; optional, will be autodetected.
-	UsePHP bool
 	// Whether we want to use "pretty URLs" by rewriting the incoming
 	// URLs as a GET parameter of the front controller file.
 	//   /foo/bar -> /index.html?/foo/bar
@@ -332,22 +340,26 @@ func (cfg *Config) Augment() error {
 		log.Printf("- found webroot in: %s", cfg.Webroot)
 	}
 
-	// FIXME: Always enabled until we can detect when to enable or found
-	//        a way how one can turn this off via Hoifile (undefined in Hoifile = false).
+	// Detect which type of application this is first.
 	if _, err := os.Stat(cfg.GetAbsoluteWebroot() + "/index.html"); err == nil {
-		log.Print("- found HTML front controller")
-		cfg.UseFrontController = true
+		log.Print("- detected static project")
+		cfg.Kind = KindStatic
+	} else {
+		if _, err := os.Stat(cfg.GetAbsoluteWebroot() + "/index.php"); err == nil {
+			log.Print("- detected PHP project")
+			cfg.Kind = KindPHP
+		} else if _, err := os.Stat(cfg.Path + "/app/composer.json"); err == nil {
+			log.Print("- detected PHP project")
+			cfg.Kind = KindPHP
+		} else {
+			return fmt.Errorf("failed to detect project type in: %s", cfg.Path)
+		}
 	}
 
-	if _, err := os.Stat(cfg.GetAbsoluteWebroot() + "/index.php"); err == nil {
-		log.Print("- using PHP")
-		cfg.UsePHP = true
+	log.Print("- found front controller, routing requests through it")
+	cfg.UseFrontController = true
 
-		log.Print("- found PHP front controller")
-		cfg.UseFrontController = true
-	}
-
-	if cfg.UsePHP && cfg.UseFrontController {
+	if cfg.Kind == KindPHP && cfg.UseFrontController {
 		// Detect oldish versions of CakePHP by inspecting the front controller
 		// file for certain string patterns. CakePHP version >= use uppercased "Cake"
 		// string.
