@@ -88,14 +88,61 @@ func main() {
 
 			if len(reply) != 0 {
 				fmt.Printf("%d project/s:\n", len(reply))
-
+				//● nginx.service - A high performance web server and a reverse proxy server
+				//   Loaded: loaded (/lib/systemd/system/nginx.service; enabled)
+				//   Active: active (running) since Thu 2016-10-13 14:07:20 CEST; 8h ago
+				//  Process: 15315 ExecReload=/usr/sbin/nginx -g daemon on; master_process on; -s reload (code=exited, status=0/SUCCESS)
+				// Main PID: 1693 (nginx)
+				//   CGroup: /system.slice/nginx.service
+				//           ├─ 1693 nginx: master process /usr/sbin/nginx -g daemon on; master_process on;
+				//           ├─15320 nginx: worker process
+				//           ├─15321 nginx: worker process
+				//           ├─15322 nginx: worker process
+				//           ├─15323 nginx: worker process
+				//           ├─15324 nginx: worker process
+				//           ├─15325 nginx: worker process
+				//           ├─15326 nginx: worker process
+				//           └─15327 nginx: worker process
 				for _, e := range reply {
-					fmt.Printf("- %-20s in %s\n", e.Project.PrettyName(), e.Project.Path)
-					fmt.Printf("  **%s**\n", e.Meta.Status)
-					fmt.Printf("  %-10s: %d\n", "domain", len(e.Project.Domain))
-					fmt.Printf("  %-10s: %d\n", "cron", len(e.Project.Cron))
-					fmt.Printf("  %-10s: %d\n", "worker", len(e.Project.Worker))
-					fmt.Printf("  %-10s: %d\n", "database", len(e.Project.Database))
+					fmt.Printf("● %-20s\n", e.Project.PrettyName())
+					fmt.Printf(" %8s: **%s**\n", "Status", e.Meta.Status)
+					fmt.Printf(" %8s: %s\n", "Path", e.Project.Path)
+
+					fmt.Printf(" %8s: %d\n", "Domain", len(e.Project.Domain))
+					for _, d := range e.Project.Domain {
+						fmt.Printf("          - %s\n", d.FQDN)
+						if d.SSL.IsEnabled() {
+							fmt.Printf("            - SSL: enabled\n")
+						}
+						if d.Auth.IsEnabled() {
+							fmt.Printf("            - Authentication: enabled\n")
+							fmt.Printf("              - %8s: %s\n", "User", d.Auth.User)
+							fmt.Printf("              - %8s: %s\n", "Password", d.Auth.Password)
+						}
+						for _, r := range d.Redirects {
+							fmt.Printf("            - %s [R]\n", r)
+						}
+						for _, a := range d.Aliases {
+							fmt.Printf("            - %s [A]\n", a)
+						}
+					}
+
+					fmt.Printf("  %8s: %d\n", "Cron", len(e.Project.Cron))
+					for _, c := range e.Project.Cron {
+						fmt.Printf("          - %s\n", c.Name)
+					}
+
+					fmt.Printf("  %8s: %d\n", "Worker", len(e.Project.Worker))
+					for _, w := range e.Project.Worker {
+						fmt.Printf("          - %s\n", w.Name)
+					}
+
+					fmt.Printf("  %8s: %d\n", "Database", len(e.Project.Database))
+					for _, db := range e.Project.Database {
+						fmt.Printf("          - %s\n", db.Name)
+						fmt.Printf("            - %8s: %s\n", "User", db.User)
+						fmt.Printf("            - %8s: %s\n", "Password", db.Password)
+					}
 				}
 			} else {
 				fmt.Println("no projects :(")
