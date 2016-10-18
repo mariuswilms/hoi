@@ -1,5 +1,5 @@
 [Unit]
-Description=Hoi Bare Metal PaaS server
+Description=Hoi PaaS Server
 After=network-online.target
 Wants=network-online.target
 
