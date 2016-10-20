@@ -80,8 +80,7 @@ func main() {
 		cmd.Action = func() {
 			args := &sRPC.ServerAPIArgs{}
 			var reply []store.Entity
-			err := RPCClient.Call("Server.Status", args, &reply)
-			if err != nil {
+			if err := RPCClient.Call("Server.Status", args, &reply); err != nil {
 				fmt.Fprintf(os.Stderr, "got error: %s\n", err)
 				os.Exit(1)
 			}
@@ -156,8 +155,7 @@ func main() {
 				Path: projectDirectory(*path),
 			}
 			var reply bool
-			err := RPCClient.Call("Project.Load", args, &reply)
-			if err != nil {
+			if err := RPCClient.Call("Project.Load", args, &reply); err != nil {
 				fmt.Fprintf(os.Stderr, "error: %s\n", err)
 				os.Exit(1)
 			}
@@ -189,8 +187,7 @@ func main() {
 				Path: projectDirectory(*path),
 			}
 			var reply bool
-			err := RPCClient.Call("Project.Unload", args, &reply)
-			if err != nil {
+			if err := RPCClient.Call("Project.Unload", args, &reply); err != nil {
 				fmt.Fprintf(os.Stderr, "error: %s\n", err)
 				os.Exit(1)
 			}
@@ -221,8 +218,7 @@ func main() {
 				},
 			}
 			var reply bool
-			err := RPCClient.Call("Project.Domain", args, &reply)
-			if err != nil {
+			if err := RPCClient.Call("Project.Domain", args, &reply); err != nil {
 				fmt.Fprintf(os.Stderr, "error: %s\n", err)
 				os.Exit(1)
 			}
