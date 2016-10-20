@@ -57,6 +57,7 @@ func (s *ServerAPI) Status(args *ServerAPIArgs, reply *[]store.Entity) error {
 type ProjectAPI struct {
 	LoadHandler   func(path string) error
 	UnloadHandler func(path string) error
+	ReloadHandler func(path string) error
 	DomainHandler func(path string, dDrv *project.DomainDirective) error
 }
 
@@ -72,6 +73,10 @@ func (p *ProjectAPI) Load(args *ProjectAPIArgs, reply *bool) error {
 func (p *ProjectAPI) Unload(args *ProjectAPIArgs, reply *bool) error {
 	*reply = true
 	return logIfError(p.UnloadHandler(args.Path))
+}
+func (p *ProjectAPI) Reload(args *ProjectAPIArgs, reply *bool) error {
+	*reply = true
+	return logIfError(p.ReloadHandler(args.Path))
 }
 func (p *ProjectAPI) Domain(args *ProjectAPIArgs, reply *bool) error {
 	*reply = true

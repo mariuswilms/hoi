@@ -9,6 +9,7 @@ const (
 	StatusUnknown MetaStatus = iota
 	StatusLoading
 	StatusUnloading
+	StatusReloading
 	StatusUpdating
 	StatusActive
 	StatusFailed

@@ -99,6 +99,41 @@ func handleUnload(path string) error {
 	return nil
 }
 
+func handleReload(path string) error {
+	id := project.PathToID(path)
+
+	if !Store.Has(id) {
+		return fmt.Errorf("no project %s in store to reload", id)
+	}
+	Store.WriteStatus(id, project.StatusReloading)
+
+	pCfg, err := Store.Read(id)
+	if err != nil {
+		return fmt.Errorf("failed reloading project, cannot read id %s from store: %s", id, err)
+	}
+
+	steps := make([]func() error, 0)
+	for _, r := range runners(pCfg) {
+		steps = append(
+			steps,
+			r.Disable,
+			r.Clean,
+			r.Build,
+			r.Enable,
+			r.Commit,
+		)
+	}
+
+	if err := performSteps(pCfg, steps); err != nil {
+		Store.WriteStatus(pCfg.ID, project.StatusFailed)
+		return fmt.Errorf("failed performing steps while reloading project %s: %s", pCfg.PrettyName(), err)
+	}
+
+	log.Printf("project %s reloaded :)", pCfg.PrettyName())
+	Store.WriteStatus(pCfg.ID, project.StatusActive)
+	return nil
+}
+
 func handleDomain(path string, dDrv *project.DomainDirective) error {
 	id := project.PathToID(path)
 

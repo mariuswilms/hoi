@@ -169,12 +169,8 @@ func main() {
 				Path: projectDirectory(*path),
 			}
 			var reply bool
-			if err := RPCClient.Call("Project.Unload", args, &reply); err != nil {
-				fmt.Fprintf(os.Stderr, "failed unloading, got error: %s\n", err)
-				os.Exit(1)
-			}
-			if err := RPCClient.Call("Project.Load", args, &reply); err != nil {
-				fmt.Fprintf(os.Stderr, "failed loading, got error: %s\n", err)
+			if err := RPCClient.Call("Project.Reload", args, &reply); err != nil {
+				fmt.Fprintf(os.Stderr, "failed reloading, got error: %s\n", err)
 				os.Exit(1)
 			}
 			fmt.Println("project successfully reloaded :)")
