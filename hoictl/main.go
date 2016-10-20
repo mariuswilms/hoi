@@ -70,7 +70,7 @@ func main() {
 	App.Before = func() {
 		client, err := rpc.Dial("unix", SocketPath)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "error: %s\n", err)
+			fmt.Fprintf(os.Stderr, "failed, got error: %s\n", err)
 			os.Exit(1)
 		}
 		RPCClient = client // Assign to global.
@@ -81,7 +81,7 @@ func main() {
 			args := &sRPC.ServerAPIArgs{}
 			var reply []store.Entity
 			if err := RPCClient.Call("Server.Status", args, &reply); err != nil {
-				fmt.Fprintf(os.Stderr, "got error: %s\n", err)
+				fmt.Fprintf(os.Stderr, "failed, got error: %s\n", err)
 				os.Exit(1)
 			}
 
@@ -156,7 +156,7 @@ func main() {
 			}
 			var reply bool
 			if err := RPCClient.Call("Project.Load", args, &reply); err != nil {
-				fmt.Fprintf(os.Stderr, "error: %s\n", err)
+				fmt.Fprintf(os.Stderr, "failed, got error: %s\n", err)
 				os.Exit(1)
 			}
 			fmt.Println("project successfully loaded :)")
@@ -170,11 +170,11 @@ func main() {
 			}
 			var reply bool
 			if err := RPCClient.Call("Project.Unload", args, &reply); err != nil {
-				fmt.Fprintf(os.Stderr, "failed unloading: %s\n", err)
+				fmt.Fprintf(os.Stderr, "failed unloading, got error: %s\n", err)
 				os.Exit(1)
 			}
 			if err := RPCClient.Call("Project.Load", args, &reply); err != nil {
-				fmt.Fprintf(os.Stderr, "failed loading: %s\n", err)
+				fmt.Fprintf(os.Stderr, "failed loading, got error: %s\n", err)
 				os.Exit(1)
 			}
 			fmt.Println("project successfully reloaded :)")
@@ -188,7 +188,7 @@ func main() {
 			}
 			var reply bool
 			if err := RPCClient.Call("Project.Unload", args, &reply); err != nil {
-				fmt.Fprintf(os.Stderr, "error: %s\n", err)
+				fmt.Fprintf(os.Stderr, "failed, got error: %s\n", err)
 				os.Exit(1)
 			}
 			fmt.Println("project successfully unloaded :(")
@@ -219,7 +219,7 @@ func main() {
 			}
 			var reply bool
 			if err := RPCClient.Call("Project.Domain", args, &reply); err != nil {
-				fmt.Fprintf(os.Stderr, "error: %s\n", err)
+				fmt.Fprintf(os.Stderr, "failed, got error: %s\n", err)
 				os.Exit(1)
 			}
 			fmt.Println("domain added/modified in project")
