@@ -55,7 +55,7 @@ func handleLoad(path string) error {
 
 	if err := performSteps(*pCfg, steps); err != nil {
 		Store.WriteStatus(pCfg.ID, project.StatusFailed)
-		return err
+		return fmt.Errorf("failed to performs steps while loading project %s: %s", pCfg.PrettyName(), err)
 	}
 
 	log.Printf("project %s is now active :)", pCfg.PrettyName())
@@ -69,12 +69,11 @@ func handleUnload(path string) error {
 	if !Store.Has(id) {
 		return fmt.Errorf("no project %s in store to unload", id)
 	}
-	log.Printf("unloading project %s", id)
 	Store.WriteStatus(id, project.StatusUnloading)
 
 	pCfg, err := Store.Read(id)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed unloading project, cannot read id %s from store: %s", id, err)
 	}
 
 	steps := make([]func() error, 0)
@@ -93,7 +92,7 @@ func handleUnload(path string) error {
 	}
 	if err := performSteps(pCfg, steps); err != nil {
 		Store.WriteStatus(pCfg.ID, project.StatusFailed)
-		return err
+		return fmt.Errorf("failed performing steps while unloading project %s: %s", pCfg.PrettyName(), err)
 	}
 
 	log.Printf("project %s unloaded :(", pCfg.PrettyName())
@@ -106,7 +105,6 @@ func handleDomain(path string, dDrv *project.DomainDirective) error {
 	if !Store.Has(id) {
 		return fmt.Errorf("no project %s in store to add domain to", id)
 	}
-	log.Printf("adding domain %s to project: %s", dDrv.FQDN, id)
 	pCfg, _ := Store.Read(id)
 
 	if _, hasKey := pCfg.Domain[dDrv.FQDN]; hasKey {
@@ -119,7 +117,7 @@ func handleDomain(path string, dDrv *project.DomainDirective) error {
 	}
 
 	if err := pCfg.Validate(); err != nil {
-		return fmt.Errorf("cannot load project %s, config did not validate: %s", pCfg.PrettyName(), err)
+		return fmt.Errorf("failed adding domain %s to project %s, config did not validate: %s", dDrv.FQDN, pCfg.PrettyName(), err)
 	}
 
 	// Save us iterating through all runners, when the only one
@@ -148,7 +146,7 @@ func handleDomain(path string, dDrv *project.DomainDirective) error {
 
 	if err := performSteps(pCfg, steps); err != nil {
 		Store.WriteStatus(pCfg.ID, project.StatusFailed)
-		return err
+		return fmt.Errorf("failed performing steps while adding domain %s to project %s: %s", dDrv.FQDN, pCfg.PrettyName(), err)
 	}
 
 	log.Printf("added domain %s to projects %s", dDrv.FQDN, pCfg.PrettyName())
