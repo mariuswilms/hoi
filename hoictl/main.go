@@ -165,6 +165,24 @@ func main() {
 		}
 	})
 
+	App.Command("reload", "reloads a project's configuration", func(cmd *cli.Cmd) {
+		cmd.Action = func() {
+			args := &sRPC.ProjectAPIArgs{
+				Path: projectDirectory(*path),
+			}
+			var reply bool
+			if err := RPCClient.Call("Project.Unload", args, &reply); err != nil {
+				fmt.Fprintf(os.Stderr, "failed unloading: %s\n", err)
+				os.Exit(1)
+			}
+			if err := RPCClient.Call("Project.Load", args, &reply); err != nil {
+				fmt.Fprintf(os.Stderr, "failed loading: %s\n", err)
+				os.Exit(1)
+			}
+			fmt.Println("project successfully reloaded :)")
+		}
+	})
+
 	App.Command("unload", "removes a project's configuration", func(cmd *cli.Cmd) {
 		cmd.Action = func() {
 			args := &sRPC.ProjectAPIArgs{
