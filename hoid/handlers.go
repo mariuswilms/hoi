@@ -133,7 +133,7 @@ func handleReload(path string) error {
 		return fmt.Errorf("failed performing steps while reloading project %s: %s", e.Project.PrettyName(), err)
 	}
 
-	log.Printf("project %s reloaded :)", e.Project.PrettyName())
+	log.Printf("project %s reloaded", e.Project.PrettyName())
 	Store.WriteStatus(e.Project.ID, project.StatusActive)
 	return nil
 }
@@ -160,7 +160,7 @@ func handleReloadAll() error {
 		Store.WriteStatus(e.Project.ID, project.StatusActive)
 	}
 
-	log.Printf("server updated")
+	log.Printf("all projects reloaded")
 	return nil
 }
 
