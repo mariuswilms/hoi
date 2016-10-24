@@ -50,13 +50,14 @@ func main() {
 
 		rpcServer := &rpc.Server{
 			Socket: SocketPath,
-			ServerAPI: &rpc.ServerAPI{
-				StatusHandler: handleStatus,
-			},
 			ProjectAPI: &rpc.ProjectAPI{
-				LoadHandler:   handleLoad,
-				UnloadHandler: handleUnload,
-				DomainHandler: handleDomain,
+				StatusHandler:    handleStatus,
+				StatusAllHandler: handleStatusAll,
+				LoadHandler:      handleLoad,
+				UnloadHandler:    handleUnload,
+				ReloadHandler:    handleReload,
+				ReloadAllHandler: handleReloadAll,
+				DomainHandler:    handleDomain,
 			},
 		}
 		RPCServer = rpcServer // Assign to global.

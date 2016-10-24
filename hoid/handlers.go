@@ -16,7 +16,11 @@ import (
 	"github.com/atelierdisko/hoi/store"
 )
 
-func handleStatus() ([]store.Entity, error) {
+func handleStatus(path string) (store.Entity, error) {
+	return Store.Read(project.PathToID(path))
+}
+
+func handleStatusAll() ([]store.Entity, error) {
 	return Store.ReadAll(), nil
 }
 
@@ -71,13 +75,13 @@ func handleUnload(path string) error {
 	}
 	Store.WriteStatus(id, project.StatusUnloading)
 
-	pCfg, err := Store.Read(id)
+	e, err := Store.Read(id)
 	if err != nil {
 		return fmt.Errorf("failed unloading project, cannot read id %s from store: %s", id, err)
 	}
 
 	steps := make([]func() error, 0)
-	for _, r := range runners(pCfg) {
+	for _, r := range runners(e.Project) {
 		steps = append(
 			steps,
 			r.Disable,
@@ -86,16 +90,16 @@ func handleUnload(path string) error {
 		)
 	}
 
-	if err := Store.Delete(pCfg.ID); err != nil {
-		Store.WriteStatus(pCfg.ID, project.StatusFailed)
+	if err := Store.Delete(e.Project.ID); err != nil {
+		Store.WriteStatus(e.Project.ID, project.StatusFailed)
 		return err
 	}
-	if err := performSteps(pCfg, steps); err != nil {
-		Store.WriteStatus(pCfg.ID, project.StatusFailed)
-		return fmt.Errorf("failed performing steps while unloading project %s: %s", pCfg.PrettyName(), err)
+	if err := performSteps(e.Project, steps); err != nil {
+		Store.WriteStatus(e.Project.ID, project.StatusFailed)
+		return fmt.Errorf("failed performing steps while unloading project %s: %s", e.Project.PrettyName(), err)
 	}
 
-	log.Printf("project %s unloaded :(", pCfg.PrettyName())
+	log.Printf("project %s unloaded :(", e.Project.PrettyName())
 	return nil
 }
 
@@ -107,13 +111,13 @@ func handleReload(path string) error {
 	}
 	Store.WriteStatus(id, project.StatusReloading)
 
-	pCfg, err := Store.Read(id)
+	e, err := Store.Read(id)
 	if err != nil {
 		return fmt.Errorf("failed reloading project, cannot read id %s from store: %s", id, err)
 	}
 
 	steps := make([]func() error, 0)
-	for _, r := range runners(pCfg) {
+	for _, r := range runners(e.Project) {
 		steps = append(
 			steps,
 			r.Disable,
@@ -124,13 +128,39 @@ func handleReload(path string) error {
 		)
 	}
 
-	if err := performSteps(pCfg, steps); err != nil {
-		Store.WriteStatus(pCfg.ID, project.StatusFailed)
-		return fmt.Errorf("failed performing steps while reloading project %s: %s", pCfg.PrettyName(), err)
+	if err := performSteps(e.Project, steps); err != nil {
+		Store.WriteStatus(e.Project.ID, project.StatusFailed)
+		return fmt.Errorf("failed performing steps while reloading project %s: %s", e.Project.PrettyName(), err)
 	}
 
-	log.Printf("project %s reloaded :)", pCfg.PrettyName())
-	Store.WriteStatus(pCfg.ID, project.StatusActive)
+	log.Printf("project %s reloaded :)", e.Project.PrettyName())
+	Store.WriteStatus(e.Project.ID, project.StatusActive)
+	return nil
+}
+
+func handleReloadAll() error {
+	for _, e := range Store.ReadAll() {
+		Store.WriteStatus(e.Project.ID, project.StatusReloading)
+
+		steps := make([]func() error, 0)
+		for _, r := range runners(e.Project) {
+			steps = append(
+				steps,
+				r.Disable,
+				r.Clean,
+				r.Build,
+				r.Enable,
+				r.Commit,
+			)
+		}
+		if err := performSteps(e.Project, steps); err != nil {
+			Store.WriteStatus(e.Project.ID, project.StatusFailed)
+			return fmt.Errorf("failed performing steps while reloading project %s: %s", e.Project.PrettyName(), err)
+		}
+		Store.WriteStatus(e.Project.ID, project.StatusActive)
+	}
+
+	log.Printf("server updated")
 	return nil
 }
 
@@ -140,26 +170,26 @@ func handleDomain(path string, dDrv *project.DomainDirective) error {
 	if !Store.Has(id) {
 		return fmt.Errorf("no project %s in store to add domain to", id)
 	}
-	pCfg, _ := Store.Read(id)
+	e, _ := Store.Read(id)
 
-	if _, hasKey := pCfg.Domain[dDrv.FQDN]; hasKey {
-		el := pCfg.Domain[dDrv.FQDN]
-		el.Aliases = append(pCfg.Domain[dDrv.FQDN].Aliases, dDrv.Aliases...)
+	if _, hasKey := e.Project.Domain[dDrv.FQDN]; hasKey {
+		el := e.Project.Domain[dDrv.FQDN]
+		el.Aliases = append(e.Project.Domain[dDrv.FQDN].Aliases, dDrv.Aliases...)
 
-		pCfg.Domain[dDrv.FQDN] = el
+		e.Project.Domain[dDrv.FQDN] = el
 	} else {
-		pCfg.Domain[dDrv.FQDN] = *dDrv
+		e.Project.Domain[dDrv.FQDN] = *dDrv
 	}
 
-	if err := pCfg.Validate(); err != nil {
-		return fmt.Errorf("failed adding domain %s to project %s, config did not validate: %s", dDrv.FQDN, pCfg.PrettyName(), err)
+	if err := e.Project.Validate(); err != nil {
+		return fmt.Errorf("failed adding domain %s to project %s, config did not validate: %s", dDrv.FQDN, e.Project.PrettyName(), err)
 	}
 
 	// Save us iterating through all runners, when the only one
 	// needed for domain updates is the web runner.
 	runners := make([]runner.Runnable, 0)
 	if Config.Web.Enabled {
-		runners = append(runners, runner.NewWebRunner(*Config, pCfg))
+		runners = append(runners, runner.NewWebRunner(*Config, e.Project))
 	}
 
 	steps := make([]func() error, 0)
@@ -174,18 +204,18 @@ func handleDomain(path string, dDrv *project.DomainDirective) error {
 		)
 	}
 
-	if err := Store.Write(pCfg.ID, pCfg); err != nil {
+	if err := Store.Write(e.Project.ID, e.Project); err != nil {
 		return err
 	}
-	Store.WriteStatus(pCfg.ID, project.StatusUpdating)
+	Store.WriteStatus(e.Project.ID, project.StatusUpdating)
 
-	if err := performSteps(pCfg, steps); err != nil {
-		Store.WriteStatus(pCfg.ID, project.StatusFailed)
-		return fmt.Errorf("failed performing steps while adding domain %s to project %s: %s", dDrv.FQDN, pCfg.PrettyName(), err)
+	if err := performSteps(e.Project, steps); err != nil {
+		Store.WriteStatus(e.Project.ID, project.StatusFailed)
+		return fmt.Errorf("failed performing steps while adding domain %s to project %s: %s", dDrv.FQDN, e.Project.PrettyName(), err)
 	}
 
-	log.Printf("added domain %s to projects %s", dDrv.FQDN, pCfg.PrettyName())
-	Store.WriteStatus(pCfg.ID, project.StatusActive)
+	log.Printf("added domain %s to projects %s", dDrv.FQDN, e.Project.PrettyName())
+	Store.WriteStatus(e.Project.ID, project.StatusActive)
 	return nil
 }
 

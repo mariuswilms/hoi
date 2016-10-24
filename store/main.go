@@ -147,15 +147,15 @@ func (s Store) Has(id string) bool {
 	return hasKey
 }
 
-func (s Store) Read(id string) (project.Config, error) {
+func (s Store) Read(id string) (Entity, error) {
 	s.RLock()
 	defer s.RUnlock()
 
 	entity, hasKey := s.data[id]
 	if !hasKey {
-		return entity.Project, fmt.Errorf("failed to read from store: no id %s", id)
+		return entity, fmt.Errorf("failed to read from store: no id %s", id)
 	}
-	return entity.Project, nil
+	return entity, nil
 }
 
 func (s Store) ReadAll() []Entity {

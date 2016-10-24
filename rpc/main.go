@@ -19,13 +19,11 @@ import (
 type Server struct {
 	Socket     string
 	ProjectAPI *ProjectAPI
-	ServerAPI  *ServerAPI
 	listener   net.Listener
 }
 
 func (s *Server) Run() error {
 	rpc.RegisterName("Project", s.ProjectAPI)
-	rpc.RegisterName("Server", s.ServerAPI)
 
 	lis, err := net.Listen("unix", s.Socket)
 	if err != nil {
@@ -42,28 +40,30 @@ func (s *Server) Close() {
 	s.listener.Close()
 }
 
-type ServerAPIArgs struct{}
-
-type ServerAPI struct {
-	StatusHandler func() ([]store.Entity, error)
-}
-
-func (s *ServerAPI) Status(args *ServerAPIArgs, reply *[]store.Entity) error {
-	data, err := s.StatusHandler()
-	*reply = data
-	return logIfError(err)
-}
-
 type ProjectAPI struct {
-	LoadHandler   func(path string) error
-	UnloadHandler func(path string) error
-	ReloadHandler func(path string) error
-	DomainHandler func(path string, dDrv *project.DomainDirective) error
+	StatusHandler    func(path string) (store.Entity, error)
+	StatusAllHandler func() ([]store.Entity, error)
+	LoadHandler      func(path string) error
+	UnloadHandler    func(path string) error
+	ReloadHandler    func(path string) error
+	ReloadAllHandler func() error
+	DomainHandler    func(path string, dDrv *project.DomainDirective) error
 }
 
 type ProjectAPIArgs struct {
 	Path   string
 	Domain *project.DomainDirective
+}
+
+func (p *ProjectAPI) Status(args *ProjectAPIArgs, reply *store.Entity) error {
+	data, err := p.StatusHandler(args.Path)
+	*reply = data
+	return logIfError(err)
+}
+func (p *ProjectAPI) StatusAll(args *ProjectAPIArgs, reply *[]store.Entity) error {
+	data, err := p.StatusAllHandler()
+	*reply = data
+	return logIfError(err)
 }
 
 func (p *ProjectAPI) Load(args *ProjectAPIArgs, reply *bool) error {
@@ -74,10 +74,16 @@ func (p *ProjectAPI) Unload(args *ProjectAPIArgs, reply *bool) error {
 	*reply = true
 	return logIfError(p.UnloadHandler(args.Path))
 }
+
 func (p *ProjectAPI) Reload(args *ProjectAPIArgs, reply *bool) error {
 	*reply = true
 	return logIfError(p.ReloadHandler(args.Path))
 }
+func (p *ProjectAPI) ReloadAll(args *ProjectAPIArgs, reply *bool) error {
+	*reply = true
+	return logIfError(p.ReloadAllHandler())
+}
+
 func (p *ProjectAPI) Domain(args *ProjectAPIArgs, reply *bool) error {
 	*reply = true
 	return logIfError(p.DomainHandler(args.Path, args.Domain))
