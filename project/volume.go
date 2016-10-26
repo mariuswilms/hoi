@@ -5,10 +5,7 @@
 
 package project
 
-import (
-	"path/filepath"
-	"strings"
-)
+import "path/filepath"
 
 // http://kubernetes.io/docs/user-guide/volumes/#types-of-volumes
 const (
@@ -21,11 +18,6 @@ type VolumeDirective struct {
 	// Path relative to project root.
 	Path string
 	Kind string
-}
-
-func (drv VolumeDirective) GetSafeName() string {
-	// Replace unsafe chars.
-	return strings.Replace(drv.Path, "/", "-", -1)
 }
 
 func (drv VolumeDirective) GetAbsolutePath(p Config) string {
