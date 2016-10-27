@@ -92,6 +92,11 @@ func (sys MySQL) EnsureUser(user string, password string) error {
 		if hasPassword {
 			return nil
 		}
+		// Let's give a heads up on this, as changing password
+		// especially with shared user accounts can lead to unintended
+		// side effects. Current hoi versions will not use shared
+		// accounts, but older ones did.
+		log.Printf("changing MySQL password for user '%s' to '%s'", user, password)
 
 		if sys.s.MySQL.UseLegacy {
 			// PASSWORD() is deprecated and should be used in legacy systems only.
