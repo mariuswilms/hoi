@@ -109,40 +109,56 @@ func main() {
 				fmt.Printf(" %8s: **%s**\n", "Status", e.Meta.Status)
 				fmt.Printf(" %8s: %s\n", "Path", e.Project.Path)
 
-				fmt.Printf(" %8s: %d\n", "Domain", len(e.Project.Domain))
-				for _, d := range e.Project.Domain {
-					fmt.Printf("          - %s\n", d.FQDN)
-					if d.SSL.IsEnabled() {
-						fmt.Printf("            - SSL: enabled\n")
-					}
-					if d.Auth.IsEnabled() {
-						fmt.Printf("            - Authentication: enabled\n")
-						fmt.Printf("              - %8s: %s\n", "User", d.Auth.User)
-						fmt.Printf("              - %8s: %s\n", "Password", d.Auth.Password)
-					}
-					for _, r := range d.Redirects {
-						fmt.Printf("            - %s [R]\n", r)
-					}
-					for _, a := range d.Aliases {
-						fmt.Printf("            - %s [A]\n", a)
+				if len(e.Project.Domain) > 0 {
+					fmt.Printf(" %8s: %d\n", "Domain", len(e.Project.Domain))
+					for _, d := range e.Project.Domain {
+						fmt.Printf("          - %s\n", d.FQDN)
+						if d.SSL.IsEnabled() {
+							fmt.Printf("            - SSL: enabled\n")
+						}
+						if d.Auth.IsEnabled() {
+							fmt.Printf("            - Authentication: enabled\n")
+							fmt.Printf("              - %8s: %s\n", "User", d.Auth.User)
+							if d.Auth.Password == "" {
+								fmt.Printf("              - %8s: <empty>\n", "Password")
+							} else {
+								fmt.Printf("              - %8s: %s\n", "Password", d.Auth.Password)
+							}
+						}
+						for _, r := range d.Redirects {
+							fmt.Printf("            - %s [R]\n", r)
+						}
+						for _, a := range d.Aliases {
+							fmt.Printf("            - %s [A]\n", a)
+						}
 					}
 				}
 
-				fmt.Printf("  %8s: %d\n", "Cron", len(e.Project.Cron))
-				for _, c := range e.Project.Cron {
-					fmt.Printf("          - %s\n", c.Name)
+				if len(e.Project.Cron) > 0 {
+					fmt.Printf(" %8s: %d\n", "Cron", len(e.Project.Cron))
+					for _, c := range e.Project.Cron {
+						fmt.Printf("          - %s\n", c.Name)
+					}
 				}
 
-				fmt.Printf("  %8s: %d\n", "Worker", len(e.Project.Worker))
-				for _, w := range e.Project.Worker {
-					fmt.Printf("          - %s\n", w.Name)
+				if len(e.Project.Worker) > 0 {
+					fmt.Printf(" %8s: %d\n", "Worker", len(e.Project.Worker))
+					for _, w := range e.Project.Worker {
+						fmt.Printf("          - %s\n", w.Name)
+					}
 				}
 
-				fmt.Printf("  %8s: %d\n", "Database", len(e.Project.Database))
-				for _, db := range e.Project.Database {
-					fmt.Printf("          - %s\n", db.Name)
-					fmt.Printf("            - %8s: %s\n", "User", db.User)
-					fmt.Printf("            - %8s: %s\n", "Password", db.Password)
+				if len(e.Project.Database) > 0 {
+					fmt.Printf(" %8s: %d\n", "Database", len(e.Project.Database))
+					for _, db := range e.Project.Database {
+						fmt.Printf("          - %s\n", db.Name)
+						fmt.Printf("            - %8s: %s\n", "User", db.User)
+						if db.Password == "" {
+							fmt.Printf("            - %8s: <empty>\n", "Password")
+						} else {
+							fmt.Printf("            - %8s: %s\n", "Password", db.Password)
+						}
+					}
 				}
 			}
 
@@ -161,6 +177,7 @@ func main() {
 
 				for _, e := range reply {
 					printProject(e)
+					fmt.Print("\n")
 				}
 				return
 			}
