@@ -8,6 +8,7 @@ package system
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"os/exec"
 	"os/user"
@@ -66,6 +67,8 @@ func (sys Storage) Install(volume project.VolumeDirective) error {
 		if err := exec.Command("setfacl", "-d", "-m", "g::rwx", src).Run(); err != nil {
 			return fmt.Errorf("failed to set ACLs on mount source %s: %s", src, err)
 		}
+	} else {
+		log.Printf("reusing volume source: %s", src)
 	}
 	if _, err := os.Stat(dst); os.IsNotExist(err) {
 		os.MkdirAll(dst, 1770)
