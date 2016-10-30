@@ -10,7 +10,10 @@ import (
 	"path/filepath"
 )
 
-// Validates several aspects and looks for typical human errors.
+// Validates several aspects and looks for typical human errors. This
+// must operate over the whole configuration and cannot be split into
+// multiple validation methods per directive, as cross-directive
+// information is often needed to determine actual validity.
 func (cfg Config) Validate() error {
 	stringInSlice := func(a string, list []string) bool {
 		for _, b := range list {
