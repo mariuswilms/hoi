@@ -11,7 +11,6 @@ func TestDecodeRoot(t *testing.T) {
 	hoifile := `
 name = "foo"
 context = "prod"
-PHPVersion = 56
 `
 	cfg, err := NewFromString(hoifile)
 	if err != nil {
