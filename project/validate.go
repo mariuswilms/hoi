@@ -99,6 +99,9 @@ func (cfg Config) Validate() error {
 	// have an empty password (not even for dev contexts).
 	seenDatabases := make([]string, 0)
 	for _, db := range cfg.Database {
+		if db.Name == "" {
+			return fmt.Errorf("found empty database name")
+		}
 		if stringInSlice(db.Name, seenDatabases) {
 			return fmt.Errorf("found duplicate database name: %s", db.Name)
 		}
