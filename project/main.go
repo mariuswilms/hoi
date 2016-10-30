@@ -108,10 +108,6 @@ type Config struct {
 	// front controller or not; optional and will be autodetected. Older
 	// PHP frameworks will need this.
 	UseLegacyFrontController bool
-	// The PHP Version in short simple form (5.6.3 -> 56); optional,
-	// defaults to "56". Will be used to run projects without PHP 7.0
-	// compatibility side by side with those that are compatible.
-	PHPVersion string
 	// Whether the app can receive uploads at all (limited to 20MB).
 	UseUploads bool
 	// Whether the app can receive large uploads. Normally upload size
