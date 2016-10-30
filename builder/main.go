@@ -6,9 +6,9 @@
 package builder
 
 import (
+	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -59,57 +59,52 @@ func (b Builder) ListAvailable() ([]string, error) {
 
 func (b Builder) Clean() error {
 	dir := filepath.Join(b.s.BuildPath, b.kind, b.p.ID)
-	log.Printf("cleaning build directory for project %s: %s", b.p.PrettyName(), dir)
 
-	return os.RemoveAll(dir)
+	if err := os.RemoveAll(dir); err != nil {
+		return fmt.Errorf("failed cleaning build directory %s: %s", dir, err)
+	}
+	return nil
 }
 
 func (b Builder) WriteFile(name string, reader io.Reader) error {
-	log.Printf("writing file for project %s: %s", b.p.PrettyName(), name)
-
 	dir := filepath.Join(b.s.BuildPath, b.kind, b.p.ID)
 
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		if err := os.MkdirAll(dir, 0755); err != nil {
-			return err
+			return fmt.Errorf("failed writing build file %s, failed, to create dir %s: %s", name, dir, err)
 		}
 	}
 	writer, err := os.OpenFile(filepath.Join(dir, name), os.O_CREATE|os.O_RDWR, 0644)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed opening build file %s for writing: %s", name, err)
 	}
 	defer writer.Close()
 
 	_, err = io.Copy(writer, reader)
-	return err
+	return fmt.Errorf("failed copying contents to write build file %s: %s", name, err)
 }
 
 func (b Builder) LoadTemplate(name string) (*template.Template, error) {
-	log.Printf("loading template for project %s: %s", b.p.PrettyName(), name)
 	return loadTemplate(filepath.Join(b.s.TemplatePath, b.kind, name))
 }
 
 func (b Builder) WriteTemplate(name string, t *template.Template, tmplData interface{}) error {
-	log.Printf("compling template for project %s: %s", b.p.PrettyName(), name)
-
 	dir := filepath.Join(b.s.BuildPath, b.kind, b.p.ID)
 
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		if err := os.MkdirAll(dir, 0755); err != nil {
-			return err
+			return fmt.Errorf("failed writing template %s, failed to create dir %s: %s", name, dir, err)
 		}
 	}
 	return writeTemplate(t, filepath.Join(dir, name), 0644, tmplData)
 }
 
 func (b Builder) WriteSensitiveTemplate(name string, t *template.Template, tmplData interface{}) error {
-	log.Printf("compiling sensitive template for project %s: %s", b.p.PrettyName(), name)
-
 	dir := filepath.Join(b.s.BuildPath, b.kind, b.p.ID)
 
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		if err := os.MkdirAll(dir, 0750); err != nil {
-			return err
+			return fmt.Errorf("failed writing sensitive template %s, failed to create dir %s: %s", name, dir, err)
 		}
 	}
 	return writeTemplate(t, filepath.Join(dir, name), 0640, tmplData)
@@ -121,14 +116,12 @@ func (b Builder) LoadWriteTemplates(tmplData interface{}) error {
 	sPath := filepath.Join(b.s.TemplatePath, b.kind)
 	tPath := filepath.Join(b.s.BuildPath, b.kind, b.p.ID)
 
-	log.Printf("loading/compiling templates for project %s: %s -> %s", b.p.PrettyName(), sPath, tPath)
-
 	if _, err := os.Stat(sPath); os.IsNotExist(err) {
-		return err
+		return fmt.Errorf("failed to prepare loading templates from non-existent path %s: %s", sPath, err)
 	}
 	if _, err := os.Stat(tPath); os.IsNotExist(err) {
 		if err := os.MkdirAll(tPath, 0755); err != nil {
-			return err
+			return fmt.Errorf("failed to prepare writing templates, cannot create directory %s: %s", tPath, err)
 		}
 	}
 
@@ -151,7 +144,7 @@ func (b Builder) LoadWriteTemplates(tmplData interface{}) error {
 		return nil
 	})
 	if err != nil {
-		return err
+		return fmt.Errorf("failed loading templates from %s, cannot map: %s", sPath, err)
 	}
 
 	for dst, src := range files {
@@ -166,10 +159,8 @@ func (b Builder) LoadWriteTemplates(tmplData interface{}) error {
 		if _, err := os.Stat(dst); !os.IsNotExist(err) {
 			continue // do not create already existing
 		}
-		log.Printf("creating: %s", dst)
-
 		if err := os.MkdirAll(dst, 0755); err != nil {
-			return err
+			fmt.Errorf("failed to create nested template target directory %s: %s", dst, err)
 		}
 	}
 	for dst, t := range templates {
@@ -181,24 +172,29 @@ func (b Builder) LoadWriteTemplates(tmplData interface{}) error {
 }
 
 func loadTemplate(path string) (*template.Template, error) {
-	log.Printf("loading template: %s", path)
-
 	bytes, err := ioutil.ReadFile(path)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to load template %s: %s", path, err)
 	}
 	t := template.New(path) // use this as identifier
-	return t.Parse(string(bytes))
+
+	parsed, err := t.Parse(string(bytes))
+	if err != nil {
+		return nil, fmt.Errorf("tried to load template %s, but it failed to parse: %s", path, err)
+	}
+	return parsed, nil
 }
 
 // FIXME clean up partially written file
 func writeTemplate(t *template.Template, dst string, perm os.FileMode, tmplData interface{}) error {
-	log.Printf("compiling template to: %s", dst)
-
 	fh, err := os.OpenFile(dst, os.O_CREATE|os.O_RDWR, perm)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to compile template, cannot open target for writing %s: %s", dst, err)
 	}
 	defer fh.Close()
-	return t.Execute(fh, tmplData)
+
+	if err := t.Execute(fh, tmplData); err != nil {
+		return fmt.Errorf("failed to compile template, failed to execute into target %s with given data: %s", dst, err)
+	}
+	return nil
 }
