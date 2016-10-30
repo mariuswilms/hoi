@@ -114,3 +114,17 @@ func TestDomainRedirectsGetParsed(t *testing.T) {
 		t.Error("did not parse 2 redirects")
 	}
 }
+
+func TestNamelessDatabase(t *testing.T) {
+	hoifile := `
+database foo {
+}
+`
+	cfg, err := NewFromString(hoifile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(cfg.Database) != 1 {
+		t.Error("No 1 db parsed")
+	}
+}

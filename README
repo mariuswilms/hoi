@@ -118,7 +118,7 @@ A more advanced Hoifile might look like this:
     }
     aliases = ["example.com", "example.net"]
   }
-  database {
+  database example {
     password = "s3cret"
   }
   cron reporter {
