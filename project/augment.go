@@ -128,27 +128,47 @@ func (cfg *Config) Augment() error {
 		}
 	}
 
-	// FIXME: Check if these are in project root or webroot.
+	// /assets and /media_versions can be either in the root
+	// of the project or nested under webroot, let's check
+	// if the are nested or not by looking at /assets.
+
 	if hasDirectory(cfg.GetAbsoluteWebroot() + "/css") {
-		log.Print("- using classic assets")
+		log.Print("- using classic assets directories ('css'/'img'/'js')")
 		cfg.UseAssets = true
 		cfg.UseClassicAssets = true
-	} else if hasDirectory(cfg.Path + "/assets") {
-		log.Print("- will serve unified assets directory from: /assets")
+	}
+
+	if cfg.UseClassicAssets || hasDirectory(cfg.GetAbsoluteWebroot()+"/assets") {
+		log.Print("- using webroot nesting")
+		cfg.UseWebrootNesting = true
+	}
+	hasDirectoryInRoot := func(dir string) bool {
+		var base string
+
+		if cfg.UseWebrootNesting {
+			base = cfg.GetAbsoluteWebroot()
+		} else {
+			base = cfg.Path
+		}
+		return hasDirectory(filepath.Join(base, dir))
+	}
+
+	if hasDirectoryInRoot("assets") {
+		log.Print("- serving unified assets directory ('assets')")
 		cfg.UseAssets = true
 	}
 
-	if hasDirectory(cfg.Path + "/media_versions") {
-		log.Print("- will serve media versions from: /media_versions")
+	if hasDirectoryInRoot("media_versions") {
+		log.Print("- serving media versions ('media_versions')")
 		cfg.UseMediaVersions = true
 	}
-	if hasDirectory(cfg.Path + "/media") {
-		log.Print("- will serve media transfers from: /media")
+	if hasDirectoryInRoot("media") {
+		log.Print("- serving media transfers ('media')")
 		cfg.UseMediaTransfers = true
 	}
 
-	if hasDirectory(cfg.Path + "/files") {
-		log.Print("- will serve files from: /files")
+	if hasDirectoryInRoot("files") {
+		log.Print("- serving internal files ('files')")
 		cfg.UseFiles = true
 	}
 

@@ -109,15 +109,19 @@ type Config struct {
 	// Whether the app can receive large uploads. Normally upload size
 	// is limited to 20MB. With large uploads enabled the new limit is 550MB.
 	UseLargeUploads bool
+	// Whether media versions, transfers and assets are nested under
+	// the webroot instead of the project root.
+	UseWebrootNesting bool
 	// Whether media versions should be served.
 	UseMediaVersions bool
-	// Whether media transfers should be served.
+	// Whether internal media transfers should be served.
 	UseMediaTransfers bool
-	// Whether generic files should be served.
+	// Whether internal generic files should be served.
 	UseFiles bool
 	// Whether assets should be served.
 	UseAssets bool
-	// Whether to use classic img/js/css dirs instead of a single assets dir.
+	// Whether to use classic img/js/css directories nested under
+	// webroot instead of a single assets dir.
 	UseClassicAssets bool
 	// Whether media and assets and all other sub-resurce should be
 	// served with a prefixed undersore i.e. /media under /_media, so
