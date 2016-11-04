@@ -7,17 +7,12 @@ package project
 
 import "path/filepath"
 
-// http://kubernetes.io/docs/user-guide/volumes/#types-of-volumes
-const (
-	// mount -t tmpfs -o size=100M tmpfs /home/me/tmp
-	VolumeKindTemporary  = "temporary"
-	VolumeKindPersistent = "persistent"
-)
-
 type VolumeDirective struct {
 	// Path relative to project root.
 	Path string
-	Kind string
+	// Whether this volume will get its data wiped
+	// on each mount.
+	IsTemporary bool
 }
 
 func (drv VolumeDirective) GetAbsolutePath(p Config) string {

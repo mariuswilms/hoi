@@ -33,12 +33,10 @@ func (sys Storage) Install(volume project.VolumeDirective) error {
 	ns := fmt.Sprintf("project_%s", sys.p.ID)
 
 	var src string
-	if volume.Kind == project.VolumeKindTemporary {
+	if volume.IsTemporary {
 		src = sys.s.Volume.TemporaryRunPath
-	} else if volume.Kind == project.VolumeKindPersistent {
-		src = sys.s.Volume.PersistentRunPath
 	} else {
-		return fmt.Errorf("unknown volume kind %s for: %s", volume.Kind, volume.Path)
+		src = sys.s.Volume.PersistentRunPath
 	}
 
 	src = filepath.Join(src, ns, volume.Path)

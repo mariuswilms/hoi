@@ -129,6 +129,11 @@ A more advanced Hoifile might look like this:
     instances = 2
     command = "bin/process-media"
   }
+  volume media_versions {
+  }
+  volume tmp {
+	isTemporary = true
+  }
 
 Once a project contains a Hoifile, it's loaded with a single command:
 $ cd /var/www/foo

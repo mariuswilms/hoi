@@ -40,16 +40,14 @@ worker media-processor {
 }
 
 volume tmp {
-  type = "temporary"
+  isTemporary = true
 }
 volume log {
-  type = "temporary"
+  isTemporary = true
 }
 volume media {
-  type = "persistent"
 }
 volume media_versions {
-  type = "persistent"
 }
 
 endef

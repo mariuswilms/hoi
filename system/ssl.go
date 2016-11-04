@@ -50,6 +50,8 @@ func (sys *SSL) Install(domain string, ssl project.SSLDirective) error {
 		}
 	default:
 		path := filepath.Join(sys.p.Path, ssl.CertificateKey)
+		// TODO Ensure target file is 0600, even if source file had different perms,
+		// in order to keep system directory clean.
 		if err := util.CopyFile(path, targetKey); err != nil {
 			return fmt.Errorf("failed to copy SSL cert key %s -> %s: %s", path, targetKey, err)
 		}
