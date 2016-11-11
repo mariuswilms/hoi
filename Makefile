@@ -52,7 +52,7 @@ volume media_versions {
 
 endef
 
-CONF_FILES = $(patsubst conf/%,$(PREFIX)/etc/hoi/%,$(filter-out %/hoid.service,$(shell find conf -type f)))
+CONF_FILES = $(patsubst conf/%,$(PREFIX)/etc/hoi/%,conf/hoid.conf $(shell find conf/templates -type f))
 
 .PHONY: install
 install: $(PREFIX)/bin/hoictl $(PREFIX)/sbin/hoid $(CONF_FILES)
