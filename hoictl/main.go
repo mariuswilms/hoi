@@ -114,10 +114,10 @@ func main() {
 					for _, d := range e.Project.Domain {
 						fmt.Printf("          - %s\n", d.FQDN)
 						if d.SSL.IsEnabled() {
-							fmt.Printf("            - SSL: enabled\n")
+							fmt.Printf("            + SSL\n")
 						}
 						if d.Auth.IsEnabled() {
-							fmt.Printf("            - Authentication: enabled\n")
+							fmt.Printf("            + Authentication\n")
 							fmt.Printf("              - %8s: %s\n", "User", d.Auth.User)
 							if d.Auth.Password == "" {
 								fmt.Printf("              - %8s: <empty>\n", "Password")
@@ -126,10 +126,10 @@ func main() {
 							}
 						}
 						for _, r := range d.Redirects {
-							fmt.Printf("            - %s [R]\n", r)
+							fmt.Printf("            R %s\n", r)
 						}
 						for _, a := range d.Aliases {
-							fmt.Printf("            - %s [A]\n", a)
+							fmt.Printf("            R %s\n", a)
 						}
 					}
 				}
