@@ -86,6 +86,8 @@ test:
 	mkdir -p _test/etc/nginx/sites-enabled 
 	mkdir -p _test/etc/systemd/system
 	mkdir -p _test/etc/php5/fpm/conf.d
+	mkdir -p _test/var/projects
+	mkdir -p _test/var/tmp
 	mkdir -p _test/var/www/example
 	mkdir -p _test/var/www/example/config/ssl
 	touch _test/var/www/example/config/ssl/example.org.{crt,key}
