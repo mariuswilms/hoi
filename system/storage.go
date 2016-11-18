@@ -84,11 +84,11 @@ func (sys Storage) Install(volume project.VolumeDirective) error {
 		}
 	}
 
-	if err := exec.Command("mount", "--bind", src, dst).Run(); err != nil {
-		return fmt.Errorf("failed bind mounting %s -> %s: %s", src, dst, err)
-	}
 	if err := persistBindMount("/etc/fstab", src, dst); err != nil {
 		return fmt.Errorf("failed persisting bind mount %s -> %s: %s", src, dst, err)
+	}
+	if err := exec.Command("mount", dst).Run(); err != nil {
+		return fmt.Errorf("failed mounting %s: %s", dst, err)
 	}
 	return nil
 }
