@@ -129,8 +129,7 @@ A more advanced Hoifile might look like this:
     instances = 2
     command = "bin/process-media"
   }
-  volume media_versions {
-  }
+  volume media_versions {}
   volume tmp {
 	isTemporary = true
   }
