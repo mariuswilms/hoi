@@ -11,9 +11,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"os/user"
 	"path/filepath"
-	"strconv"
 	"strings"
 
 	"github.com/atelierdisko/hoi/project"
@@ -42,17 +40,23 @@ func (sys Storage) Install(volume project.VolumeDirective) error {
 	src = filepath.Join(src, ns, volume.Path)
 	dst := volume.GetAbsolutePath(sys.p)
 
-	u, err := user.Lookup(sys.s.User)
-	if err != nil {
-		return err
+	// Use our own (poor-man's) Chown here, so we do not need to
+	// lookup the uid/gid, which would require cgo, which isn't
+	// available during cross compilation.
+	chown := func(path string, user string, group string) error {
+		if err := exec.Command("chown", user+":"+group, path).Run(); err != nil {
+			return fmt.Errorf("failed to chown %s to user %s and group %s: %s", path, user, group, err)
+		}
+		return nil
 	}
-	uid, _ := strconv.Atoi(u.Uid)
 
-	g, err := user.LookupGroup(sys.s.Group)
-	if err != nil {
-		return err
+	// Sets FS ACLs, so user + group rights are inherited by sub-directories and files.
+	setfacl := func(path string) error {
+		if err := exec.Command("setfacl", "-d", "-m", "g::rwx", path).Run(); err != nil {
+			return fmt.Errorf("failed to set ACLs on mount source %s: %s", path, err)
+		}
+		return nil
 	}
-	gid, _ := strconv.Atoi(g.Gid)
 
 	// 1. owned by global user and group
 	// 2. and have the sticky flag set, so when new files are created owner is the same
@@ -60,20 +64,23 @@ func (sys Storage) Install(volume project.VolumeDirective) error {
 	// 4. perms are persisted even for new files
 	if _, err := os.Stat(src); os.IsNotExist(err) {
 		os.MkdirAll(src, 1770)
-		os.Chown(src, uid, gid)
 
-		if err := exec.Command("setfacl", "-d", "-m", "g::rwx", src).Run(); err != nil {
-			return fmt.Errorf("failed to set ACLs on mount source %s: %s", src, err)
+		if err := chown(src, sys.s.User, sys.s.Group); err != nil {
+			return err
+		}
+		if err := setfacl(src); err != nil {
+			return err
 		}
 	} else {
 		log.Printf("reusing volume source: %s", src)
 	}
 	if _, err := os.Stat(dst); os.IsNotExist(err) {
 		os.MkdirAll(dst, 1770)
-		os.Chown(src, uid, gid)
-
-		if err := exec.Command("setfacl", "-d", "-m", "g::rwx", dst).Run(); err != nil {
-			return fmt.Errorf("failed to set ACLs on mount target %s: %s", dst, err)
+		if err := chown(dst, sys.s.User, sys.s.Group); err != nil {
+			return err
+		}
+		if err := setfacl(dst); err != nil {
+			return err
 		}
 	}
 
