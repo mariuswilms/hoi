@@ -15,8 +15,6 @@ Group=root
 ExecStart=/sbin/hoid
 ExecStopPost=/bin/rm -f /var/run/hoid.socket
 ExecReload=/bin/kill -HUP $MAINPID
-PrivateTmp=true
-PrivateDevices=true
 
 [Install]
 WantedBy=multi-user.target
