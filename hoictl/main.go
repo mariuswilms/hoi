@@ -160,6 +160,17 @@ func main() {
 						}
 					}
 				}
+
+				if len(e.Project.Volume) > 0 {
+					fmt.Printf(" %8s: %d\n", "Volume", len(e.Project.Volume))
+					for _, v := range e.Project.Volume {
+						if v.IsTemporary {
+							fmt.Printf("          T %s\n", v.Path)
+						} else {
+							fmt.Printf("          P %s\n", v.Path)
+						}
+					}
+				}
 			}
 
 			if *all {
