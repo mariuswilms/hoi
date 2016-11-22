@@ -63,8 +63,9 @@ func (sys Storage) Install(volume project.VolumeDirective) error {
 	// 3. user and group can read AND write, others cannot do anything
 	// 4. perms are persisted even for new files
 	if _, err := os.Stat(src); os.IsNotExist(err) {
-		os.MkdirAll(src, 1770)
-
+		if err := os.MkdirAll(src, 1770); err != nil {
+			return err
+		}
 		if err := chown(src, sys.s.User, sys.s.Group); err != nil {
 			return err
 		}
@@ -74,14 +75,19 @@ func (sys Storage) Install(volume project.VolumeDirective) error {
 	} else {
 		log.Printf("reusing volume source: %s", src)
 	}
+
 	if _, err := os.Stat(dst); os.IsNotExist(err) {
-		os.MkdirAll(dst, 1770)
+		if err := os.MkdirAll(dst, 1770); err != nil {
+			return err
+		}
 		if err := chown(dst, sys.s.User, sys.s.Group); err != nil {
 			return err
 		}
 		if err := setfacl(dst); err != nil {
 			return err
 		}
+	} else {
+		log.Printf("reusing volume destination: %s", dst)
 	}
 
 	if err := persistBindMount("/etc/fstab", src, dst); err != nil {
@@ -108,18 +114,20 @@ func (sys Storage) Uninstall(volume project.VolumeDirective) error {
 	if err != nil {
 		return err
 	}
+	var lastError error
+
 	for _, dst := range mounts {
 		if !strings.HasPrefix(dst, sys.p.Path) {
 			continue
 		}
 		if err := exec.Command("umount", dst).Run(); err != nil {
-			return fmt.Errorf("failed unmounting %s: %s", dst, err)
+			lastError = fmt.Errorf("failed unmounting %s: %s", dst, err)
 		}
 		if err := unpersistBindMount("/etc/fstab", dst); err != nil {
-			return fmt.Errorf("unmounted %s, but failed to unpersist: %s", dst, err)
+			lastError = fmt.Errorf("failed to unpersist mount: %s", dst, err)
 		}
 	}
-	return nil
+	return lastError
 }
 
 // Returns mount sources mapped to mount targets. Special mounts
