@@ -45,6 +45,7 @@ type ProjectAPI struct {
 	StatusAllHandler func() ([]store.Entity, error)
 	LoadHandler      func(path string) error
 	UnloadHandler    func(path string) error
+	UnloadAllHandler func() error
 	ReloadHandler    func(path string) error
 	ReloadAllHandler func() error
 	DomainHandler    func(path string, dDrv *project.DomainDirective) error
@@ -73,6 +74,10 @@ func (p *ProjectAPI) Load(args *ProjectAPIArgs, reply *bool) error {
 func (p *ProjectAPI) Unload(args *ProjectAPIArgs, reply *bool) error {
 	*reply = true
 	return logIfError(p.UnloadHandler(args.Path))
+}
+func (p *ProjectAPI) UnloadAll(args *ProjectAPIArgs, reply *bool) error {
+	*reply = true
+	return logIfError(p.UnloadAllHandler())
 }
 
 func (p *ProjectAPI) Reload(args *ProjectAPIArgs, reply *bool) error {

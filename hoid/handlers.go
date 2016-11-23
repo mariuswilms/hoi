@@ -90,16 +90,43 @@ func handleUnload(path string) error {
 		)
 	}
 
-	if err := Store.Delete(e.Project.ID); err != nil {
-		Store.WriteStatus(e.Project.ID, project.StatusFailed)
-		return err
-	}
 	if err := performSteps(e.Project, steps); err != nil {
 		Store.WriteStatus(e.Project.ID, project.StatusFailed)
 		return fmt.Errorf("failed performing steps while unloading project %s: %s", e.Project.PrettyName(), err)
 	}
+	if err := Store.Delete(e.Project.ID); err != nil {
+		Store.WriteStatus(e.Project.ID, project.StatusFailed)
+		return err
+	}
 
 	log.Printf("project %s unloaded :(", e.Project.PrettyName())
+	return nil
+}
+
+func handleUnloadAll() error {
+	for _, e := range Store.ReadAll() {
+		Store.WriteStatus(e.Project.ID, project.StatusUnloading)
+
+		steps := make([]func() error, 0)
+		for _, r := range runners(e.Project) {
+			steps = append(
+				steps,
+				r.Disable,
+				r.Clean,
+				r.Commit,
+			)
+		}
+		if err := performSteps(e.Project, steps); err != nil {
+			Store.WriteStatus(e.Project.ID, project.StatusFailed)
+			return fmt.Errorf("failed performing steps while unloading project %s: %s", e.Project.PrettyName(), err)
+		}
+		if err := Store.Delete(e.Project.ID); err != nil {
+			Store.WriteStatus(e.Project.ID, project.StatusFailed)
+			return err
+		}
+	}
+
+	log.Printf("all projects unloaded :(")
 	return nil
 }
 

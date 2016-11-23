@@ -244,15 +244,25 @@ func main() {
 
 	App.Command("unload", "removes project configuration", func(cmd *cli.Cmd) {
 		cmd.Action = func() {
-			args := &sRPC.ProjectAPIArgs{
-				Path: projectDirectory(*path),
-			}
 			var reply bool
-			if err := RPCClient.Call("Project.Unload", args, &reply); err != nil {
-				fmt.Fprintf(os.Stderr, "failed, got error: %s\n", err)
-				os.Exit(1)
+
+			if *all {
+				args := &sRPC.ProjectAPIArgs{}
+				if err := RPCClient.Call("Project.UnloadAll", args, &reply); err != nil {
+					fmt.Fprintf(os.Stderr, "failed unloading, got error: %s\n", err)
+					os.Exit(1)
+				}
+				fmt.Println("all projects successfully unloaded :(")
+			} else {
+				args := &sRPC.ProjectAPIArgs{
+					Path: projectDirectory(*path),
+				}
+				if err := RPCClient.Call("Project.Unload", args, &reply); err != nil {
+					fmt.Fprintf(os.Stderr, "failed unloading, got error: %s\n", err)
+					os.Exit(1)
+				}
+				fmt.Println("project successfully reloaded :(")
 			}
-			fmt.Println("project successfully unloaded :(")
 		}
 	})
 
