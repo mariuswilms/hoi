@@ -7,7 +7,6 @@ package system
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -79,7 +78,6 @@ func (sys Systemd) ListInstalledServices() ([]string, error) {
 			units = append(units, strings.TrimPrefix(fields[0], ns+"_"))
 		}
 	}
-	log.Printf("found %d installed service unit/s:\n%v", len(units), units)
 	return units, err
 }
 
@@ -100,7 +98,6 @@ func (sys Systemd) ListInstalledTimers() ([]string, error) {
 			units = append(units, strings.TrimPrefix(fields[0], ns+"_"))
 		}
 	}
-	log.Printf("found %d installed timer unit/s:\n%v", len(units), units)
 	return units, err
 }
 
