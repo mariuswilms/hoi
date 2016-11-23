@@ -60,36 +60,36 @@ func (sys Systemd) Uninstall(unit string) error {
 	return nil
 }
 
-// Lists installed service units. Strips project namespace.
 func (sys Systemd) ListInstalledServices() ([]string, error) {
-	ns := fmt.Sprintf("project_%s_%s", sys.p.ID, sys.kind)
-	units := make([]string, 0)
-
-	out, err := exec.Command("systemctl", "list-units", fmt.Sprintf("'%s_*.service'", ns), "--no-legend", "--no-pager").Output()
-	if err != nil {
-		return units, err
-	}
-
-	if len(out) != 0 {
-		// line format:
-		// worker@1.service loaded active running Worker aaa for project ad@dev
-		for _, line := range strings.Split(string(out), "\n") {
-			fields := strings.Fields(line)
-			units = append(units, strings.TrimPrefix(fields[0], ns+"_"))
-		}
-	}
-	return units, err
+	return sys.listInstalledUnits(
+		fmt.Sprintf("project_%s_%s", sys.p.ID, sys.kind),
+		"service",
+	)
 }
 
-// Lists installed timer  units. Strips project namespace.
 func (sys Systemd) ListInstalledTimers() ([]string, error) {
-	ns := fmt.Sprintf("project_%s_%s", sys.p.ID, sys.kind)
+	return sys.listInstalledUnits(
+		fmt.Sprintf("project_%s_%s", sys.p.ID, sys.kind),
+		"timer",
+	)
+}
+
+// Lists installed units. Strips project namespace, leaving just the
+// plain unit name including its suffix.
+func (sys Systemd) listInstalledUnits(ns string, suffix string) ([]string, error) {
 	units := make([]string, 0)
 
-	out, err := exec.Command("systemctl", "list-units", fmt.Sprintf("'%s_*.timer'", ns), "--no-legend", "--no-pager").Output()
+	args := []string{
+		"list-units",
+		fmt.Sprintf("'%s_*.%s'", ns, suffix),
+		"--no-legend",
+		"--no-pager",
+	}
+	out, err := exec.Command("systemctl", args...).Output()
 	if err != nil {
 		return units, err
 	}
+
 	if len(out) != 0 {
 		// line format:
 		// worker@1.service loaded active running Worker aaa for project ad@dev
