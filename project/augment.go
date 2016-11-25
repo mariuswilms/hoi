@@ -163,12 +163,12 @@ func (cfg *Config) Augment() error {
 		cfg.UseMediaVersions = true
 	}
 	if hasDirectoryInRoot("media") {
-		log.Print("- serving media transfers ('media')")
+		log.Print("- serving media transfers ('media') internally")
 		cfg.UseMediaTransfers = true
 	}
 
 	if hasDirectoryInRoot("files") {
-		log.Print("- serving internal files ('files')")
+		log.Print("- serving files ('files') internally")
 		cfg.UseFiles = true
 	}
 
