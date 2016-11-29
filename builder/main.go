@@ -80,8 +80,10 @@ func (b Builder) WriteFile(name string, reader io.Reader) error {
 	}
 	defer writer.Close()
 
-	_, err = io.Copy(writer, reader)
-	return fmt.Errorf("failed copying contents to write build file %s: %s", name, err)
+	if _, err = io.Copy(writer, reader); err != nil {
+		return fmt.Errorf("failed copying contents to write build file %s: %s", name, err)
+	}
+	return nil
 }
 
 func (b Builder) LoadTemplate(name string) (*template.Template, error) {
