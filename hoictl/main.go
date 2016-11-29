@@ -27,11 +27,11 @@ var (
 	Version    string
 	SocketPath string
 
-	// Searches current than parent directories until it finds Hoifile or
-	// reaches root.
 	RPCClient *rpc.Client
 )
 
+// Searches current than parent directories until it finds Hoifile or
+// reaches root.
 func projectDirectory(path string) string {
 	if path == "." {
 		path, _ = os.Getwd()
@@ -50,7 +50,7 @@ func projectDirectory(path string) string {
 		}
 		return path
 	}
-	log.Fatalf("Not able to detect project directory")
+	log.Fatal("not able to detect project directory")
 	return ""
 }
 
