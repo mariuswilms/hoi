@@ -261,7 +261,7 @@ func main() {
 					fmt.Fprintf(os.Stderr, "failed unloading, got error: %s\n", err)
 					os.Exit(1)
 				}
-				fmt.Println("project successfully reloaded :(")
+				fmt.Println("project successfully unloaded :(")
 			}
 		}
 	})
