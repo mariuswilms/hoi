@@ -202,6 +202,7 @@ func handleDomain(path string, dDrv *project.DomainDirective) error {
 	if _, hasKey := e.Project.Domain[dDrv.FQDN]; hasKey {
 		el := e.Project.Domain[dDrv.FQDN]
 		el.Aliases = append(e.Project.Domain[dDrv.FQDN].Aliases, dDrv.Aliases...)
+		el.WWW = dDrv.WWW
 
 		e.Project.Domain[dDrv.FQDN] = el
 	} else {
