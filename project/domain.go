@@ -42,6 +42,15 @@ type DomainDirective struct {
 	Redirects []string
 }
 
+// Adds FQDNs as aliases to domain, will not add already present FQDNs.
+func (drv DomainDirective) AddAliases(aliases ...string) {
+	for _, fqdn := range aliases {
+		if _, hasKey := drv.Aliases[fqdn]; !hasKey {
+			drv.Aliases = append(drv.Aliases, fqdn)
+		}
+	}
+}
+
 // Access protection via auth - especially useful for staging/preview
 // contexts. When both User and Password are empty, auth will be
 // disabled altogether.
