@@ -276,7 +276,7 @@ func main() {
 		})
 		aliases := cmd.Strings(cli.StringsOpt{
 			Name: "alias",
-			Desc: "alias for the domain (repeat for multiple)",
+			Desc: "alias for the domain (repeat for multiple), when FQDN exists merges with present aliases",
 		})
 
 		cmd.Action = func() {
