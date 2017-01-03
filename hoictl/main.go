@@ -129,7 +129,7 @@ func main() {
 							fmt.Printf("            R %s\n", r)
 						}
 						for _, a := range d.Aliases {
-							fmt.Printf("            R %s\n", a)
+							fmt.Printf("            A %s\n", a)
 						}
 					}
 				}
