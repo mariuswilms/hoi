@@ -45,10 +45,19 @@ type DomainDirective struct {
 // Adds FQDNs as aliases to domain, will not add already present FQDNs.
 func (drv DomainDirective) AddAliases(aliases ...string) {
 	for _, fqdn := range aliases {
-		if _, hasKey := drv.Aliases[fqdn]; !hasKey {
+		if !drv.HasAlias(fqdn) {
 			drv.Aliases = append(drv.Aliases, fqdn)
 		}
 	}
+}
+
+func (drv DomainDirective) HasAlias(fqdn string) bool {
+	for _, v := range drv.Aliases {
+		if v == fqdn {
+			return true
+		}
+	}
+	return false
 }
 
 // Access protection via auth - especially useful for staging/preview
