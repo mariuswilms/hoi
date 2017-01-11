@@ -70,7 +70,14 @@ func (sys *SSL) Install(domain string, ssl project.SSLDirective) error {
 			"-days", "365",
 			"-key", targetKey,
 			"-out", targetCert,
-			"-subj", "/C=DE/ST=Hamburg/L=Hamburg/O=None/OU=None/CN=" + domain,
+			"-subj",
+			// "domain" can be assumed to be the naked domain. The
+			// cert will be issued for the naked domains with the www.
+			// subdomain in altnames.
+			fmt.Sprintf(
+				"/C=DE/ST=Hamburg/L=Hamburg/O=None/OU=None/CN=%s/subjectAltName=DNS.1=www.%s",
+				domain, domain,
+			),
 		}
 		if err := exec.Command("openssl", cmd...).Run(); err != nil {
 			return nil // TODO even when cmd succeeds, it exits with != 0.
