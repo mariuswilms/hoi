@@ -8,6 +8,7 @@ package runner
 import (
 	"fmt"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/atelierdisko/hoi/builder"
@@ -37,16 +38,43 @@ type WorkerRunner struct {
 	build *builder.Builder
 }
 
+// Regex with capturing group to extract unit base name from a templated unit name.
+var templatedUnitRegex = regexp.MustCompile(`^(.*)@[0-9]+\.service`)
+
 func (r WorkerRunner) Disable() error {
 	units, err := r.sys.ListInstalledServices()
 	if err != nil {
 		return err
 	}
+	var lastTemplate string
+
 	for _, u := range units {
 		if err := r.sys.StopAndDisable(u); err != nil {
 			return err
 		}
 		if err := r.sys.Uninstall(u); err != nil {
+			return err
+		}
+		// Where a unit using a template is, a template must also exist.
+		// As templates are not included in ListInstalledServices we
+		// map back manually to clean up.
+		//
+		// unit name is i.e. worker_media-processor@1.service
+		// template name is i.e. worker_media-processor@.service
+		matches := templatedUnitRegex.FindStringSubmatch(u)
+		if matches == nil {
+			return fmt.Errorf("failed to parse unit template name from unit: %s", u)
+		}
+
+		// Try only just once to remove the template file, as we want
+		// to error out when uninstall fails. There is now way to
+		// check if that file exists from the runner.
+		if lastTemplate == matches[1] {
+			continue
+		}
+		lastTemplate = matches[1]
+
+		if err := r.sys.Uninstall(lastTemplate + "@.service"); err != nil {
 			return err
 		}
 	}
