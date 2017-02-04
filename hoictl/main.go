@@ -106,6 +106,7 @@ func main() {
 			//           └─15327 nginx: worker process
 			printProject := func(e store.Entity) {
 				fmt.Printf("● %-20s\n", e.Project.PrettyName())
+				fmt.Printf(" %8s: %s\n", "ID", e.Project.ID)
 				fmt.Printf(" %8s: **%s**\n", "Status", e.Meta.Status)
 				fmt.Printf(" %8s: %s\n", "Path", e.Project.Path)
 
