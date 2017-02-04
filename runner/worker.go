@@ -63,7 +63,11 @@ func (r WorkerRunner) Enable() error {
 	}
 	for _, f := range files {
 		// Map back to worker directive, we need this to get instances.
-		w := r.p.Worker[strings.TrimSuffix(f, filepath.Ext(f))]
+		k := filepath.Base(strings.TrimSuffix(f, "@"+filepath.Ext(f)))
+		if _, ok := r.p.Worker[k]; !ok {
+			return fmt.Errorf("failed to lookup worker by name %s, parsed incorrectly?", k)
+		}
+		w := r.p.Worker[k]
 
 		if err := r.sys.Install(f); err != nil {
 			return err
