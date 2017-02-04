@@ -42,12 +42,8 @@ func (drv WorkerDirective) GetID() string {
 	return drv.Name
 }
 
-// Returns number of instances, while ensuring at least one instance is returned
-// and converting to correct unsigned integer type.
+// Returns number of instances converting to correct unsigned integer type.
 func (drv WorkerDirective) GetInstances() uint {
-	if drv.Instances == 0 {
-		return uint(1)
-	}
 	return uint(drv.Instances)
 }
 

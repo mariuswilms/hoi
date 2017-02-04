@@ -204,6 +204,10 @@ func decodeInto(cfg *Config, s string) (*Config, error) {
 	for k, _ := range cfg.Worker {
 		e := cfg.Worker[k]
 		e.Name = k
+
+		if e.Instances == 0 {
+			e.Instances = 1
+		}
 		cfg.Worker[k] = e
 	}
 	for k, _ := range cfg.Database {
