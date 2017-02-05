@@ -55,7 +55,7 @@ endef
 CONF_FILES = $(patsubst conf/%,$(PREFIX)/etc/hoi/%,conf/hoid.conf $(shell find conf/templates -type f))
 
 .PHONY: install
-install: $(PREFIX)/bin/hoictl $(PREFIX)/sbin/hoid $(CONF_FILES)
+install: $(PREFIX)/bin/hoictl $(PREFIX)/sbin/hoid $(CONF_FILES) $(PREFIX)/usr/lib/tmpfiles.d/hoi.conf $(PREFIX)/etc/systemd/system/hoid.service
 
 .PHONY: uninstall
 uninstall:
@@ -123,6 +123,12 @@ $(PREFIX)/etc/hoi/hoid.conf: conf/hoid.conf
 	@if [ ! -d $(@D) ]; then mkdir -p $(@D); chmod 775 $(@D); fi
 	cp $< $@
 	chmod 600 $@
+
+$(PREFIX)/usr/lib/tmpfiles.d/hoi.conf: conf/hoi-tmpfiles.conf
+	cp $< $@
+
+$(PREFIX)/etc/systemd/system/hoid.service: conf/hoid.service
+	cp $< $@
 
 dist/%: % $(ANY_DEPS) 
 	go build -ldflags "$(HOID_GOFLAGS)" -o $@ ./$<
