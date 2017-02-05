@@ -145,7 +145,7 @@ func main() {
 				if len(e.Project.Worker) > 0 {
 					fmt.Printf(" %8s: %d\n", "Worker", len(e.Project.Worker))
 					for _, w := range e.Project.Worker {
-						fmt.Printf("          - %s\n", w.Name)
+						fmt.Printf("          - %s (x%d)\n", w.Name, w.Instances)
 					}
 				}
 
