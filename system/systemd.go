@@ -61,44 +61,17 @@ func (sys Systemd) Uninstall(unit string) error {
 }
 
 func (sys Systemd) ListInstalledServices() ([]string, error) {
-	return sys.listInstalledUnits(
+	return listInstalledUnits(
 		fmt.Sprintf("project_%s_%s", sys.p.ID, sys.kind),
 		"service",
 	)
 }
 
 func (sys Systemd) ListInstalledTimers() ([]string, error) {
-	return sys.listInstalledUnits(
+	return listInstalledUnits(
 		fmt.Sprintf("project_%s_%s", sys.p.ID, sys.kind),
 		"timer",
 	)
-}
-
-// Lists installed units. Strips project namespace, leaving just the
-// plain unit name including its suffix.
-func (sys Systemd) listInstalledUnits(ns string, suffix string) ([]string, error) {
-	units := make([]string, 0)
-
-	args := []string{
-		"list-units",
-		fmt.Sprintf("'%s_*.%s'", ns, suffix),
-		"--no-legend",
-		"--no-pager",
-	}
-	out, err := exec.Command("systemctl", args...).Output()
-	if err != nil {
-		return units, err
-	}
-
-	if len(out) != 0 {
-		// line format:
-		// worker@1.service loaded active running Worker aaa for project ad@dev
-		for _, line := range strings.Split(string(out), "\n") {
-			fields := strings.Fields(line)
-			units = append(units, strings.TrimPrefix(fields[0], ns+"_"))
-		}
-	}
-	return units, err
 }
 
 func (sys Systemd) EnableAndStart(unit string) error {
@@ -151,4 +124,42 @@ func (sys Systemd) Stop(unit string) error {
 		return fmt.Errorf("failed to stop systemd unit %s: %s", target, err)
 	}
 	return nil
+}
+
+// Lists installed units. Strips project namespace, leaving just the
+// plain unit name including its suffix.
+func listInstalledUnits(ns string, suffix string) ([]string, error) {
+	args := []string{
+		"list-units",
+		"--no-legend",
+		"--no-pager",
+		fmt.Sprintf("%s_*.%s", ns, suffix),
+	}
+	out, err := exec.Command("systemctl", args...).Output()
+	if err != nil {
+		return nil, err
+	}
+	return parseListUnits(string(out), ns, suffix)
+}
+
+// line format:
+// worker@1.service loaded active running Worker aaa for project ad@dev
+func parseListUnits(out string, ns string, suffix string) ([]string, error) {
+	units := make([]string, 0)
+
+	if len(out) == 0 {
+		return units, nil
+	}
+	if !strings.Contains(out, "\n") {
+		return units, fmt.Errorf("failed to parse unit names, invalid input: %s", out)
+	}
+	for _, line := range strings.Split(strings.TrimSpace(out), "\n") {
+		fields := strings.Fields(line)
+
+		if len(fields) < 1 {
+			return units, fmt.Errorf("failed to parse unit name from list line: %s", line)
+		}
+		units = append(units, strings.TrimPrefix(fields[0], ns+"_"))
+	}
+	return units, nil
 }
