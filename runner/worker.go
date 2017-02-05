@@ -52,9 +52,10 @@ func (r WorkerRunner) Disable() error {
 		if err := r.sys.StopAndDisable(u); err != nil {
 			return err
 		}
-		if err := r.sys.Uninstall(u); err != nil {
-			return err
-		}
+		// Intentionally not calling Uninstall(), as worker unit files
+		// are always derived from templated units, thus do not exist
+		// physically.
+
 		// Where a unit using a template is, a template must also exist.
 		// As templates are not included in ListInstalledServices we
 		// map back manually to clean up.
