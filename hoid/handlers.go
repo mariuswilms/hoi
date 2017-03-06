@@ -195,7 +195,7 @@ func handleDomain(path string, dDrv *project.DomainDirective) error {
 	id := project.PathToID(path)
 
 	if !Store.Has(id) {
-		return fmt.Errorf("no project %s in store to add domain to", id)
+		return fmt.Errorf("no project %s in store to add/modifiy domain for", id)
 	}
 	e, _ := Store.Read(id)
 
@@ -210,7 +210,7 @@ func handleDomain(path string, dDrv *project.DomainDirective) error {
 	}
 
 	if err := e.Project.Validate(); err != nil {
-		return fmt.Errorf("failed adding domain %s to project %s, config did not validate: %s", dDrv.FQDN, e.Project.PrettyName(), err)
+		return fmt.Errorf("failed adding/modifying domain %s for project %s, config did not validate: %s", dDrv.FQDN, e.Project.PrettyName(), err)
 	}
 
 	// Save us iterating through all runners, when the only one
@@ -239,10 +239,10 @@ func handleDomain(path string, dDrv *project.DomainDirective) error {
 
 	if err := performSteps(e.Project, steps); err != nil {
 		Store.WriteStatus(e.Project.ID, project.StatusFailed)
-		return fmt.Errorf("failed performing steps while adding domain %s to project %s: %s", dDrv.FQDN, e.Project.PrettyName(), err)
+		return fmt.Errorf("failed performing steps while adding/modifying domain %s for project %s: %s", dDrv.FQDN, e.Project.PrettyName(), err)
 	}
 
-	log.Printf("added domain %s to projects %s", dDrv.FQDN, e.Project.PrettyName())
+	log.Printf("added/modified domain %s for projects %s", dDrv.FQDN, e.Project.PrettyName())
 	Store.WriteStatus(e.Project.ID, project.StatusActive)
 	return nil
 }
