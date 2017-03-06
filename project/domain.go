@@ -43,7 +43,7 @@ type DomainDirective struct {
 }
 
 // Adds FQDNs as aliases to domain, will not add already present FQDNs.
-func (drv DomainDirective) AddAliases(aliases ...string) {
+func (drv *DomainDirective) AddAliases(aliases ...string) {
 	for _, fqdn := range aliases {
 		if !drv.HasAlias(fqdn) {
 			drv.Aliases = append(drv.Aliases, fqdn)
