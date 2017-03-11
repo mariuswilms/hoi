@@ -59,7 +59,7 @@ func handleLoad(path string) error {
 
 	if err := performSteps(*pCfg, steps); err != nil {
 		Store.WriteStatus(pCfg.ID, project.StatusFailed)
-		return fmt.Errorf("failed to performs steps while loading project %s: %s", pCfg.PrettyName(), err)
+		return fmt.Errorf("failed to perform steps while loading project %s: %s", pCfg.PrettyName(), err)
 	}
 
 	log.Printf("project %s is now active :)", pCfg.PrettyName())
