@@ -32,25 +32,25 @@ domain example.org {
 database example {
   password = "s3cret"
 }
-cron reporter {
-  schedule = "daily"
-  command = "/bin/touch cron-run"
-}
-worker media-processor {
-  instances = 2
-  command = "/bin/touch worker-run"
-}
-
-volume tmp {
-  isTemporary = true
-}
-volume log {
-  isTemporary = true
-}
-volume media {
-}
-volume media_versions {
-}
+# cron reporter {
+#   schedule = "daily"
+#   command = "/bin/touch cron-run"
+# }
+# worker media-processor {
+#   instances = 2
+#   command = "/bin/touch worker-run"
+# }
+# 
+# volume tmp {
+#   isTemporary = true
+# }
+# volume log {
+#   isTemporary = true
+# }
+# volume media {
+# }
+# volume media_versions {
+# }
 
 endef
 
