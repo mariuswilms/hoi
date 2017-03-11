@@ -189,11 +189,20 @@ The DB runner requires mysqld(8) or MariaDB
 
 Development
 ===========
-Hoi comes with a small test environment to conduct manual testing.
+Hoi comes with a small test environment to conduct manual testing inside
+a virtual machine. This allows to run inside a real environment and
+integrate with real services.
 
-$ go get github.com/atelierdisko/hoi
-$ cd $GOPATH/src/github.com/atelierdisko/hoi
-$ make test
+HOST  $ go get github.com/atelierdisko/hoi
+HOST  $ cd $GOPATH/src/github.com/atelierdisko/hoi
+HOST  $ vagrant up
+HOST  $ vagrant ssh
+GUEST $ sudo -s
+GUEST $ cd /vagrant
+HOST  $ make test
+GUEST $ _test/sbin/hoid
+GUEST $ _test/bin/hoictl --project=_test/var/www/example load
+GUEST $ journalctl -f
 
 Future Scope
 ------------
