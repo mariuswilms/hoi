@@ -105,6 +105,8 @@ test:
 	GOOS=linux GOARCH=amd64 VERSION=test PREFIX=./_test FLAGS_PREFIX=/vagrant/_test make install
 	sed -i -e "s|Path = \"|Path = \"/vagrant/_test|g" ./_test/etc/hoi/hoid.conf
 	sed -i -e "s|useLegacy = false|useLegacy = true|g" ./_test/etc/hoi/hoid.conf
+	sed -i -e "s|user = \"hoi\"|user = \"root\"|g" ./_test/etc/hoi/hoid.conf
+	sed -i -e "s|password = \"s3cret\"|password = \"vagrant\"|g" ./_test/etc/hoi/hoid.conf
 	@echo 
 	@echo Terminal A:
 	@echo -----------
