@@ -4,15 +4,17 @@
 # license that can be found in the LICENSE file.
 
 PREFIX ?= /usr/local
+FLAGS_PREFIX ?= $(abspath PREFIX)
+
 VERSION ?= head-$(shell git rev-parse --short HEAD)
 
 HOID_GOFLAGS = -X main.Version=$(VERSION)
-HOID_GOFLAGS +=  -X main.SocketPath=$(abspath $(PREFIX)/var/run/hoid.socket)
-HOID_GOFLAGS +=  -X main.ConfigPath=$(abspath $(PREFIX)/etc/hoi/hoid.conf)
-HOID_GOFLAGS +=  -X main.DataPath=$(abspath $(PREFIX)/var/lib/hoid.db)
+HOID_GOFLAGS +=  -X main.SocketPath=$(FLAGS_PREFIX)/var/run/hoid.socket
+HOID_GOFLAGS +=  -X main.ConfigPath=$(FLAGS_PREFIX)/etc/hoi/hoid.conf
+HOID_GOFLAGS +=  -X main.DataPath=$(FLAGS_PREFIX)/var/lib/hoid.db
 
 HOICTL_GOFLAGS = -X main.Version=$(VERSION)
-HOICTL_GOFLAGS +=  -X main.SocketPath=$(abspath $(PREFIX)/var/run/hoid.socket)
+HOICTL_GOFLAGS +=  -X main.SocketPath=$(FLAGS_PREFIX)/var/run/hoid.socket
 
 ANY_DEPS = builder project rpc runner server store system util
 
@@ -73,12 +75,15 @@ clean:
 .PHONY: dist
 dist: dist/hoictl dist/hoid dist/hoictl-darwin-amd64 dist/hoid-darwin-amd64 dist/hoictl-linux-amd64 dist/hoid-linux-amd64
 
+# The resulting environment is to be executed within a vagrant mounted
+# virutal machine. 
 .PHONY: test
 export TEST_HOIFILE
 test: 
 	rm -fr _test/*
 	mkdir -p _test/bin 
 	mkdir -p _test/sbin 
+	mkdir -p _test/usr/lib/tmpfiles.d
 	mkdir -p _test/var/run
 	mkdir -p _test/var/lib
 	mkdir -p _test/etc/hoi 
@@ -97,8 +102,9 @@ test:
 	mkdir -p _test/var/www/example/app/webroot
 	touch _test/var/www/example/app/webroot/index.php
 	echo "$$TEST_HOIFILE" > _test/var/www/example/Hoifile
-	PREFIX=./_test make install
-	sed -i -e "s|Path = \"|Path = \"$(abspath ./_test)|g" ./_test/etc/hoi/hoid.conf
+	GOOS=linux GOARCH=amd64 VERSION=test PREFIX=./_test FLAGS_PREFIX=/vagrant/_test make install
+	sed -i -e "s|Path = \"|Path = \"/vagrant/_test|g" ./_test/etc/hoi/hoid.conf
+	sed -i -e "s|useLegacy = false|useLegacy = true|g" ./_test/etc/hoi/hoid.conf
 	@echo 
 	@echo Terminal A:
 	@echo -----------
@@ -138,5 +144,3 @@ dist/%-darwin-amd64: % $(ANY_DEPS)
 
 dist/%-linux-amd64: % $(ANY_DEPS)
 	GOOS=linux GOARCH=amd64 go build -ldflags "$(HOID_GOFLAGS)" -o $@ ./$<
-
-
