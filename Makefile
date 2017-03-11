@@ -72,6 +72,10 @@ clean:
 	if [ -f ./hoid/hoid ]; then rm ./hoid/hoid; fi
 	if [ -f ./hoictl/hoictl ]; then rm ./hoictl/hoictl; fi
 
+.PHONY: test-clean
+test-clean:
+	if [ -d ./_test ]; then rm -fr ./_test; fi
+
 .PHONY: dist
 dist: dist/hoictl dist/hoid dist/hoictl-darwin-amd64 dist/hoid-darwin-amd64 dist/hoictl-linux-amd64 dist/hoid-linux-amd64
 
