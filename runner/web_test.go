@@ -8,6 +8,8 @@ package runner
 import (
 	"os"
 	"testing"
+
+	"github.com/atelierdisko/hoi/project"
 )
 
 /*
@@ -61,5 +63,42 @@ func simulateSystem() {
 	for _, d := range dirs {
 		os.MkdirAll(root+d, 0755)
 	}
+}
 
+// Simulate mutating happening in preparation for template rendering.
+func TestDoesNotModifyMasterStruct(t *testing.T) {
+	hoifile := `
+name = "foo"
+domain example.org {
+  SSL = {
+    certificate = "config/ssl/example.org.crt"
+    certificateKey = "config/ssl/example.org.key"
+  }
+}
+`
+	cfg, err := project.NewFromString(hoifile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	mutate := func(cfg project.Config) {
+		cfg.Name = "MUTATED!"
+
+		ds := map[string]project.DomainDirective{}
+		for k, _ := range cfg.Domain {
+			e := cfg.Domain[k]
+			e.SSL.Certificate = "MUTATED!"
+
+			ds[k] = e
+		}
+		cfg.Domain = ds
+	}
+	mutate(*cfg)
+	if cfg.Domain["example.org"].SSL.Certificate == "MUTATED!" {
+		t.Error("detected mutated domain config")
+		t.Logf("%#v", cfg)
+	}
+	if cfg.Name == "MUTATED!" {
+		t.Error("detected mutated name config")
+		t.Logf("%#v", cfg)
+	}
 }
