@@ -202,4 +202,3 @@ GUEST $ cd /vagrant
 HOST  $ make test
 GUEST $ _test/sbin/hoid
 GUEST $ _test/bin/hoictl --project=_test/var/www/example load
-GUEST $ journalctl -f
