@@ -9,7 +9,9 @@ import (
 	"fmt"
 	"log"
 	"reflect"
+	"regexp"
 	"runtime"
+	"strings"
 
 	"github.com/atelierdisko/hoi/project"
 	"github.com/atelierdisko/hoi/runner"
@@ -59,7 +61,7 @@ func handleLoad(path string) error {
 
 	if err := performSteps(*pCfg, steps); err != nil {
 		Store.WriteStatus(pCfg.ID, project.StatusFailed)
-		return fmt.Errorf("failed to perform steps while loading project %s: %s", pCfg.PrettyName(), err)
+		return fmt.Errorf("failed to load project %s: %s", pCfg.PrettyName(), err)
 	}
 
 	log.Printf("project %s is now active :)", pCfg.PrettyName())
@@ -92,7 +94,7 @@ func handleUnload(path string) error {
 
 	if err := performSteps(e.Project, steps); err != nil {
 		Store.WriteStatus(e.Project.ID, project.StatusFailed)
-		return fmt.Errorf("failed performing steps while unloading project %s: %s", e.Project.PrettyName(), err)
+		return fmt.Errorf("failed to unload project %s: %s", e.Project.PrettyName(), err)
 	}
 	if err := Store.Delete(e.Project.ID); err != nil {
 		Store.WriteStatus(e.Project.ID, project.StatusFailed)
@@ -118,7 +120,7 @@ func handleUnloadAll() error {
 		}
 		if err := performSteps(e.Project, steps); err != nil {
 			Store.WriteStatus(e.Project.ID, project.StatusFailed)
-			return fmt.Errorf("failed performing steps while unloading project %s: %s", e.Project.PrettyName(), err)
+			return fmt.Errorf("failed to unload project %s: %s", e.Project.PrettyName(), err)
 		}
 		if err := Store.Delete(e.Project.ID); err != nil {
 			Store.WriteStatus(e.Project.ID, project.StatusFailed)
@@ -157,7 +159,7 @@ func handleReload(path string) error {
 
 	if err := performSteps(e.Project, steps); err != nil {
 		Store.WriteStatus(e.Project.ID, project.StatusFailed)
-		return fmt.Errorf("failed performing steps while reloading project %s: %s", e.Project.PrettyName(), err)
+		return fmt.Errorf("failed to reload project %s: %s", e.Project.PrettyName(), err)
 	}
 
 	log.Printf("project %s reloaded", e.Project.PrettyName())
@@ -182,7 +184,7 @@ func handleReloadAll() error {
 		}
 		if err := performSteps(e.Project, steps); err != nil {
 			Store.WriteStatus(e.Project.ID, project.StatusFailed)
-			return fmt.Errorf("failed performing steps while reloading project %s: %s", e.Project.PrettyName(), err)
+			return fmt.Errorf("failed to reload project %s: %s", e.Project.PrettyName(), err)
 		}
 		Store.WriteStatus(e.Project.ID, project.StatusActive)
 	}
@@ -239,7 +241,7 @@ func handleDomain(path string, dDrv *project.DomainDirective) error {
 
 	if err := performSteps(e.Project, steps); err != nil {
 		Store.WriteStatus(e.Project.ID, project.StatusFailed)
-		return fmt.Errorf("failed performing steps while adding/modifying domain %s for project %s: %s", dDrv.FQDN, e.Project.PrettyName(), err)
+		return fmt.Errorf("failed to add/modify domain %s for project %s: %s", dDrv.FQDN, e.Project.PrettyName(), err)
 	}
 
 	log.Printf("added/modified domain %s for projects %s", dDrv.FQDN, e.Project.PrettyName())
@@ -274,11 +276,21 @@ func runners(pCfg project.Config) []runner.Runnable {
 
 func performSteps(pCfg project.Config, steps []func() error) error {
 	getFuncName := func(i interface{}) string {
-		return runtime.FuncForPC(reflect.ValueOf(i).Pointer()).Name()
+		name := runtime.FuncForPC(reflect.ValueOf(i).Pointer()).Name()
+		// github.com/atelierdisko/hoi/runner.(Runnable).Build-fm
+
+		// extract just the "Build" part from the fully qualified fn name
+		re := regexp.MustCompile("\\.([A-Za-z]+)-fm$")
+		match := re.FindStringSubmatch(name)
+
+		if len(match) < 2 {
+			return name
+		}
+		return strings.ToLower(match[1])
 	}
 	for _, s := range steps {
 		if err := s(); err != nil {
-			return fmt.Errorf("in project %s step %s failed: %s", pCfg.PrettyName(), getFuncName(s), err)
+			return fmt.Errorf("the *%s* step failed: %s", getFuncName(s), err)
 		}
 	}
 	return nil
