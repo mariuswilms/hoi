@@ -117,6 +117,9 @@ func (r WebRunner) Build() error {
 		}
 	}
 
+	// Be careful not to mutate the passed struct. Modifications to maps
+	// modify the underlying data structure.
+	domain := map[string]project.DomainDirective{}
 	for k, v := range r.p.Domain {
 		if !v.SSL.IsEnabled() {
 			continue
@@ -135,8 +138,9 @@ func (r WebRunner) Build() error {
 		}
 		e.SSL.CertificateKey = path
 
-		r.p.Domain[k] = e
+		domain[k] = e
 	}
+	r.p.Domain = domain
 
 	tmplData := struct {
 		P             project.Config
