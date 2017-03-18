@@ -203,10 +203,3 @@ HOST  $ make test
 GUEST $ _test/sbin/hoid
 GUEST $ _test/bin/hoictl --project=_test/var/www/example load
 GUEST $ journalctl -f
-
-Future Scope
-------------
-Hoi currently relies on a fixed set of technologies (see requirements) to do its
-job. However, changing this and implementing an abstraction layer with adapters
-are a possible future goal.
-
