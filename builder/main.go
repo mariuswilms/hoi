@@ -187,7 +187,6 @@ func loadTemplate(path string) (*template.Template, error) {
 	return parsed, nil
 }
 
-// FIXME clean up partially written file
 func writeTemplate(t *template.Template, dst string, perm os.FileMode, tmplData interface{}) error {
 	fh, err := os.OpenFile(dst, os.O_CREATE|os.O_RDWR, perm)
 	if err != nil {
@@ -196,7 +195,16 @@ func writeTemplate(t *template.Template, dst string, perm os.FileMode, tmplData 
 	defer fh.Close()
 
 	if err := t.Execute(fh, tmplData); err != nil {
-		return fmt.Errorf("failed to compile template, failed to execute into target %s with given data: %s", dst, err)
+		execErr := fmt.Errorf("failed to compile template into target %s: %s", dst, err)
+
+		// when execute was aborted while streaming the template, we
+		// have a partially written file at hand
+		if _, err := os.Stat(dst); err == nil {
+			if err := os.Remove(dst); err != nil {
+				return fmt.Errorf("failed to clean up after: %s", execErr)
+			}
+		}
+		return execErr
 	}
 	return nil
 }
