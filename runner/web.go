@@ -121,10 +121,12 @@ func (r WebRunner) Build() error {
 	// modify the underlying data structure.
 	domain := map[string]project.DomainDirective{}
 	for k, v := range r.p.Domain {
+		e := r.p.Domain[k]
+
 		if !v.SSL.IsEnabled() {
+			domain[k] = e
 			continue
 		}
-		e := r.p.Domain[k]
 
 		path, err := r.ssl.GetCertificate(v.FQDN)
 		if err != nil {
