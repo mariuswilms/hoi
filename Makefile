@@ -114,11 +114,11 @@ test:
 	@echo 
 	@echo Terminal A:
 	@echo -----------
-	@echo ./_test/sbin/hoid 
+	@echo sudo _test/sbin/hoid
 	@echo 
 	@echo Terminal B:
 	@echo -----------
-	@echo ./_test/bin/hoictl --project=./_test/var/www/example load
+	@echo _test/bin/hoictl --project=_test/var/www/example load
 
 $(PREFIX)/bin/%: dist/%
 	install -m 555 $< $@
