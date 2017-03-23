@@ -8,6 +8,7 @@ package project
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 )
 
 // Validates several aspects and looks for typical human errors. This
@@ -22,6 +23,25 @@ func (cfg Config) Validate() error {
 			}
 		}
 		return false
+	}
+
+	// TLD mustn't be "dev" outside dev contexts. Common neglect.
+	if cfg.Context != ContextDevelopment {
+		for _, v := range cfg.Domain {
+			if TLD(v.FQDN) == "dev" {
+				return fmt.Errorf(".dev TLD in %s context: %s", cfg.Context, v.FQDN)
+			}
+			for _, alias := range v.Aliases {
+				if TLD(alias) == "dev" {
+					return fmt.Errorf(".dev TLD in %s context in alias: %s", cfg.Context, alias)
+				}
+			}
+			for _, redirect := range v.Redirects {
+				if TLD(redirect) == "dev" {
+					return fmt.Errorf(".dev TLD in %s context in redirect: %s", cfg.Context, redirect)
+				}
+			}
+		}
 	}
 
 	// Basic
@@ -120,4 +140,12 @@ func (cfg Config) Validate() error {
 	}
 
 	return nil
+}
+
+// Very simple TLD extractor. Domains only!
+func TLD(domain string) string {
+	if dot := strings.LastIndex(domain, "."); dot != -1 {
+		return domain[dot+1:]
+	}
+	return ""
 }
