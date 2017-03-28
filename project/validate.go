@@ -25,6 +25,14 @@ func (cfg Config) Validate() error {
 		return false
 	}
 
+	// Very simple TLD extractor. Domains only!
+	TLD := func(domain string) string {
+		if dot := strings.LastIndex(domain, "."); dot != -1 {
+			return domain[dot+1:]
+		}
+		return ""
+	}
+
 	// TLD mustn't be "dev" outside dev contexts. Common neglect.
 	if cfg.Context != ContextDevelopment {
 		for _, v := range cfg.Domain {
@@ -58,22 +66,20 @@ func (cfg Config) Validate() error {
 	}
 
 	creds := make(map[string]string)
-	for k, v := range cfg.Domain {
+	for _, v := range cfg.Domain {
 		// Authentication
 		//
-		// Auth credentials should be complete and not vary passwords between
-		// same users. The credentials are stored in one single file per project.
-		if !v.Auth.IsEnabled() {
-			continue
+		// Auth credentials setting must follow dedicated pattern.
+		// Passwords mustn't differ for same users.
+		// The credentials are stored in one single file per project.
+		if v.Auth.User == "" && v.Auth.Password != "" {
+			return fmt.Errorf("password set but user empty for domain. %s", v.FQDN)
 		}
-		if v.Auth.User == "" {
-			return fmt.Errorf("empty user for domain: %s", v.FQDN)
-		}
-		if cfg.Context != ContextDevelopment && v.Auth.Password == "" {
+		if cfg.Context != ContextDevelopment && v.Auth.User != "" && v.Auth.Password == "" {
 			return fmt.Errorf("user %s has empty password for domain: %s", v.Auth.User, v.FQDN)
 		}
-		if _, hasKey := creds[k]; hasKey {
-			if creds[k] == v.Auth.Password {
+		if password, hasKey := creds[v.Auth.User]; hasKey {
+			if password != v.Auth.Password {
 				return fmt.Errorf("auth user %s given multiple times but with differing passwords for domain: %s", v.Auth.User, v.FQDN)
 			}
 		}
@@ -81,35 +87,19 @@ func (cfg Config) Validate() error {
 
 		// SSL
 		//
-		if v.SSL.IsEnabled() {
-			if v.SSL.CertificateKey == "" {
-				return fmt.Errorf("SSL enabled but no certificate key for domain: %s", v.FQDN)
-			}
-			if string(v.SSL.CertificateKey[0]) == "!" {
-				if v.SSL.Certificate != v.SSL.CertificateKey {
-					return fmt.Errorf("special action requested for key but not for cert: %s != %s", v.SSL.Certificate, v.SSL.CertificateKey)
-				}
-			} else {
-				if filepath.IsAbs(v.SSL.CertificateKey) {
-					return fmt.Errorf("certificate key path is not relative: %s", v.SSL.CertificateKey)
-				}
-			}
-
-			if v.SSL.Certificate == "" {
-				return fmt.Errorf("SSL enabled but no certificate for domain: %s", v.FQDN)
-			}
-			if string(v.SSL.Certificate[0]) == "!" {
+		if v.SSL.CertificateKey != "" && v.SSL.Certificate != "" {
+			if v.SSL.CertificateKey[0] == '!' || v.SSL.Certificate[0] == '!' {
 				if v.SSL.CertificateKey != v.SSL.Certificate {
-					return fmt.Errorf("special action requested for cert but not for key: %s != %s", v.SSL.Certificate, v.SSL.CertificateKey)
+					return fmt.Errorf("cert and key indicate mix of special and regular action for domain: %s", v.FQDN)
 				}
-				if cfg.Context == ContextProduction && v.SSL.Certificate == CertSelfSigned {
-					return fmt.Errorf("self-signed certs are not allowed in %s contexts", cfg.Context)
+				if v.SSL.CertificateKey == v.SSL.Certificate && cfg.Context == ContextProduction {
+					return fmt.Errorf("self-signed certs are not allowed in %s contexts, domain: %s", cfg.Context, v.FQDN)
 				}
-			} else {
-				if filepath.IsAbs(v.SSL.Certificate) {
-					return fmt.Errorf("certificate path is not relative: %s", v.SSL.Certificate)
-				}
+			} else if filepath.IsAbs(v.SSL.CertificateKey) || filepath.IsAbs(v.SSL.Certificate) {
+				return fmt.Errorf("cert or key path is absolute, must be relative, domain: %s", v.FQDN)
 			}
+		} else if v.SSL.CertificateKey != "" || v.SSL.Certificate != "" {
+			return fmt.Errorf("only cert or key set for domain: %s", v.FQDN)
 		}
 	}
 
@@ -140,12 +130,4 @@ func (cfg Config) Validate() error {
 	}
 
 	return nil
-}
-
-// Very simple TLD extractor. Domains only!
-func TLD(domain string) string {
-	if dot := strings.LastIndex(domain, "."); dot != -1 {
-		return domain[dot+1:]
-	}
-	return ""
 }

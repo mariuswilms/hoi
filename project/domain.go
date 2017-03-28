@@ -72,7 +72,7 @@ type AuthDirective struct {
 }
 
 func (drv AuthDirective) IsEnabled() bool {
-	return drv.User != "" && drv.Password != ""
+	return drv.User != "" || drv.Password != ""
 }
 
 const (
@@ -89,6 +89,7 @@ type SSLDirective struct {
 	CertificateKey string
 }
 
+// Signature and behaviour analog to AuthDirective.IsEnabled()
 func (drv SSLDirective) IsEnabled() bool {
-	return drv.Certificate != "" && drv.CertificateKey != ""
+	return drv.Certificate != "" || drv.CertificateKey != ""
 }
