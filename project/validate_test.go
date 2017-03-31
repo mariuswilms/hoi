@@ -9,27 +9,6 @@ import (
 	"testing"
 )
 
-func TestDomainWithoutTLD(t *testing.T) {
-	tld := TLD("localhost")
-	if tld != "" {
-		t.Error("failed to handle domain without TLD")
-	}
-}
-
-func TestSecondLevelDomain(t *testing.T) {
-	tld := TLD("example.org")
-	if tld != "org" {
-		t.Error("failed to handle second-level domain")
-	}
-}
-
-func TestThirdLevelDomain(t *testing.T) {
-	tld := TLD("www.example.net")
-	if tld != "net" {
-		t.Error("failed to handle third-level domain")
-	}
-}
-
 func TestValidBasicRequirements(t *testing.T) {
 	hoifile := `
 context = "prod"
@@ -242,11 +221,11 @@ domain example.dev {
 		t.Fatal(err)
 	}
 	if cfg.Validate() != nil {
-		t.Error("failed to validate TLD in dev context")
+		t.Error("failed to validate domain in dev context")
 	}
 }
 
-func TestValidPublicDomainInDevContext(t *testing.T) {
+func TestValidNonDevDomainInDevContext(t *testing.T) {
 	hoifile := `
 context = "dev"
 webroot = "app/webroot"
@@ -260,7 +239,7 @@ domain example.org {
 		t.Fatal(err)
 	}
 	if cfg.Validate() != nil {
-		t.Error("failed to validate TLD in dev context")
+		t.Error("failed to validate non-dev domain in dev context")
 	}
 }
 
@@ -305,8 +284,6 @@ domain example.org {
 }
 
 func TestInvalidAuthMissingPasswordInProdContext(t *testing.T) {
-	t.Skip("not yet implemented")
-
 	hoifile := `
 context = "prod"
 webroot = "app/webroot"
@@ -327,8 +304,6 @@ domain example.org {
 }
 
 func TestInvalidAuthMissingUsernameInProdContext(t *testing.T) {
-	t.Skip("not yet implemented")
-
 	hoifile := `
 context = "prod"
 webroot = "app/webroot"
@@ -389,8 +364,6 @@ domain example.org {
 }
 
 func TestInvalidAuthMissingPasswordInStageContext(t *testing.T) {
-	t.Skip("not yet implemented")
-
 	hoifile := `
 context = "stage"
 webroot = "app/webroot"
@@ -411,8 +384,6 @@ domain example.org {
 }
 
 func TestInvalidAuthMissingUsernameInStageContext(t *testing.T) {
-	t.Skip("not yet implemented")
-
 	hoifile := `
 context = "stage"
 webroot = "app/webroot"
@@ -473,8 +444,6 @@ domain example.org {
 }
 
 func TestValidAuthMissingPasswordInDevContext(t *testing.T) {
-	t.Skip("not yet implemented")
-
 	hoifile := `
 context = "dev"
 webroot = "app/webroot"
@@ -495,8 +464,6 @@ domain example.org {
 }
 
 func TestInvalidAuthMissingUsernameInDevContext(t *testing.T) {
-	t.Skip("not yet implemented")
-
 	hoifile := `
 context = "dev"
 webroot = "app/webroot"
@@ -513,6 +480,58 @@ domain example.org {
 	}
 	if cfg.Validate() == nil {
 		t.Error("failed to detect missing auth username in dev context")
+	}
+}
+
+func TestValidAuthDuplicateUser(t *testing.T) {
+	hoifile := `
+context = "prod"
+webroot = "app/webroot"
+domain example.org {
+	auth = {
+		user = "john"
+		password = "s3cret"
+	}
+}
+domain another.org {
+	auth = {
+		user = "john"
+		password = "s3cret"
+	}
+}
+`
+	cfg, err := NewFromString(hoifile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Validate() != nil {
+		t.Error("failed to validate coherent auth recurrence")
+	}
+}
+
+func TestInvalidAuthDuplicateUser(t *testing.T) {
+	hoifile := `
+context = "prod"
+webroot = "app/webroot"
+domain example.org {
+	auth = {
+		user = "john"
+		password = "s3cret"
+	}
+}
+domain another.org {
+	auth = {
+		user = "john"
+		password = "different_s3cret"
+	}
+}
+`
+	cfg, err := NewFromString(hoifile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Validate() == nil {
+		t.Error("failed to detect incoherent auth recurrence")
 	}
 }
 
@@ -557,8 +576,6 @@ domain example.org {
 }
 
 func TestInvalidSSLMissingKey(t *testing.T) {
-	t.Skip("not yet implemented")
-
 	hoifile := `
 context = "prod"
 webroot = "app/webroot"
@@ -579,8 +596,6 @@ domain example.org {
 }
 
 func TestInvalidSSLMissingCert(t *testing.T) {
-	t.Skip("not yet implemented")
-
 	hoifile := `
 context = "prod"
 webroot = "app/webroot"
@@ -600,29 +615,7 @@ domain example.org {
 	}
 }
 
-func TestValidSSLSelfSignedInDevContext(t *testing.T) {
-	hoifile := `
-context = "dev"
-webroot = "app/webroot"
-domain example.org {
-	SSL = {
-		certificate = "!self-signed"
-		certificateKey = "!self-signed"
-	}
-}
-`
-	cfg, err := NewFromString(hoifile)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if cfg.Validate() != nil {
-		t.Error("failed to validate SSL special action")
-	}
-}
-
 func TestInvalidSSLSpecialActionMissingCert(t *testing.T) {
-	t.Skip("not yet implemented")
-
 	hoifile := `
 context = "dev"
 webroot = "app/webroot"
@@ -643,8 +636,6 @@ domain example.org {
 }
 
 func TestInvalidSSLSpecialActionMissingKey(t *testing.T) {
-	t.Skip("not yet implemented")
-
 	hoifile := `
 context = "dev"
 webroot = "app/webroot"
@@ -665,8 +656,6 @@ domain example.org {
 }
 
 func TestInvalidSSLCertPathAbsolute(t *testing.T) {
-	t.Skip("not yet implemented")
-
 	hoifile := `
 context = "prod"
 webroot = "app/webroot"
@@ -687,8 +676,6 @@ domain example.org {
 }
 
 func TestInvalidSSLKeyPathAbsolute(t *testing.T) {
-	t.Skip("not yet implemented")
-
 	hoifile := `
 context = "prod"
 webroot = "app/webroot"
@@ -708,9 +695,27 @@ domain example.org {
 	}
 }
 
-func TestInvalidSSLSelfSignedInProdContext(t *testing.T) {
-	t.Skip("not yet implemented")
+func TestValidSSLSelfSignedInDevContext(t *testing.T) {
+	hoifile := `
+context = "dev"
+webroot = "app/webroot"
+domain example.org {
+	SSL = {
+		certificate = "!self-signed"
+		certificateKey = "!self-signed"
+	}
+}
+`
+	cfg, err := NewFromString(hoifile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Validate() != nil {
+		t.Error("failed to validate self-signed SSL cert in dev context")
+	}
+}
 
+func TestInvalidSSLSelfSignedInProdContext(t *testing.T) {
 	hoifile := `
 context = "prod"
 webroot = "app/webroot"
