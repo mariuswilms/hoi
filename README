@@ -189,19 +189,22 @@ The DB runner requires mysqld(8) or MariaDB
 
 Development
 ===========
-Hoi comes with a small test environment to conduct manual testing inside
-a virtual machine. This allows to run inside a real environment and
-integrate with real services.
+Hoi comes with unit tests which can be safely executed as they don't
+touch the system itself. The unit tests can be run via:
+
+$ make unit-tests
+
+Not everything is - yet - covered by unit tests. To conduct system tests
+this project comes with a Vagrantfile to boot up a VM. The system tests
+should only ever be run inside a VM as they modify the systen they run on.
 
 HOST  $ go get github.com/atelierdisko/hoi
 HOST  $ cd $GOPATH/src/github.com/atelierdisko/hoi
 HOST  $ vagrant up
 HOST  $ vagrant ssh
-GUEST $ sudo -s
-GUEST $ cd /vagrant
-HOST  $ make test
-GUEST $ _test/sbin/hoid
-GUEST $ _test/bin/hoictl --project=_test/var/www/example load
 
-To run the unit tests for the project as a whole:
-$ make run-tests
+GUEST $ cd go/src/github.com/atelierdisko/hoi
+GUEST $ sudo -i
+GUEST $ make system-tests
+GUEST $ systemctl start hoid
+GUEST $ hoictl --project=/var/www/example load

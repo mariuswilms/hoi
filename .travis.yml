@@ -15,7 +15,7 @@ env:
   - GO15VENDOREXPERIMENT=1
 
 script:
-  - make run-tests
+  - make unit-tests
 
 matrix:
   fast_finish: true
