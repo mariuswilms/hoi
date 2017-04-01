@@ -79,6 +79,11 @@ test-clean:
 .PHONY: dist
 dist: dist/hoictl dist/hoid dist/hoictl-darwin-amd64 dist/hoid-darwin-amd64 dist/hoictl-linux-amd64 dist/hoid-linux-amd64
 
+# Runs all unit tests in sub-packages excluding vendor packages.
+.PHONY: run-tests
+run-tests:
+	go test $(shell go list ./... | grep -v vendor)
+
 # The resulting environment is to be executed within a vagrant mounted
 # virutal machine. 
 .PHONY: test

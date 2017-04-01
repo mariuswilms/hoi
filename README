@@ -202,3 +202,6 @@ GUEST $ cd /vagrant
 HOST  $ make test
 GUEST $ _test/sbin/hoid
 GUEST $ _test/bin/hoictl --project=_test/var/www/example load
+
+To run the unit tests for the project as a whole:
+$ make run-tests
