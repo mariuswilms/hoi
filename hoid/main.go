@@ -31,7 +31,15 @@ var (
 	SocketPath string // path to socket for RPC
 	DataPath   string // path to store database file
 
-	Config      *server.Config
+	Config *server.Config
+
+	// Connections kept centrally here so they can be shared and
+	// reused by runners and systems. Also allows us to manage
+	// shutdown/cleanup of connections more easily, as it's clear when
+	// these are not needed any more.
+	//
+	// Connections established as per demand, some may never be
+	// setup at all.
 	RPCServer   *rpc.Server
 	Store       *store.Store
 	MySQLConn   *sql.DB
