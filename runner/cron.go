@@ -40,25 +40,27 @@ func (r CronRunner) Disable() error {
 	if err != nil {
 		return err
 	}
-	for _, u := range timers {
-		if err := r.sys.StopAndDisable(u); err != nil {
+	for _, uT := range timers {
+		if err := r.sys.StopAndDisable(uT); err != nil {
 			return err
 		}
-		if err := r.sys.Uninstall(u); err != nil {
+		if err := r.sys.Uninstall(uT); err != nil {
 			return err
 		}
-	}
 
-	services, err := r.sys.ListInstalledServices()
-	if err != nil {
-		return err
-	}
-	for _, u := range services {
-		// Services might be currently running, kill them first.
-		if err := r.sys.Stop(u); err != nil {
+		// We cannot list service units for timers via
+		// ListInstalledServices(), as they are never enabled.
+		uS := strings.Replace(uT, ".timer", ".service", 1)
+
+		// Especially long running Services might currently still be running,
+		// kill them first.
+		if err := r.sys.Stop(uS); err != nil {
 			return err
 		}
-		if err := r.sys.Uninstall(u); err != nil {
+
+		// Just the timer units must be disabled the accompanying
+		// service units must not.
+		if err := r.sys.Uninstall(uS); err != nil {
 			return err
 		}
 	}
