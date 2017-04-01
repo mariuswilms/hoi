@@ -8,13 +8,14 @@ package system
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/atelierdisko/hoi/project"
 	"github.com/atelierdisko/hoi/server"
 	"github.com/atelierdisko/hoi/util"
+	systemd "github.com/coreos/go-systemd/dbus"
 )
 
 // The hoi-internal kind of units we manage.
@@ -23,14 +24,15 @@ const (
 	SystemdKindWorker = "worker"
 )
 
-func NewSystemd(kind string, p project.Config, s server.Config) *Systemd {
-	return &Systemd{kind: kind, p: p, s: s}
+func NewSystemd(kind string, p project.Config, s server.Config, conn *systemd.Conn) *Systemd {
+	return &Systemd{kind: kind, p: p, s: s, conn: conn}
 }
 
 type Systemd struct {
 	kind string
 	p    project.Config
 	s    server.Config
+	conn *systemd.Conn
 }
 
 // When installing unit files, they are prefixed as to namespace them by project.
@@ -61,35 +63,31 @@ func (sys Systemd) Uninstall(unit string) error {
 }
 
 func (sys Systemd) ListInstalledServices() ([]string, error) {
-	return listInstalledUnits(
-		fmt.Sprintf("project_%s_%s", sys.p.ID, sys.kind),
-		"service",
-	)
+	return sys.listInstalledUnits("service")
 }
 
 func (sys Systemd) ListInstalledTimers() ([]string, error) {
-	return listInstalledUnits(
-		fmt.Sprintf("project_%s_%s", sys.p.ID, sys.kind),
-		"timer",
-	)
+	return sys.listInstalledUnits("timer")
 }
 
 func (sys Systemd) EnableAndStart(unit string) error {
 	ns := fmt.Sprintf("project_%s_%s", sys.p.ID, sys.kind)
 	target := ns + "_" + unit
 
-	if sys.s.Systemd.UseLegacy {
-		// --now cannot be used with at least 215
-		if err := exec.Command("systemctl", "enable", target).Run(); err != nil {
-			return fmt.Errorf("failed to enable systemd unit %s: %s", target, err)
-		}
-		if err := exec.Command("systemctl", "start", target).Run(); err != nil {
-			return fmt.Errorf("failed to start systemd unit %s: %s", target, err)
-		}
-	} else {
-		if err := exec.Command("systemctl", "enable", "--now", target).Run(); err != nil {
-			return fmt.Errorf("failed to enable+start systemd unit %s: %s", target, err)
-		}
+	var err error
+
+	_, _, err = sys.conn.EnableUnitFiles(
+		[]string{target},
+		false, // false means persistently
+		false, // unit files not cleaned up previously are an error
+	)
+	if err != nil {
+		return fmt.Errorf("failed to enable systemd unit %s: %s", target, err)
+	}
+
+	_, err = sys.conn.StartUnit(target, "replace", nil)
+	if err != nil {
+		return fmt.Errorf("failed to start systemd unit %s: %s", target, err)
 	}
 	return nil
 }
@@ -99,18 +97,19 @@ func (sys Systemd) StopAndDisable(unit string) error {
 	ns := fmt.Sprintf("project_%s_%s", sys.p.ID, sys.kind)
 	target := ns + "_" + unit
 
-	if sys.s.Systemd.UseLegacy {
-		// --now cannot be used with at least 215
-		if err := exec.Command("systemctl", "stop", target).Run(); err != nil {
-			return fmt.Errorf("failed to disable systemd unit %s: %s", target, err)
-		}
-		if err := exec.Command("systemctl", "disable", target).Run(); err != nil {
-			return fmt.Errorf("failed to disable systemd unit %s: %s", target, err)
-		}
-	} else {
-		if err := exec.Command("systemctl", "disable", "--now", target).Run(); err != nil {
-			return fmt.Errorf("failed to stop+disable systemd unit %s: %s", target, err)
-		}
+	var err error
+
+	_, err = sys.conn.DisableUnitFiles(
+		[]string{target},
+		false, // false means persistently
+	)
+	if err != nil {
+		return fmt.Errorf("failed to disable systemd unit %s: %s", target, err)
+	}
+
+	_, err = sys.conn.StopUnit(target, "replace", nil)
+	if err != nil {
+		return fmt.Errorf("failed to stop systemd unit %s: %s", target, err)
 	}
 	return nil
 }
@@ -120,7 +119,8 @@ func (sys Systemd) Stop(unit string) error {
 	ns := fmt.Sprintf("project_%s_%s", sys.p.ID, sys.kind)
 	target := ns + "_" + unit
 
-	if err := exec.Command("systemctl", "stop", target).Run(); err != nil {
+	_, err := sys.conn.StopUnit(target, "replace", nil)
+	if err != nil {
 		return fmt.Errorf("failed to stop systemd unit %s: %s", target, err)
 	}
 	return nil
@@ -128,38 +128,39 @@ func (sys Systemd) Stop(unit string) error {
 
 // Lists installed units. Strips project namespace, leaving just the
 // plain unit name including its suffix.
-func listInstalledUnits(ns string, suffix string) ([]string, error) {
-	args := []string{
-		"list-units",
-		"--no-legend",
-		"--no-pager",
-		fmt.Sprintf("%s_*.%s", ns, suffix),
-	}
-	out, err := exec.Command("systemctl", args...).Output()
-	if err != nil {
-		return nil, err
-	}
-	return parseListUnits(string(out), ns, suffix)
-}
+func (sys Systemd) listInstalledUnits(suffix string) ([]string, error) {
+	ns := fmt.Sprintf("project_%s_%s", sys.p.ID, sys.kind)
+	var uns []string // unit names including suffix, excluding ns
 
-// line format:
-// worker@1.service loaded active running Worker aaa for project ad@dev
-func parseListUnits(out string, ns string, suffix string) ([]string, error) {
-	units := make([]string, 0)
-
-	if len(out) == 0 {
-		return units, nil
-	}
-	if !strings.Contains(out, "\n") {
-		return units, fmt.Errorf("failed to parse unit names, invalid input: %s", out)
-	}
-	for _, line := range strings.Split(strings.TrimSpace(out), "\n") {
-		fields := strings.Fields(line)
-
-		if len(fields) < 1 {
-			return units, fmt.Errorf("failed to parse unit name from list line: %s", line)
+	if sys.s.Systemd.UseLegacy {
+		us, err := sys.conn.ListUnits()
+		if err != nil {
+			return uns, err
 		}
-		units = append(units, strings.TrimPrefix(fields[0], ns+"_"))
+		for _, u := range us {
+			matched, err := regexp.MatchString(
+				fmt.Sprintf("^%s.*\\.*%s$", ns, suffix),
+				u.Name,
+			)
+			if err != nil {
+				return uns, nil
+			}
+			if matched {
+				uns = append(uns, strings.TrimPrefix(u.Name, ns+"_"))
+			}
+		}
+		return uns, nil
 	}
-	return units, nil
+	// List...ByPatterns available since v230
+	us, err := sys.conn.ListUnitsByPatterns(
+		[]string{"active", "inactive", "failed"}, // all possible states
+		[]string{fmt.Sprintf("%s*.%s", ns, suffix)},
+	)
+	if err != nil {
+		return uns, err
+	}
+	for _, u := range us {
+		uns = append(uns, strings.TrimPrefix(u.Name, ns+"_"))
+	}
+	return uns, nil
 }

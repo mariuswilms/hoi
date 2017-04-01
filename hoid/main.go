@@ -17,6 +17,7 @@ import (
 	"github.com/atelierdisko/hoi/rpc"
 	"github.com/atelierdisko/hoi/server"
 	"github.com/atelierdisko/hoi/store"
+	systemd "github.com/coreos/go-systemd/dbus"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jawher/mow.cli"
 )
@@ -30,10 +31,11 @@ var (
 	SocketPath string // path to socket for RPC
 	DataPath   string // path to store database file
 
-	Config    *server.Config
-	RPCServer *rpc.Server
-	Store     *store.Store
-	MySQLConn *sql.DB
+	Config      *server.Config
+	RPCServer   *rpc.Server
+	Store       *store.Store
+	MySQLConn   *sql.DB
+	SystemdConn *systemd.Conn
 )
 
 func main() {
@@ -73,7 +75,7 @@ func main() {
 		Store = _store // Assign to global
 		log.Printf("store backend ready")
 
-		// Only connect if we need a connection later.
+		// Only connect if we need a connection objects later.
 		if Config.Database.Enabled {
 			dsn := fmt.Sprintf("%s:%s@tcp(%s)/", Config.MySQL.User, Config.MySQL.Password, Config.MySQL.Host)
 			conn, err := sql.Open("mysql", dsn)
@@ -82,6 +84,14 @@ func main() {
 			}
 			MySQLConn = conn // Assign to global.
 			log.Printf("MySQL connection ready")
+		}
+		if Config.Cron.Enabled || Config.Worker.Enabled {
+			conn, err := systemd.New()
+			if err != nil {
+				log.Fatal(err)
+			}
+			SystemdConn = conn // Assign to global
+			log.Printf("Systemd DBUS connection ready")
 		}
 	}
 
@@ -106,6 +116,9 @@ func main() {
 
 			if MySQLConn != nil {
 				MySQLConn.Close()
+			}
+			if SystemdConn != nil {
+				SystemdConn.Close()
 			}
 			os.Exit(0)
 		}

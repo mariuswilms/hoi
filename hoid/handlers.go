@@ -262,10 +262,10 @@ func runners(pCfg project.Config) []runner.Runnable {
 		runners = append(runners, runner.NewWebRunner(*Config, pCfg))
 	}
 	if Config.Cron.Enabled {
-		runners = append(runners, runner.NewCronRunner(*Config, pCfg))
+		runners = append(runners, runner.NewCronRunner(*Config, pCfg, SystemdConn))
 	}
 	if Config.Worker.Enabled {
-		runners = append(runners, runner.NewWorkerRunner(*Config, pCfg))
+		runners = append(runners, runner.NewWorkerRunner(*Config, pCfg, SystemdConn))
 	}
 	if Config.Volume.Enabled {
 		runners = append(runners, runner.NewVolumeRunner(*Config, pCfg))

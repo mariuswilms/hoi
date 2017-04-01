@@ -15,14 +15,15 @@ import (
 	"github.com/atelierdisko/hoi/project"
 	"github.com/atelierdisko/hoi/server"
 	"github.com/atelierdisko/hoi/system"
+	systemd "github.com/coreos/go-systemd/dbus"
 )
 
-func NewWorkerRunner(s server.Config, p project.Config) *WorkerRunner {
+func NewWorkerRunner(s server.Config, p project.Config, conn *systemd.Conn) *WorkerRunner {
 	return &WorkerRunner{
 		s:     s,
 		p:     p,
 		build: builder.NewBuilder(builder.KindWorker, p, s),
-		sys:   system.NewSystemd(system.SystemdKindWorker, p, s),
+		sys:   system.NewSystemd(system.SystemdKindWorker, p, s, conn),
 	}
 }
 

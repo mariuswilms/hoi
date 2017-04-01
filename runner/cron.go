@@ -14,14 +14,15 @@ import (
 	"github.com/atelierdisko/hoi/project"
 	"github.com/atelierdisko/hoi/server"
 	"github.com/atelierdisko/hoi/system"
+	systemd "github.com/coreos/go-systemd/dbus"
 )
 
-func NewCronRunner(s server.Config, p project.Config) *CronRunner {
+func NewCronRunner(s server.Config, p project.Config, conn *systemd.Conn) *CronRunner {
 	return &CronRunner{
 		s:     s,
 		p:     p,
 		build: builder.NewBuilder(builder.KindCron, p, s),
-		sys:   system.NewSystemd(system.SystemdKindCron, p, s),
+		sys:   system.NewSystemd(system.SystemdKindCron, p, s, conn),
 	}
 }
 
