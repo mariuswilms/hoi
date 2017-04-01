@@ -11,8 +11,14 @@ go:
   - 1.7
   - 1.8
 
+env:
+  - GO15VENDOREXPERIMENT=1
+
 script:
-  - go test $(go list ./... | grep -v vendor)
+  - make run-tests
+
+matrix:
+  fast_finish: true
 
 notifications:
   email: false
