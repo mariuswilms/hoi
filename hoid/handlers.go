@@ -219,7 +219,7 @@ func handleDomain(path string, dDrv *project.DomainDirective) error {
 	// needed for domain updates is the web runner.
 	runners := make([]runner.Runnable, 0)
 	if Config.Web.Enabled {
-		runners = append(runners, runner.NewWebRunner(*Config, e.Project))
+		runners = append(runners, runner.NewWebRunner(*Config, e.Project, SystemdConn))
 	}
 
 	steps := make([]func() error, 0)
@@ -253,13 +253,13 @@ func runners(pCfg project.Config) []runner.Runnable {
 	runners := make([]runner.Runnable, 0)
 
 	if Config.PHP.Enabled {
-		runners = append(runners, runner.NewPHPRunner(*Config, pCfg))
+		runners = append(runners, runner.NewPHPRunner(*Config, pCfg, SystemdConn))
 	}
 	if Config.Database.Enabled {
 		runners = append(runners, runner.NewDBRunner(*Config, pCfg, MySQLConn))
 	}
 	if Config.Web.Enabled {
-		runners = append(runners, runner.NewWebRunner(*Config, pCfg))
+		runners = append(runners, runner.NewWebRunner(*Config, pCfg, SystemdConn))
 	}
 	if Config.Cron.Enabled {
 		runners = append(runners, runner.NewCronRunner(*Config, pCfg, SystemdConn))

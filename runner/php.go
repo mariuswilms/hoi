@@ -10,14 +10,15 @@ import (
 	"github.com/atelierdisko/hoi/project"
 	"github.com/atelierdisko/hoi/server"
 	"github.com/atelierdisko/hoi/system"
+	systemd "github.com/coreos/go-systemd/dbus"
 )
 
-func NewPHPRunner(s server.Config, p project.Config) *PHPRunner {
+func NewPHPRunner(s server.Config, p project.Config, conn *systemd.Conn) *PHPRunner {
 	return &PHPRunner{
 		s:     s,
 		p:     p,
 		build: builder.NewBuilder(builder.KindPHP, p, s),
-		sys:   system.NewPHP(p, s),
+		sys:   system.NewPHP(p, s, conn),
 	}
 }
 

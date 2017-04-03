@@ -17,14 +17,15 @@ import (
 	"github.com/atelierdisko/hoi/project"
 	"github.com/atelierdisko/hoi/server"
 	"github.com/atelierdisko/hoi/system"
+	systemd "github.com/coreos/go-systemd/dbus"
 )
 
-func NewWebRunner(s server.Config, p project.Config) *WebRunner {
+func NewWebRunner(s server.Config, p project.Config, conn *systemd.Conn) *WebRunner {
 	return &WebRunner{
 		s:     s,
 		p:     p,
 		build: builder.NewScopedBuilder(builder.KindWeb, "servers/*.conf", p, s),
-		nginx: system.NewNGINX(p, s),
+		nginx: system.NewNGINX(p, s, conn),
 		ssl:   system.NewSSL(p, s),
 	}
 }

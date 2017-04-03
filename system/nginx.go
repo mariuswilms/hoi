@@ -8,13 +8,13 @@ package system
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"sync"
 
 	"github.com/atelierdisko/hoi/project"
 	"github.com/atelierdisko/hoi/server"
+	systemd "github.com/coreos/go-systemd/dbus"
 )
 
 var (
@@ -22,14 +22,14 @@ var (
 	NGINXDirty bool
 )
 
-func NewNGINX(p project.Config, s server.Config) *NGINX {
-	return &NGINX{p: p, s: s}
+func NewNGINX(p project.Config, s server.Config, conn *systemd.Conn) *NGINX {
+	return &NGINX{p: p, s: s, conn: conn}
 }
 
 type NGINX struct {
-	p     project.Config
-	s     server.Config
-	dirty bool
+	p    project.Config
+	s    server.Config
+	conn *systemd.Conn
 }
 
 // Installs just the server configuration.
@@ -59,7 +59,7 @@ func (sys *NGINX) Reload() error {
 	NGINXLock.Lock()
 	defer NGINXLock.Unlock()
 
-	if err := exec.Command("systemctl", "reload", "nginx").Run(); err != nil {
+	if _, err := sys.conn.ReloadUnit("nginx", "replace", nil); err != nil {
 		return fmt.Errorf("failed to reload NGINX; possibly left in dirty state: %s", err)
 	}
 	NGINXDirty = false
@@ -73,7 +73,7 @@ func (sys *NGINX) ReloadIfDirty() error {
 	NGINXLock.Lock()
 	defer NGINXLock.Unlock()
 
-	if err := exec.Command("systemctl", "reload", "nginx").Run(); err != nil {
+	if _, err := sys.conn.ReloadUnit("nginx", "replace", nil); err != nil {
 		return fmt.Errorf("failed to reload NGINX; left in dirty state: %s", err)
 	}
 	NGINXDirty = false

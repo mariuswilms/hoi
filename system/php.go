@@ -8,11 +8,11 @@ package system
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"sync"
 
 	"github.com/atelierdisko/hoi/project"
 	"github.com/atelierdisko/hoi/server"
+	systemd "github.com/coreos/go-systemd/dbus"
 )
 
 var (
@@ -20,13 +20,14 @@ var (
 	PHPDirty bool
 )
 
-func NewPHP(p project.Config, s server.Config) *PHP {
-	return &PHP{p: p, s: s}
+func NewPHP(p project.Config, s server.Config, conn *systemd.Conn) *PHP {
+	return &PHP{p: p, s: s, conn: conn}
 }
 
 type PHP struct {
-	p project.Config
-	s server.Config
+	p    project.Config
+	s    server.Config
+	conn *systemd.Conn
 }
 
 // Installs just the server configuration.
@@ -57,7 +58,7 @@ func (sys PHP) ReloadIfDirty() error {
 	PHPLock.Lock()
 	defer PHPLock.Unlock()
 
-	if err := exec.Command("systemctl", "reload", "php5-fpm").Run(); err != nil {
+	if _, err := sys.conn.ReloadUnit("php5-fpm", "replace", nil); err != nil {
 		return fmt.Errorf("failed to reload PHP; left in dirty state: %s", err)
 	}
 	PHPDirty = false

@@ -93,14 +93,15 @@ func main() {
 			MySQLConn = conn // Assign to global.
 			log.Printf("MySQL connection ready")
 		}
-		if Config.Cron.Enabled || Config.Worker.Enabled {
-			conn, err := systemd.New()
-			if err != nil {
-				log.Fatal(err)
-			}
-			SystemdConn = conn // Assign to global
-			log.Printf("Systemd DBUS connection ready")
+		// With the exception of 1 or 2 runners we always need a
+		// systemd connection. By not initializing on demand, we don't
+		// need to do extra book keeping on runners that need it.
+		conn, err := systemd.New()
+		if err != nil {
+			log.Fatal(err)
 		}
+		SystemdConn = conn // Assign to global.
+		log.Printf("Systemd DBUS connection ready")
 	}
 
 	// Shutdown gracefully.
@@ -125,9 +126,7 @@ func main() {
 			if MySQLConn != nil {
 				MySQLConn.Close()
 			}
-			if SystemdConn != nil {
-				SystemdConn.Close()
-			}
+			SystemdConn.Close()
 			os.Exit(0)
 		}
 	}(sigc)
