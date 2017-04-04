@@ -60,7 +60,6 @@ uninstall:
 
 .PHONY: clean
 clean:
-	if [ -d ./_test ]; then rm -fr ./_test; fi
 	if [ -d ./dist ]; then rm -r ./dist; fi
 	if [ -f ./hoid/hoid ]; then rm ./hoid/hoid; fi
 	if [ -f ./hoictl/hoictl ]; then rm ./hoictl/hoictl; fi
