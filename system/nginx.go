@@ -59,8 +59,13 @@ func (sys *NGINX) Reload() error {
 	NGINXLock.Lock()
 	defer NGINXLock.Unlock()
 
-	if _, err := sys.conn.ReloadUnit("nginx", "replace", nil); err != nil {
+	done := make(chan string)
+
+	if _, err := sys.conn.ReloadUnit("nginx", "replace", done); err != nil {
 		return fmt.Errorf("failed to reload NGINX; possibly left in dirty state: %s", err)
+	}
+	if r := <-done; r != "done" {
+		return fmt.Errorf("failed to reload NGINX; systemd job states: %s", r)
 	}
 	NGINXDirty = false
 	return nil
@@ -73,8 +78,13 @@ func (sys *NGINX) ReloadIfDirty() error {
 	NGINXLock.Lock()
 	defer NGINXLock.Unlock()
 
-	if _, err := sys.conn.ReloadUnit("nginx", "replace", nil); err != nil {
+	done := make(chan string)
+
+	if _, err := sys.conn.ReloadUnit("nginx", "replace", done); err != nil {
 		return fmt.Errorf("failed to reload NGINX; left in dirty state: %s", err)
+	}
+	if r := <-done; r != "done" {
+		return fmt.Errorf("failed to reload NGINX; systemd job states: %s", r)
 	}
 	NGINXDirty = false
 	return nil

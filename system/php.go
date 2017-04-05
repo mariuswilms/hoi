@@ -58,8 +58,13 @@ func (sys PHP) ReloadIfDirty() error {
 	PHPLock.Lock()
 	defer PHPLock.Unlock()
 
-	if _, err := sys.conn.ReloadUnit("php5-fpm", "replace", nil); err != nil {
+	done := make(chan string)
+
+	if _, err := sys.conn.ReloadUnit("php5-fpm", "replace", done); err != nil {
 		return fmt.Errorf("failed to reload PHP; left in dirty state: %s", err)
+	}
+	if r := <-done; r != "done" {
+		return fmt.Errorf("failed to reload PHP; systemd job states: %s", r)
 	}
 	PHPDirty = false
 	return nil
