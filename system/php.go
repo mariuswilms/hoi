@@ -60,7 +60,7 @@ func (sys PHP) ReloadIfDirty() error {
 
 	done := make(chan string)
 
-	if _, err := sys.conn.ReloadUnit("php5-fpm", "replace", done); err != nil {
+	if _, err := sys.conn.ReloadUnit("php5-fpm.service", "replace", done); err != nil {
 		return fmt.Errorf("failed to reload PHP; left in dirty state: %s", err)
 	}
 	if r := <-done; r != "done" {

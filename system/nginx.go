@@ -61,7 +61,7 @@ func (sys *NGINX) Reload() error {
 
 	done := make(chan string)
 
-	if _, err := sys.conn.ReloadUnit("nginx", "replace", done); err != nil {
+	if _, err := sys.conn.ReloadUnit("nginx.service", "replace", done); err != nil {
 		return fmt.Errorf("failed to reload NGINX; possibly left in dirty state: %s", err)
 	}
 	if r := <-done; r != "done" {
@@ -80,7 +80,7 @@ func (sys *NGINX) ReloadIfDirty() error {
 
 	done := make(chan string)
 
-	if _, err := sys.conn.ReloadUnit("nginx", "replace", done); err != nil {
+	if _, err := sys.conn.ReloadUnit("nginx.service", "replace", done); err != nil {
 		return fmt.Errorf("failed to reload NGINX; left in dirty state: %s", err)
 	}
 	if r := <-done; r != "done" {
