@@ -15,7 +15,7 @@ import (
 	"github.com/atelierdisko/hoi/project"
 	"github.com/atelierdisko/hoi/server"
 	"github.com/atelierdisko/hoi/util"
-	systemd "github.com/coreos/go-systemd/dbus"
+	"github.com/coreos/go-systemd/dbus"
 )
 
 // The hoi-internal kind of units we manage.
@@ -24,7 +24,7 @@ const (
 	SystemdKindWorker = "worker"
 )
 
-func NewSystemd(kind string, p project.Config, s server.Config, conn *systemd.Conn) *Systemd {
+func NewSystemd(kind string, p project.Config, s server.Config, conn *dbus.Conn) *Systemd {
 	return &Systemd{kind: kind, p: p, s: s, conn: conn}
 }
 
@@ -32,7 +32,7 @@ type Systemd struct {
 	kind string
 	p    project.Config
 	s    server.Config
-	conn *systemd.Conn
+	conn *dbus.Conn
 }
 
 // When installing unit files, they are prefixed as to namespace them by project.

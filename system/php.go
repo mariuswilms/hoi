@@ -12,7 +12,7 @@ import (
 
 	"github.com/atelierdisko/hoi/project"
 	"github.com/atelierdisko/hoi/server"
-	systemd "github.com/coreos/go-systemd/dbus"
+	"github.com/coreos/go-systemd/dbus"
 )
 
 var (
@@ -20,14 +20,14 @@ var (
 	PHPDirty bool
 )
 
-func NewPHP(p project.Config, s server.Config, conn *systemd.Conn) *PHP {
+func NewPHP(p project.Config, s server.Config, conn *dbus.Conn) *PHP {
 	return &PHP{p: p, s: s, conn: conn}
 }
 
 type PHP struct {
 	p    project.Config
 	s    server.Config
-	conn *systemd.Conn
+	conn *dbus.Conn
 }
 
 // Installs just the server configuration.

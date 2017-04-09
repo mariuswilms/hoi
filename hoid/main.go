@@ -17,7 +17,7 @@ import (
 	"github.com/atelierdisko/hoi/rpc"
 	"github.com/atelierdisko/hoi/server"
 	"github.com/atelierdisko/hoi/store"
-	systemd "github.com/coreos/go-systemd/dbus"
+	"github.com/coreos/go-systemd/dbus"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jawher/mow.cli"
 )
@@ -43,7 +43,7 @@ var (
 	RPCServer   *rpc.Server
 	Store       *store.Store
 	MySQLConn   *sql.DB
-	SystemdConn *systemd.Conn
+	SystemdConn *dbus.Conn
 )
 
 func main() {
@@ -96,7 +96,7 @@ func main() {
 		// With the exception of 1 or 2 runners we always need a
 		// systemd connection. By not initializing on demand, we don't
 		// need to do extra book keeping on runners that need it.
-		conn, err := systemd.New()
+		conn, err := dbus.New()
 		if err != nil {
 			log.Fatal(err)
 		}

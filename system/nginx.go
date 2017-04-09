@@ -14,7 +14,7 @@ import (
 
 	"github.com/atelierdisko/hoi/project"
 	"github.com/atelierdisko/hoi/server"
-	systemd "github.com/coreos/go-systemd/dbus"
+	"github.com/coreos/go-systemd/dbus"
 )
 
 var (
@@ -22,14 +22,14 @@ var (
 	NGINXDirty bool
 )
 
-func NewNGINX(p project.Config, s server.Config, conn *systemd.Conn) *NGINX {
+func NewNGINX(p project.Config, s server.Config, conn *dbus.Conn) *NGINX {
 	return &NGINX{p: p, s: s, conn: conn}
 }
 
 type NGINX struct {
 	p    project.Config
 	s    server.Config
-	conn *systemd.Conn
+	conn *dbus.Conn
 }
 
 // Installs just the server configuration.

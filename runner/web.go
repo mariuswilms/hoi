@@ -17,10 +17,10 @@ import (
 	"github.com/atelierdisko/hoi/project"
 	"github.com/atelierdisko/hoi/server"
 	"github.com/atelierdisko/hoi/system"
-	systemd "github.com/coreos/go-systemd/dbus"
+	"github.com/coreos/go-systemd/dbus"
 )
 
-func NewWebRunner(s server.Config, p project.Config, conn *systemd.Conn) *WebRunner {
+func NewWebRunner(s server.Config, p project.Config, conn *dbus.Conn) *WebRunner {
 	return &WebRunner{
 		s:     s,
 		p:     p,
