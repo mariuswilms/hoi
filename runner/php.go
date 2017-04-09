@@ -37,26 +37,11 @@ type PHPRunner struct {
 	build *builder.Builder
 }
 
-func (r PHPRunner) Build() error {
-	if r.p.Kind != project.KindPHP {
-		return nil // nothing to do
+func (r PHPRunner) Disable() error {
+	if !r.sys.IsInstalled() {
+		return nil // nothing to disable
 	}
-	tS, err := r.build.LoadTemplate("php.ini")
-	if err != nil {
-		return err
-	}
-	tmplData := struct {
-		P project.Config
-		S server.Config
-	}{
-		P: r.p,
-		S: r.s,
-	}
-	return r.build.WriteTemplate("php.ini", tS, tmplData)
-}
-
-func (r PHPRunner) Clean() error {
-	return r.build.Clean()
+	return r.sys.Uninstall()
 }
 
 func (r PHPRunner) Enable() error {
@@ -75,13 +60,28 @@ func (r PHPRunner) Enable() error {
 	return nil
 }
 
-func (r PHPRunner) Disable() error {
-	if !r.sys.IsInstalled() {
-		return nil // nothing to disable
-	}
-	return r.sys.Uninstall()
-}
-
 func (r PHPRunner) Commit() error {
 	return r.sys.ReloadIfDirty()
+}
+
+func (r PHPRunner) Clean() error {
+	return r.build.Clean()
+}
+
+func (r PHPRunner) Build() error {
+	if r.p.Kind != project.KindPHP {
+		return nil // nothing to do
+	}
+	tS, err := r.build.LoadTemplate("php.ini")
+	if err != nil {
+		return err
+	}
+	tmplData := struct {
+		P project.Config
+		S server.Config
+	}{
+		P: r.p,
+		S: r.s,
+	}
+	return r.build.WriteTemplate("php.ini", tS, tmplData)
 }

@@ -41,12 +41,15 @@ type DBRunner struct {
 	sys *system.MySQL
 }
 
-func (r DBRunner) Build() error {
-	return nil // nothing to build
-}
+func (r DBRunner) Disable() error {
+	privs := strings.Split(DBPrivs+","+DBAdminPrivs, ",")
 
-func (r DBRunner) Clean() error {
-	return nil // nothing to build
+	for _, db := range r.p.Database {
+		if err := r.sys.EnsureNoGrant(db.User, db.Name, privs); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (r DBRunner) Enable() error {
@@ -66,17 +69,14 @@ func (r DBRunner) Enable() error {
 	return nil
 }
 
-func (r DBRunner) Disable() error {
-	privs := strings.Split(DBPrivs+","+DBAdminPrivs, ",")
-
-	for _, db := range r.p.Database {
-		if err := r.sys.EnsureNoGrant(db.User, db.Name, privs); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 func (r DBRunner) Commit() error {
 	return r.sys.ReloadIfDirty()
+}
+
+func (r DBRunner) Clean() error {
+	return nil // nothing to build
+}
+
+func (r DBRunner) Build() error {
+	return nil // nothing to build
 }
