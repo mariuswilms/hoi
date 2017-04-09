@@ -68,10 +68,6 @@ func (r CronRunner) Disable() error {
 }
 
 func (r CronRunner) Enable() error {
-	if len(r.p.Cron) == 0 {
-		return nil // nothing to do
-	}
-
 	tS, err := r.build.LoadTemplate("default.service")
 	if err != nil {
 		return err

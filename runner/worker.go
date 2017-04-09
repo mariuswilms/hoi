@@ -84,9 +84,6 @@ func (r WorkerRunner) Disable() error {
 }
 
 func (r WorkerRunner) Enable() error {
-	if len(r.p.Worker) == 0 {
-		return nil // nothing to do
-	}
 	tS, err := r.build.LoadTemplate("default@.service")
 	if err != nil {
 		return err
