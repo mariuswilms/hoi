@@ -29,7 +29,7 @@ func (cfg *Config) Augment() error {
 			return true
 		}
 		for _, volume := range cfg.Volume {
-			if volume.GetAbsolutePath(*cfg) == path {
+			if volume.GetTarget(*cfg) == path {
 				return true
 			}
 		}

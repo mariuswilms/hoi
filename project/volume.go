@@ -5,7 +5,12 @@
 
 package project
 
-import "path/filepath"
+import (
+	"fmt"
+	"path/filepath"
+
+	"github.com/atelierdisko/hoi/server"
+)
 
 type VolumeDirective struct {
 	// Path relative to project root.
@@ -15,6 +20,20 @@ type VolumeDirective struct {
 	IsTemporary bool
 }
 
-func (drv VolumeDirective) GetAbsolutePath(p Config) string {
+// The source directory outside the project.
+func (drv VolumeDirective) GetSource(p Config, s server.Config) string {
+	ns := fmt.Sprintf("project_%s", p.ID)
+
+	var src string
+	if drv.IsTemporary {
+		src = s.Volume.TemporaryRunPath
+	} else {
+		src = s.Volume.PersistentRunPath
+	}
+	return filepath.Join(src, ns, drv.Path)
+}
+
+// The target directory inside the project.
+func (drv VolumeDirective) GetTarget(p Config) string {
 	return filepath.Join(p.Path, drv.Path)
 }

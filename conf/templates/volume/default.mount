@@ -1,0 +1,12 @@
+[Unit]
+Description=Volume mount on {{.V.GetTarget .P}} for project {{.P.Name}}@{{.P.Context}}
+
+[Mount]
+What={{.V.GetSource .P .S}}
+Where={{.V.GetTarget .P}}
+Type=none
+Options=bind,defaults
+DirectoryMode=1770
+
+[Install]
+WantedBy=default.target

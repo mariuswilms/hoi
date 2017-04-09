@@ -255,6 +255,9 @@ func runners(pCfg project.Config) []runner.Runnable {
 	if Config.PHP.Enabled {
 		runners = append(runners, runner.NewPHPRunner(*Config, pCfg, SystemdConn))
 	}
+	if Config.Volume.Enabled {
+		runners = append(runners, runner.NewVolumeRunner(*Config, pCfg, SystemdConn))
+	}
 	if Config.Database.Enabled {
 		runners = append(runners, runner.NewDBRunner(*Config, pCfg, MySQLConn))
 	}
@@ -266,9 +269,6 @@ func runners(pCfg project.Config) []runner.Runnable {
 	}
 	if Config.Worker.Enabled {
 		runners = append(runners, runner.NewWorkerRunner(*Config, pCfg, SystemdConn))
-	}
-	if Config.Volume.Enabled {
-		runners = append(runners, runner.NewVolumeRunner(*Config, pCfg))
 	}
 
 	return runners
