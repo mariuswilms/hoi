@@ -56,7 +56,7 @@ func (drv WorkerDirective) GetInstances() uint {
 // When used inside systemd service unit files paths need to be
 // absolute. When a command string is non absolute it will be treated
 // as being relative to the project root directory and made absolute.
-func (drv WorkerDirective) GetCommand(p Config) (string, error) {
+func (drv WorkerDirective) GetCommand(p *Config) (string, error) {
 	var cmd string
 
 	if !strings.Contains(drv.Command, "{{") {
@@ -65,7 +65,7 @@ func (drv WorkerDirective) GetCommand(p Config) (string, error) {
 		log.Printf("parsing command template: %s", drv.Command)
 
 		cmdTmplData := struct {
-			P Config
+			P *Config
 		}{
 			P: p,
 		}

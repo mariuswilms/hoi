@@ -13,7 +13,7 @@ import (
 	systemd "github.com/coreos/go-systemd/dbus"
 )
 
-func NewPHPRunner(s server.Config, p project.Config, conn *systemd.Conn) *PHPRunner {
+func NewPHPRunner(s *server.Config, p *project.Config, conn *systemd.Conn) *PHPRunner {
 	return &PHPRunner{
 		s:     s,
 		p:     p,
@@ -31,8 +31,8 @@ func NewPHPRunner(s server.Config, p project.Config, conn *systemd.Conn) *PHPRun
 // [0] http://php.net/manual/pl/ini.sections.php
 // [1] https://bugs.php.net/bug.php?id=63965
 type PHPRunner struct {
-	s     server.Config
-	p     project.Config
+	s     *server.Config
+	p     *project.Config
 	sys   *system.PHP
 	build *builder.Builder
 }
@@ -77,8 +77,8 @@ func (r PHPRunner) Build() error {
 		return err
 	}
 	tmplData := struct {
-		P project.Config
-		S server.Config
+		P *project.Config
+		S *server.Config
 	}{
 		P: r.p,
 		S: r.s,

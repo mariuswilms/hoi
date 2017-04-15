@@ -20,7 +20,7 @@ import (
 	"github.com/coreos/go-systemd/dbus"
 )
 
-func NewWebRunner(s server.Config, p project.Config, conn *dbus.Conn) *WebRunner {
+func NewWebRunner(s *server.Config, p *project.Config, conn *dbus.Conn) *WebRunner {
 	return &WebRunner{
 		s:     s,
 		p:     p,
@@ -33,8 +33,8 @@ func NewWebRunner(s server.Config, p project.Config, conn *dbus.Conn) *WebRunner
 // Will serve project under configured domains using aliases and
 // redirects, enforcing authentication and SSL encryption.
 type WebRunner struct {
-	s     server.Config
-	p     project.Config
+	s     *server.Config
+	p     *project.Config
 	build *builder.Builder
 	nginx *system.NGINX
 	ssl   *system.SSL
@@ -146,8 +146,8 @@ func (r WebRunner) Build() error {
 	r.p.Domain = domain
 
 	tmplData := struct {
-		P             project.Config
-		S             server.Config
+		P             *project.Config
+		S             *server.Config
 		WebConfigPath string
 	}{
 		P: r.p,

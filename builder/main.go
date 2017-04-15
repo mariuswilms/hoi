@@ -26,10 +26,10 @@ const (
 	KindVolume = "volume"
 )
 
-func NewBuilder(kind string, p project.Config, s server.Config) *Builder {
+func NewBuilder(kind string, p *project.Config, s *server.Config) *Builder {
 	return &Builder{kind: kind, p: p, s: s}
 }
-func NewScopedBuilder(kind string, scope string, p project.Config, s server.Config) *Builder {
+func NewScopedBuilder(kind string, scope string, p *project.Config, s *server.Config) *Builder {
 	return &Builder{kind: kind, scope: scope, p: p, s: s}
 }
 
@@ -37,8 +37,8 @@ func NewScopedBuilder(kind string, scope string, p project.Config, s server.Conf
 type Builder struct {
 	kind  string
 	scope string
-	s     server.Config
-	p     project.Config
+	s     *server.Config
+	p     *project.Config
 }
 
 func (b Builder) Path() string {

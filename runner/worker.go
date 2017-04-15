@@ -18,7 +18,7 @@ import (
 	"github.com/coreos/go-systemd/dbus"
 )
 
-func NewWorkerRunner(s server.Config, p project.Config, conn *dbus.Conn) *WorkerRunner {
+func NewWorkerRunner(s *server.Config, p *project.Config, conn *dbus.Conn) *WorkerRunner {
 	return &WorkerRunner{
 		s:     s,
 		p:     p,
@@ -33,8 +33,8 @@ func NewWorkerRunner(s server.Config, p project.Config, conn *dbus.Conn) *Worker
 // processes are leaking memory or otherwise don't behave well. A
 // feature desperately missing from alternatives like supervisord.
 type WorkerRunner struct {
-	s     server.Config
-	p     project.Config
+	s     *server.Config
+	p     *project.Config
 	sys   *system.Systemd
 	build *builder.Builder
 }
@@ -142,8 +142,8 @@ func (r WorkerRunner) Build() error {
 		v.Command = parsed
 
 		tmplData := struct {
-			P project.Config
-			S server.Config
+			P *project.Config
+			S *server.Config
 			W project.WorkerDirective
 		}{
 			P: r.p,

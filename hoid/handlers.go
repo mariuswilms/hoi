@@ -43,7 +43,7 @@ func handleLoad(path string) error {
 	}
 
 	steps := make([]func() error, 0)
-	for _, r := range runners(*pCfg) {
+	for _, r := range runners(pCfg) {
 		steps = append(
 			steps,
 			r.Disable,
@@ -54,12 +54,12 @@ func handleLoad(path string) error {
 		)
 	}
 
-	if err := Store.Write(pCfg.ID, *pCfg); err != nil {
+	if err := Store.Write(pCfg.ID, pCfg); err != nil {
 		return err
 	}
 	Store.WriteStatus(pCfg.ID, project.StatusLoading)
 
-	if err := performSteps(*pCfg, steps); err != nil {
+	if err := performSteps(pCfg, steps); err != nil {
 		Store.WriteStatus(pCfg.ID, project.StatusFailed)
 		return fmt.Errorf("failed to load project %s: %s", pCfg.PrettyName(), err)
 	}
@@ -219,7 +219,7 @@ func handleDomain(path string, dDrv *project.DomainDirective) error {
 	// needed for domain updates is the web runner.
 	runners := make([]runner.Runnable, 0)
 	if Config.Web.Enabled {
-		runners = append(runners, runner.NewWebRunner(*Config, e.Project, SystemdConn))
+		runners = append(runners, runner.NewWebRunner(Config, e.Project, SystemdConn))
 	}
 
 	steps := make([]func() error, 0)
@@ -249,32 +249,32 @@ func handleDomain(path string, dDrv *project.DomainDirective) error {
 	return nil
 }
 
-func runners(pCfg project.Config) []runner.Runnable {
+func runners(pCfg *project.Config) []runner.Runnable {
 	runners := make([]runner.Runnable, 0)
 
 	if Config.Volume.Enabled {
-		runners = append(runners, runner.NewVolumeRunner(*Config, pCfg, SystemdConn))
+		runners = append(runners, runner.NewVolumeRunner(Config, pCfg, SystemdConn))
 	}
 	if Config.Database.Enabled {
-		runners = append(runners, runner.NewDBRunner(*Config, pCfg, MySQLConn))
+		runners = append(runners, runner.NewDBRunner(Config, pCfg, MySQLConn))
 	}
 	if Config.PHP.Enabled {
-		runners = append(runners, runner.NewPHPRunner(*Config, pCfg, SystemdConn))
+		runners = append(runners, runner.NewPHPRunner(Config, pCfg, SystemdConn))
 	}
 	if Config.Web.Enabled {
-		runners = append(runners, runner.NewWebRunner(*Config, pCfg, SystemdConn))
+		runners = append(runners, runner.NewWebRunner(Config, pCfg, SystemdConn))
 	}
 	if Config.Cron.Enabled {
-		runners = append(runners, runner.NewCronRunner(*Config, pCfg, SystemdConn))
+		runners = append(runners, runner.NewCronRunner(Config, pCfg, SystemdConn))
 	}
 	if Config.Worker.Enabled {
-		runners = append(runners, runner.NewWorkerRunner(*Config, pCfg, SystemdConn))
+		runners = append(runners, runner.NewWorkerRunner(Config, pCfg, SystemdConn))
 	}
 
 	return runners
 }
 
-func performSteps(pCfg project.Config, steps []func() error) error {
+func performSteps(pCfg *project.Config, steps []func() error) error {
 	getFuncName := func(i interface{}) string {
 		name := runtime.FuncForPC(reflect.ValueOf(i).Pointer()).Name()
 		// github.com/atelierdisko/hoi/runner.(Runnable).Build-fm

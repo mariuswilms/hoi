@@ -21,13 +21,13 @@ var (
 	MySQLDirty bool
 )
 
-func NewMySQL(p project.Config, s server.Config, conn *sql.DB) *MySQL {
+func NewMySQL(p *project.Config, s *server.Config, conn *sql.DB) *MySQL {
 	return &MySQL{p: p, s: s, conn: conn}
 }
 
 type MySQL struct {
-	p     project.Config
-	s     server.Config
+	p     *project.Config
+	s     *server.Config
 	conn  *sql.DB
 	dirty bool
 }

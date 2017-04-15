@@ -30,8 +30,8 @@ func New(file string) *Store {
 }
 
 type Entity struct {
-	Project project.Config
-	Meta    project.Meta
+	Project *project.Config
+	Meta    *project.Meta
 }
 
 type Store struct {
@@ -170,13 +170,13 @@ func (s Store) ReadAll() []Entity {
 	return all
 }
 
-func (s *Store) Write(id string, pCfg project.Config) error {
+func (s *Store) Write(id string, pCfg *project.Config) error {
 	s.Lock()
 	defer s.Unlock()
 
 	s.data[id] = Entity{
 		Project: pCfg,
-		Meta:    project.Meta{Status: project.StatusUnknown},
+		Meta:    &project.Meta{Status: project.StatusUnknown},
 	}
 	return nil
 }

@@ -25,7 +25,7 @@ const (
 	DBAdminPrivs = "LOCK TABLES,ALTER,DROP,CREATE,INDEX"
 )
 
-func NewDBRunner(s server.Config, p project.Config, conn *sql.DB) *DBRunner {
+func NewDBRunner(s *server.Config, p *project.Config, conn *sql.DB) *DBRunner {
 	return &DBRunner{
 		s:   s,
 		p:   p,
@@ -36,8 +36,8 @@ func NewDBRunner(s server.Config, p project.Config, conn *sql.DB) *DBRunner {
 // Ensures that database and user for the project are available
 // and the user has a minimum set of privileges assigned to her.
 type DBRunner struct {
-	s   server.Config
-	p   project.Config
+	s   *server.Config
+	p   *project.Config
 	sys *system.MySQL
 }
 

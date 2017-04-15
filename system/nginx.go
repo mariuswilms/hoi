@@ -22,13 +22,13 @@ var (
 	NGINXDirty bool
 )
 
-func NewNGINX(p project.Config, s server.Config, conn *dbus.Conn) *NGINX {
+func NewNGINX(p *project.Config, s *server.Config, conn *dbus.Conn) *NGINX {
 	return &NGINX{p: p, s: s, conn: conn}
 }
 
 type NGINX struct {
-	p    project.Config
-	s    server.Config
+	p    *project.Config
+	s    *server.Config
 	conn *dbus.Conn
 }
 

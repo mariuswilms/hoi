@@ -21,7 +21,7 @@ type VolumeDirective struct {
 }
 
 // The source directory outside the project.
-func (drv VolumeDirective) GetSource(p Config, s server.Config) string {
+func (drv VolumeDirective) GetSource(p *Config, s *server.Config) string {
 	ns := fmt.Sprintf("project_%s", p.ID)
 
 	var src string
@@ -34,6 +34,6 @@ func (drv VolumeDirective) GetSource(p Config, s server.Config) string {
 }
 
 // The target directory inside the project.
-func (drv VolumeDirective) GetTarget(p Config) string {
+func (drv VolumeDirective) GetTarget(p *Config) string {
 	return filepath.Join(p.Path, drv.Path)
 }

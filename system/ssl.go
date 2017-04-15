@@ -23,7 +23,7 @@ var (
 	SSLDirty bool
 )
 
-func NewSSL(p project.Config, s server.Config) *SSL {
+func NewSSL(p *project.Config, s *server.Config) *SSL {
 	return &SSL{p: p, s: s}
 }
 
@@ -33,8 +33,8 @@ func NewSSL(p project.Config, s server.Config) *SSL {
 // file is named after the domain they belong to. Certs are suffixed
 // with .crt, keys with .key.
 type SSL struct {
-	p project.Config
-	s server.Config
+	p *project.Config
+	s *server.Config
 }
 
 func (sys *SSL) Install(domain string, ssl project.SSLDirective) error {

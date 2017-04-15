@@ -20,13 +20,13 @@ var (
 	PHPDirty bool
 )
 
-func NewPHP(p project.Config, s server.Config, conn *dbus.Conn) *PHP {
+func NewPHP(p *project.Config, s *server.Config, conn *dbus.Conn) *PHP {
 	return &PHP{p: p, s: s, conn: conn}
 }
 
 type PHP struct {
-	p    project.Config
-	s    server.Config
+	p    *project.Config
+	s    *server.Config
 	conn *dbus.Conn
 }
 

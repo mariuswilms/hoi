@@ -26,14 +26,14 @@ const (
 	SystemdKindVolume = "volume"
 )
 
-func NewSystemd(kind string, p project.Config, s server.Config, conn *dbus.Conn) *Systemd {
+func NewSystemd(kind string, p *project.Config, s *server.Config, conn *dbus.Conn) *Systemd {
 	return &Systemd{kind: kind, p: p, s: s, conn: conn}
 }
 
 type Systemd struct {
 	kind string
-	p    project.Config
-	s    server.Config
+	p    *project.Config
+	s    *server.Config
 	conn *dbus.Conn
 }
 

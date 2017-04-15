@@ -19,7 +19,7 @@ import (
 	"github.com/coreos/go-systemd/dbus"
 )
 
-func NewVolumeRunner(s server.Config, p project.Config, conn *dbus.Conn) *VolumeRunner {
+func NewVolumeRunner(s *server.Config, p *project.Config, conn *dbus.Conn) *VolumeRunner {
 	return &VolumeRunner{
 		s:     s,
 		p:     p,
@@ -29,8 +29,8 @@ func NewVolumeRunner(s server.Config, p project.Config, conn *dbus.Conn) *Volume
 }
 
 type VolumeRunner struct {
-	s     server.Config
-	p     project.Config
+	s     *server.Config
+	p     *project.Config
 	sys   *system.Systemd
 	build *builder.Builder
 }
@@ -93,8 +93,8 @@ func (r VolumeRunner) Build() error {
 		}
 
 		tmplData := struct {
-			P project.Config
-			S server.Config
+			P *project.Config
+			S *server.Config
 			V project.VolumeDirective
 		}{
 			P: r.p,
