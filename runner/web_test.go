@@ -12,17 +12,6 @@ import (
 	"github.com/atelierdisko/hoi/project"
 )
 
-/*
-func TestMain(m *testing.M) {
-	os.RemoveAll("/tmp/test")
-
-	mRun := m.Run()
-
-	os.RemoveAll("/tmp/test")
-	os.Exit(mRun)
-}
-*/
-
 func TestAPR1ImplementationToKnown(t *testing.T) {
 	r := computeAPR1("musik", "buZHPOTP")
 	e := "$apr1$buZHPOTP$36ES04x2pWJCZFz18irxw."
@@ -31,23 +20,6 @@ func TestAPR1ImplementationToKnown(t *testing.T) {
 		t.Errorf("result: %s | expected: %s", r, e)
 	}
 }
-
-/*
-func TestDeactivate(t *testing.T) {
-	simulateSystem()
-
-	pCfg, _ := project.New()
-	pCfg.Path = "/tmp/test/var/www/foo"
-
-	sCfg, _ := server.New()
-	sCfg.NGINX.RunPath = "/tmp/test/etc/nginx/sites-enabled"
-
-	err := deactivateWeb(pCfg, sCfg)
-	if err != nil {
-		t.Fail()
-	}
-}
-*/
 
 func simulateSystem() {
 	root := "/tmp/test"
