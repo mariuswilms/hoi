@@ -109,9 +109,7 @@ func (sys Systemd) ListInstalledMounts() ([]string, error) {
 func (sys Systemd) EnableAndStart(unit string) error {
 	target := fmt.Sprintf("%s%s", sys.getPrefix(), unit)
 
-	var err error
-
-	_, _, err = sys.conn.EnableUnitFiles(
+	_, _, err := sys.conn.EnableUnitFiles(
 		[]string{target},
 		false, // false means persistently
 		false, // unit files not cleaned up previously are an error
@@ -132,9 +130,7 @@ func (sys Systemd) EnableAndStart(unit string) error {
 func (sys Systemd) StopAndDisable(unit string) error {
 	target := fmt.Sprintf("%s%s", sys.getPrefix(), unit)
 
-	var err error
-
-	_, err = sys.conn.DisableUnitFiles(
+	_, err := sys.conn.DisableUnitFiles(
 		[]string{target},
 		false, // false means persistently
 	)
