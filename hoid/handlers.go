@@ -252,14 +252,14 @@ func handleDomain(path string, dDrv *project.DomainDirective) error {
 func runners(pCfg project.Config) []runner.Runnable {
 	runners := make([]runner.Runnable, 0)
 
-	if Config.PHP.Enabled {
-		runners = append(runners, runner.NewPHPRunner(*Config, pCfg, SystemdConn))
-	}
 	if Config.Volume.Enabled {
 		runners = append(runners, runner.NewVolumeRunner(*Config, pCfg, SystemdConn))
 	}
 	if Config.Database.Enabled {
 		runners = append(runners, runner.NewDBRunner(*Config, pCfg, MySQLConn))
+	}
+	if Config.PHP.Enabled {
+		runners = append(runners, runner.NewPHPRunner(*Config, pCfg, SystemdConn))
 	}
 	if Config.Web.Enabled {
 		runners = append(runners, runner.NewWebRunner(*Config, pCfg, SystemdConn))
