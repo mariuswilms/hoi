@@ -3,7 +3,7 @@ Description=Cron Job {{.C.Name}} for project {{.P.Name}}@{{.P.Context}}
 
 [Service]
 Type=oneshot
-ExecStart={{.C.Command}}
+ExecStart={{.C.GetCommand .P}}
 User={{.S.User}}
 Group={{.S.Group}}
 WorkingDirectory={{.P.Path}}

@@ -89,40 +89,17 @@ func (r WebRunner) Enable() error {
 		}
 	}
 
-	// Be careful not to mutate the passed struct. Modifications to maps
-	// modify the underlying data structure.
-	domain := map[string]project.DomainDirective{}
-	for k, v := range r.p.Domain {
-		e := r.p.Domain[k]
-
-		if !v.SSL.IsEnabled() {
-			domain[k] = e
-			continue
-		}
-
-		path, err := r.ssl.GetCertificate(v.FQDN)
-		if err != nil {
-			return err
-		}
-		e.SSL.Certificate = path
-
-		path, err = r.ssl.GetCertificateKey(v.FQDN)
-		if err != nil {
-			return err
-		}
-		e.SSL.CertificateKey = path
-
-		domain[k] = e
-	}
-	r.p.Domain = domain
-
 	tmplData := struct {
-		P             *project.Config
-		S             *server.Config
-		WebConfigPath string
+		P                    *project.Config
+		S                    *server.Config
+		GetSSLCertificate    func(fqdn string) (string, error)
+		GetSSLCertificateKey func(fqdn string) (string, error)
+		WebConfigPath        string
 	}{
-		P: r.p,
-		S: r.s,
+		P:                    r.p,
+		S:                    r.s,
+		GetSSLCertificate:    r.ssl.GetCertificate,
+		GetSSLCertificateKey: r.ssl.GetCertificateKey,
 		// even though we symlink parts of the build path, config files
 		// should not rely on symlinking but reference the original
 		// created files

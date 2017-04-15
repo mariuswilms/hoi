@@ -81,12 +81,6 @@ func (r CronRunner) Enable() error {
 		return err
 	}
 	for _, v := range r.p.Cron {
-		parsed, err := v.GetCommand(r.p)
-		if err != nil {
-			return err
-		}
-		v.Command = parsed
-
 		tmplData := struct {
 			P *project.Config
 			S *server.Config

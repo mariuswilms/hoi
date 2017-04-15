@@ -3,7 +3,7 @@ Description=Worker {{.W.Name}} for project {{.P.Name}}@{{.P.Context}}
 After=beanstalkd.service
 
 [Service]
-ExecStart={{.W.Command}}
+ExecStart={{.W.GetCommand .P}}
 User={{.S.User}}
 Group={{.S.Group}}
 WorkingDirectory={{.P.Path}}

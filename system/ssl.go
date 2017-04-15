@@ -129,20 +129,20 @@ func (sys SSL) ListInstalled() ([]string, error) {
 	return domains, err
 }
 
-func (sys SSL) GetCertificate(domain string) (string, error) {
+func (sys SSL) GetCertificate(fqdn string) (string, error) {
 	ns := fmt.Sprintf("project_%s", sys.p.ID)
 
-	target := fmt.Sprintf("%s/certs/%s_%s.crt", sys.s.SSL.RunPath, ns, domain)
+	target := fmt.Sprintf("%s/certs/%s_%s.crt", sys.s.SSL.RunPath, ns, fqdn)
 	if _, err := os.Stat(target); os.IsNotExist(err) {
 		return target, err
 	}
 	return target, nil
 }
 
-func (sys SSL) GetCertificateKey(domain string) (string, error) {
+func (sys SSL) GetCertificateKey(fqdn string) (string, error) {
 	ns := fmt.Sprintf("project_%s", sys.p.ID)
 
-	target := fmt.Sprintf("%s/private/%s_%s.key", sys.s.SSL.RunPath, ns, domain)
+	target := fmt.Sprintf("%s/private/%s_%s.key", sys.s.SSL.RunPath, ns, fqdn)
 	if _, err := os.Stat(target); os.IsNotExist(err) {
 		return target, err
 	}
