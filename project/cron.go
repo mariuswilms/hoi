@@ -9,7 +9,6 @@ import (
 	"bytes"
 	"fmt"
 	"hash/adler32"
-	"log"
 	"path/filepath"
 	"strings"
 	"text/template"
@@ -63,8 +62,6 @@ func (drv CronDirective) GetCommand(p *Config) (string, error) {
 	if !strings.Contains(drv.Command, "{{") {
 		cmd = drv.Command
 	} else {
-		log.Printf("parsing command template: %s", drv.Command)
-
 		cmdTmplData := struct {
 			P *Config
 		}{
