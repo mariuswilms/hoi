@@ -45,7 +45,7 @@ func (sys PHP) Uninstall() error {
 	target := fmt.Sprintf("%s/99-project-%s.ini", sys.s.PHP.RunPath, sys.p.ID)
 
 	if err := os.Remove(target); err != nil {
-		return fmt.Errorf("PHPfailed to uninstall %s: %s", target, err)
+		return fmt.Errorf("PHP failed to uninstall %s: %s", target, err)
 	}
 	PHPDirty = true
 	return nil
