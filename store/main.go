@@ -17,7 +17,6 @@ import (
 	"os"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/atelierdisko/hoi/project"
 )
@@ -34,22 +33,21 @@ type Entity struct {
 	Meta    *project.Meta
 }
 
+// Store can savely be accessed concurrently. It will persist
+// data written to it in a file.
 type Store struct {
+	// Mutex protecting access to data.
 	sync.RWMutex
-	// The database file handle, where store is persisting to.
 	file string
-	// Holds no pointers as it then would be possible to modify data outside lock.
-	data           map[string]Entity
-	autoSaverQuits chan struct{}
+	data map[string]Entity
 }
 
-// Loads database file contents into memory. Does not hold an open handle
-// on the file.
+// Loads database file contents into memory.
 func (s *Store) Load() error {
 	if _, err := os.Stat(s.file); os.IsNotExist(err) {
 		return nil // nothing to do
 	}
-	log.Printf("loading db file: %s", s.file)
+	log.Printf("loading store file: %s", s.file)
 
 	f, err := os.Open(s.file)
 	if err != nil {
@@ -62,7 +60,7 @@ func (s *Store) Load() error {
 		fields := strings.SplitN(scanner.Text(), "#", 2)
 
 		if len(fields) != 2 {
-			return errors.New("db file corrupt or in unrecognized format")
+			return errors.New("store file corrupt or in unrecognized format")
 		}
 		entity := &Entity{}
 		err := json.Unmarshal([]byte(fields[1]), entity)
@@ -77,8 +75,9 @@ func (s *Store) Load() error {
 	return scanner.Err()
 }
 
-// Persists data into database file.
-func (s Store) Store() error {
+// Persists in-memory data to store db file. Automatically called when
+// in-memory data has been modified.
+func (s Store) Persist() error {
 	// Swap contents at the very end, when we are sure that
 	// everything else worked.
 	var buf []byte
@@ -107,36 +106,8 @@ func (s Store) Store() error {
 	return f.Sync()
 }
 
-// Wil periodically update the database file.
-func (s *Store) InstallAutoStore() {
-	if s.autoSaverQuits != nil {
-		panic("auto saver already installed")
-	}
-	ticker := time.NewTicker(1 * time.Minute)
-	s.autoSaverQuits = make(chan struct{})
-	log.Print("will periodically sync to database file")
-
-	go func() {
-		for {
-			select {
-			case <-ticker.C:
-				if err := s.Store(); err != nil {
-					log.Print("failed to auto store")
-				}
-			case <-s.autoSaverQuits:
-				log.Print("uninstalled auto store")
-				ticker.Stop()
-				return
-			}
-		}
-	}()
-}
-
 func (s *Store) Close() error {
-	if s.autoSaverQuits != nil {
-		close(s.autoSaverQuits)
-	}
-	return s.Store()
+	return nil
 }
 
 func (s Store) Has(id string) bool {
@@ -172,24 +143,26 @@ func (s Store) ReadAll() []Entity {
 
 func (s *Store) Write(id string, pCfg *project.Config) error {
 	s.Lock()
-	defer s.Unlock()
 
 	s.data[id] = Entity{
 		Project: pCfg,
 		Meta:    &project.Meta{Status: project.StatusUnknown},
 	}
-	return nil
+	s.Unlock()
+
+	return s.Persist()
 }
 
 func (s *Store) Delete(id string) error {
 	s.Lock()
-	defer s.Unlock()
 
 	if _, hasKey := s.data[id]; !hasKey {
 		return fmt.Errorf("failed to delete from store: no id %s", id)
 	}
 	delete(s.data, id)
-	return nil
+	s.Unlock()
+
+	return s.Persist()
 }
 
 func (s Store) ReadStatus(id string) (project.MetaStatus, error) {
@@ -204,7 +177,6 @@ func (s Store) ReadStatus(id string) (project.MetaStatus, error) {
 
 func (s *Store) WriteStatus(id string, status project.MetaStatus) error {
 	s.Lock()
-	defer s.Unlock()
 
 	if _, hasKey := s.data[id]; !hasKey {
 		return fmt.Errorf("failed to write status %s: no id %s", status, id)
@@ -212,5 +184,7 @@ func (s *Store) WriteStatus(id string, status project.MetaStatus) error {
 	entity := s.data[id]
 	entity.Meta.Status = status
 	s.data[id] = entity
-	return nil
+	s.Unlock()
+
+	return s.Persist()
 }

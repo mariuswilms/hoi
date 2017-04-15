@@ -17,10 +17,7 @@ func TestStore(t *testing.T) {
 	store := New(file)
 	cfg, _ := project.NewFromString("name = \"test\"")
 
-	if err := store.Write("fookey", *cfg); err != nil {
-		t.Error(err)
-	}
-	if err := store.Store(); err != nil {
+	if err := store.Write("fookey", cfg); err != nil {
 		t.Error(err)
 	}
 	store.Close()
@@ -32,10 +29,7 @@ func TestLoad(t *testing.T) {
 	store := New(file)
 	cfg, _ := project.NewFromString("name = \"test\"")
 
-	if err := store.Write("fookey", *cfg); err != nil {
-		t.Error(err)
-	}
-	if err := store.Store(); err != nil {
+	if err := store.Write("fookey", cfg); err != nil {
 		t.Error(err)
 	}
 	store.Close()
@@ -55,7 +49,7 @@ func TestStoreCount(t *testing.T) {
 	store := New(file)
 	cfg, _ := project.NewFromString("name = \"test\"")
 
-	if err := store.Write("fookey", *cfg); err != nil {
+	if err := store.Write("fookey", cfg); err != nil {
 		t.Error(err)
 	}
 	if len(store.data) != 1 {

@@ -79,7 +79,6 @@ func main() {
 		if err := _store.Load(); err != nil {
 			log.Fatal(err)
 		}
-		_store.InstallAutoStore()
 		Store = _store // Assign to global
 		log.Printf("store backend ready")
 
