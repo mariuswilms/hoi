@@ -48,37 +48,10 @@ func (r VolumeRunner) Disable() error {
 			return err
 		}
 	}
-	return nil
-}
-
-func (r VolumeRunner) Enable() error {
-	if len(r.p.Volume) == 0 {
-		return nil // nothing to do
-	}
-	files, err := r.build.ListAvailable()
-	if err != nil {
-		return err
-	}
-	for _, f := range files {
-		if err := r.sys.Install(f); err != nil {
-			return err
-		}
-		if err := r.sys.EnableAndStart(filepath.Base(f)); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (r VolumeRunner) Commit() error {
-	return nil
-}
-
-func (r VolumeRunner) Clean() error {
 	return r.build.Clean()
 }
 
-func (r VolumeRunner) Build() error {
+func (r VolumeRunner) Enable() error {
 	if len(r.p.Volume) == 0 {
 		return nil // nothing to do
 	}
@@ -110,6 +83,23 @@ func (r VolumeRunner) Build() error {
 			return err
 		}
 	}
+
+	files, err := r.build.ListAvailable()
+	if err != nil {
+		return err
+	}
+	for _, f := range files {
+		if err := r.sys.Install(f); err != nil {
+			return err
+		}
+		if err := r.sys.EnableAndStart(filepath.Base(f)); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (r VolumeRunner) Commit() error {
 	return nil
 }
 

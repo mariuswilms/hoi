@@ -41,34 +41,13 @@ func (r PHPRunner) Disable() error {
 	if !r.sys.IsInstalled() {
 		return nil // nothing to disable
 	}
-	return r.sys.Uninstall()
-}
-
-func (r PHPRunner) Enable() error {
-	if r.p.Kind != project.KindPHP {
-		return nil // nothing to do
-	}
-	files, err := r.build.ListAvailable()
-	if err != nil {
+	if err := r.sys.Uninstall(); err != nil {
 		return err
 	}
-	for _, v := range files {
-		if err := r.sys.Install(v); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (r PHPRunner) Commit() error {
-	return r.sys.ReloadIfDirty()
-}
-
-func (r PHPRunner) Clean() error {
 	return r.build.Clean()
 }
 
-func (r PHPRunner) Build() error {
+func (r PHPRunner) Enable() error {
 	if r.p.Kind != project.KindPHP {
 		return nil // nothing to do
 	}
@@ -83,5 +62,22 @@ func (r PHPRunner) Build() error {
 		P: r.p,
 		S: r.s,
 	}
-	return r.build.WriteTemplate("php.ini", tS, tmplData)
+	if err := r.build.WriteTemplate("php.ini", tS, tmplData); err != nil {
+		return err
+	}
+
+	files, err := r.build.ListAvailable()
+	if err != nil {
+		return err
+	}
+	for _, v := range files {
+		if err := r.sys.Install(v); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (r PHPRunner) Commit() error {
+	return r.sys.ReloadIfDirty()
 }

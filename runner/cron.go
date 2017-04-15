@@ -64,39 +64,10 @@ func (r CronRunner) Disable() error {
 			return err
 		}
 	}
-	return nil
-}
-
-func (r CronRunner) Enable() error {
-	if len(r.p.Cron) == 0 {
-		return nil // nothing to do
-	}
-	files, err := r.build.ListAvailable()
-	if err != nil {
-		return err
-	}
-	for _, f := range files {
-		if err := r.sys.Install(f); err != nil {
-			return err
-		}
-		if strings.HasSuffix(f, ".timer") {
-			if err := r.sys.EnableAndStart(filepath.Base(f)); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
-
-func (r CronRunner) Commit() error {
-	return nil
-}
-
-func (r CronRunner) Clean() error {
 	return r.build.Clean()
 }
 
-func (r CronRunner) Build() error {
+func (r CronRunner) Enable() error {
 	if len(r.p.Cron) == 0 {
 		return nil // nothing to do
 	}
@@ -142,5 +113,24 @@ func (r CronRunner) Build() error {
 			return err
 		}
 	}
+
+	files, err := r.build.ListAvailable()
+	if err != nil {
+		return err
+	}
+	for _, f := range files {
+		if err := r.sys.Install(f); err != nil {
+			return err
+		}
+		if strings.HasSuffix(f, ".timer") {
+			if err := r.sys.EnableAndStart(filepath.Base(f)); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (r CronRunner) Commit() error {
 	return nil
 }

@@ -60,39 +60,10 @@ func (r WebRunner) Disable() error {
 			return err
 		}
 	}
-
-	return nil
-}
-
-func (r WebRunner) Enable() error {
-	files, err := r.build.ListAvailable()
-	if err != nil {
-		return err
-	}
-	for _, f := range files {
-		if err := r.nginx.Install(f); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (r WebRunner) Commit() error {
-	if !system.SSLDirty {
-		return r.nginx.ReloadIfDirty()
-	}
-	if err := r.nginx.Reload(); err != nil {
-		return err
-	}
-	system.SSLDirty = false
-	return nil
-}
-
-func (r WebRunner) Clean() error {
 	return r.build.Clean()
 }
 
-func (r WebRunner) Build() error {
+func (r WebRunner) Enable() error {
 	if len(r.p.Domain) == 0 {
 		return nil // nothing to do
 	}
@@ -157,7 +128,31 @@ func (r WebRunner) Build() error {
 		// created files
 		WebConfigPath: r.build.Path(),
 	}
-	return r.build.LoadWriteTemplates(tmplData)
+	if err := r.build.LoadWriteTemplates(tmplData); err != nil {
+		return err
+	}
+
+	files, err := r.build.ListAvailable()
+	if err != nil {
+		return err
+	}
+	for _, f := range files {
+		if err := r.nginx.Install(f); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (r WebRunner) Commit() error {
+	if !system.SSLDirty {
+		return r.nginx.ReloadIfDirty()
+	}
+	if err := r.nginx.Reload(); err != nil {
+		return err
+	}
+	system.SSLDirty = false
+	return nil
 }
 
 const apr1ABC string = "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"

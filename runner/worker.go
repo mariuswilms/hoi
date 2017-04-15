@@ -80,53 +80,10 @@ func (r WorkerRunner) Disable() error {
 			return err
 		}
 	}
-	return nil
-}
-
-func (r WorkerRunner) Enable() error {
-	if len(r.p.Worker) == 0 {
-		return nil // nothing to do
-	}
-	files, err := r.build.ListAvailable()
-	if err != nil {
-		return err
-	}
-	for _, f := range files {
-		// Map back to worker directive, we need this to get instances.
-		k := filepath.Base(strings.TrimSuffix(f, "@"+filepath.Ext(f)))
-		if _, ok := r.p.Worker[k]; !ok {
-			return fmt.Errorf("failed to lookup worker by name %s, parsed incorrectly?", k)
-		}
-		w := r.p.Worker[k]
-
-		if err := r.sys.Install(f); err != nil {
-			return err
-		}
-
-		// Using service template to start n number of instances of the service.
-		// http://serverfault.com/questions/730239/start-n-processes-with-one-systemd-service-file
-		for i := uint(1); i <= w.GetInstances(); i++ {
-			// By simply replacing, we safe us the headaches of matching the file name we
-			// do not exactly know.
-			unit := strings.Replace(filepath.Base(f), "@.service", fmt.Sprintf("@%d.service", i), 1)
-
-			if err := r.sys.EnableAndStart(unit); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
-
-func (r WorkerRunner) Commit() error {
-	return nil
-}
-
-func (r WorkerRunner) Clean() error {
 	return r.build.Clean()
 }
 
-func (r WorkerRunner) Build() error {
+func (r WorkerRunner) Enable() error {
 	if len(r.p.Worker) == 0 {
 		return nil // nothing to do
 	}
@@ -159,5 +116,38 @@ func (r WorkerRunner) Build() error {
 			return err
 		}
 	}
+
+	files, err := r.build.ListAvailable()
+	if err != nil {
+		return err
+	}
+	for _, f := range files {
+		// Map back to worker directive, we need this to get instances.
+		k := filepath.Base(strings.TrimSuffix(f, "@"+filepath.Ext(f)))
+		if _, ok := r.p.Worker[k]; !ok {
+			return fmt.Errorf("failed to lookup worker by name %s, parsed incorrectly?", k)
+		}
+		w := r.p.Worker[k]
+
+		if err := r.sys.Install(f); err != nil {
+			return err
+		}
+
+		// Using service template to start n number of instances of the service.
+		// http://serverfault.com/questions/730239/start-n-processes-with-one-systemd-service-file
+		for i := uint(1); i <= w.GetInstances(); i++ {
+			// By simply replacing, we safe us the headaches of matching the file name we
+			// do not exactly know.
+			unit := strings.Replace(filepath.Base(f), "@.service", fmt.Sprintf("@%d.service", i), 1)
+
+			if err := r.sys.EnableAndStart(unit); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (r WorkerRunner) Commit() error {
 	return nil
 }

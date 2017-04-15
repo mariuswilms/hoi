@@ -72,11 +72,3 @@ func (r DBRunner) Enable() error {
 func (r DBRunner) Commit() error {
 	return r.sys.ReloadIfDirty()
 }
-
-func (r DBRunner) Clean() error {
-	return nil // nothing to build
-}
-
-func (r DBRunner) Build() error {
-	return nil // nothing to build
-}

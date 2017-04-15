@@ -47,8 +47,6 @@ func handleLoad(path string) error {
 		steps = append(
 			steps,
 			r.Disable,
-			r.Clean,
-			r.Build,
 			r.Enable,
 			r.Commit,
 		)
@@ -87,7 +85,6 @@ func handleUnload(path string) error {
 		steps = append(
 			steps,
 			r.Disable,
-			r.Clean,
 			r.Commit,
 		)
 	}
@@ -114,7 +111,6 @@ func handleUnloadAll() error {
 			steps = append(
 				steps,
 				r.Disable,
-				r.Clean,
 				r.Commit,
 			)
 		}
@@ -150,8 +146,6 @@ func handleReload(path string) error {
 		steps = append(
 			steps,
 			r.Disable,
-			r.Clean,
-			r.Build,
 			r.Enable,
 			r.Commit,
 		)
@@ -176,8 +170,6 @@ func handleReloadAll() error {
 			steps = append(
 				steps,
 				r.Disable,
-				r.Clean,
-				r.Build,
 				r.Enable,
 				r.Commit,
 			)
@@ -227,8 +219,6 @@ func handleDomain(path string, dDrv *project.DomainDirective) error {
 		steps = append(
 			steps,
 			r.Disable,
-			r.Clean,
-			r.Build,
 			r.Enable,
 			r.Commit,
 		)

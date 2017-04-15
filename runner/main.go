@@ -3,35 +3,25 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Runners manage configurations in files and services to
-// fullfill the needs of the project. They usually command
-// a builder and a utilize a system, into which artifacts are
-// installed.
+// Runners manage configurations in files and services to fullfill the
+// needs of the project. They usually command a builder and utilize
+// one or multiple systems, into which artifacts are installed.
 package runner
 
-// Runnable describes methods common to each runner. Runners often use a builder
-// and a system (into which built configuration files are installed).
+// Runnable describes methods common to each runner. Runnable methods are called
+// "steps" as these methods are invoked one after another in a fixed order. Steps
+// do not take any arguments as to being able to treat them equally.
 //
-// Runners are "dumb" in that they do not track which configuration depends on
-// which configuration and needs to be rebuilt. Instead it simply alwas does a
-// full rebuild. The order in which Runnable methods should be invoked for a
-// full rebuild is:
+// When configuration changes, runners make no effort to determine if
+// a rebuild is required. They simply always rebuild:
 //
-//   Disable -> Clean -> Build -> Enable -> Commit
-//
-// As these methods are invoked in a sequential way they are called "steps."
-// Method signature is intentionally kept simple and equal as we want to tread
-// these methods as the abstract kind step.
+//   Disable -> Enable -> Commit
 type Runnable interface {
-	// Builds configuration files.
-	Build() error
-	// Removes any build files that had been created with Build().
-	Clean() error
-	// Installs configuration files into runner's system and
+	// Builds and installs configuration files into runner's system and
 	// activates them there.
 	Enable() error
 	// Removes configuration files from runner's system and
-	// deactivates them.
+	// deactivates them. Removes any build files.
 	Disable() error
 	// Commits any changes made to the system.
 	Commit() error
