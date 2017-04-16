@@ -4,16 +4,17 @@
 # license that can be found in the LICENSE file.
 
 PREFIX ?= /usr/local
+FLAG_PREFIX ?= $(PREFIX)
 
 VERSION ?= head-$(shell git rev-parse --short HEAD)
 
 HOID_GOFLAGS = -X main.Version=$(VERSION)
-HOID_GOFLAGS +=  -X main.SocketPath=$(PREFIX)/var/run/hoid.socket
-HOID_GOFLAGS +=  -X main.ConfigPath=$(PREFIX)/etc/hoi/hoid.conf
-HOID_GOFLAGS +=  -X main.DataPath=$(PREFIX)/var/lib/hoid.db
+HOID_GOFLAGS +=  -X main.SocketPath=$(FLAG_PREFIX)/var/run/hoid.socket
+HOID_GOFLAGS +=  -X main.ConfigPath=$(FLAG_PREFIX)/etc/hoi/hoid.conf
+HOID_GOFLAGS +=  -X main.DataPath=$(FLAG_PREFIX)/var/lib/hoid.db
 
 HOICTL_GOFLAGS = -X main.Version=$(VERSION)
-HOICTL_GOFLAGS +=  -X main.SocketPath=$(PREFIX)/var/run/hoid.socket
+HOICTL_GOFLAGS +=  -X main.SocketPath=$(FLAG_PREFIX)/var/run/hoid.socket
 
 ANY_DEPS = builder project rpc runner server store system util
 
@@ -68,7 +69,7 @@ clean:
 	if [ -f ./hoictl/hoictl ]; then rm ./hoictl/hoictl; fi
 
 .PHONY: dist
-dist: dist/hoictl dist/hoid dist/hoictl-darwin-amd64 dist/hoid-darwin-amd64 dist/hoictl-linux-amd64 dist/hoid-linux-amd64
+dist: dist/hoictl dist/hoid dist/hoictl-darwin-amd64 dist/hoid-darwin-amd64 dist/hoictl-linux-amd64 dist/hoid-linux-amd64 dist/hoi_$(VERSION)-1-amd64.deb
 
 # Runs all unit tests in sub-packages excluding vendor packages.
 .PHONY: unit-tests
@@ -133,3 +134,23 @@ dist/%-darwin-amd64: % $(ANY_DEPS)
 
 dist/%-linux-amd64: % $(ANY_DEPS)
 	GOOS=linux GOARCH=amd64 go build -ldflags "$(HOID_GOFLAGS)" -o $@ ./$<
+
+# Version should have the the package revision suffixed: i.e. 0.5.0-1
+dist/hoi_%-amd64.deb: 
+	mkdir -p /tmp/hoi_$*-amd64/bin
+	mkdir -p /tmp/hoi_$*-amd64/sbin
+	mkdir -p /tmp/hoi_$*-amd64/usr/lib/tmpfiles.d
+	mkdir -p /tmp/hoi_$*-amd64/etc/hoi
+	mkdir -p /tmp/hoi_$*-amd64/etc/systemd/system
+	mkdir -p /tmp/hoi_$*-amd64/DEBIAN/
+	echo "Package: hoi" >> /tmp/hoi_$*-amd64/DEBIAN/control
+	echo "Version: $*" >> /tmp/hoi_$*-amd64/DEBIAN/control
+	echo "Architecture: amd64" >> /tmp/hoi_$*-amd64/DEBIAN/control
+	echo "Depends: systemd (>= 215)" >> /tmp/hoi_$*-amd64/DEBIAN/control
+	echo "Maintainer: Atelier Disko <info@atelierdisko.de>" >> /tmp/hoi_$*-amd64/DEBIAN/control
+	echo "Description: Bare Metal PaaS" >> /tmp/hoi_$*-amd64/DEBIAN/control
+	echo " Hoi is a host management program that orchestrates other services,"  >> /tmp/hoi_$*-amd64/DEBIAN/control
+	echo " so projects can be hosted with the execution of just one command." >> /tmp/hoi_$*-amd64/DEBIAN/control
+	VERSION=$* GOOS=linux GOARCH=amd64 FLAG_PREFIX= PREFIX=/tmp/hoi_$*-amd64 make install
+	dpkg-deb --build /tmp/hoi_$*-amd64
+	cp /tmp/hoi_$*-amd64.deb $@
