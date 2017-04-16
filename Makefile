@@ -79,30 +79,29 @@ unit-tests:
 ifneq ($(wildcard /vagrant),)
 .PHONY: system-tests
 export TEST_HOIFILE
-system-tests:
+system-tests: $(PREFIX)/var/www/example
 	PREFIX= make uninstall
 	rm -fr /etc/hoi
-	rm -fr /var/www/example
 
 	VERSION=test PREFIX= make install
 	sed -i -e "s|useLegacy = false|useLegacy = true|g" /etc/hoi/hoid.conf
 	sed -i -e "s|user = \"hoi\"|user = \"root\"|g" /etc/hoi/hoid.conf
 	sed -i -e "s|password = \"s3cret\"|password = \"vagrant\"|g" /etc/hoi/hoid.conf
-
-	mkdir -p /var/www/example
-	mkdir -p /var/www/example/config/ssl
-	openssl genrsa -out /var/www/example/config/ssl/example.org.key 2048
-	openssl req -new -x509 -sha256 -nodes -days 365 \
-		-key /var/www/example/config/ssl/example.org.key \
-		-out /var/www/example/config/ssl/example.org.crt \
-		-subj /C=DE/ST=Hamburg/L=Hamburg/O=None/OU=None/CN=example.org/subjectAltName=DNS.1=www.example.org
-	mkdir -p /var/www/example/assets
-	mkdir -p /var/www/example/media
-	mkdir -p /var/www/example/media_versions
-	mkdir -p /var/www/example/app/webroot
-	touch /var/www/example/app/webroot/index.php
-	echo "$$TEST_HOIFILE" > /var/www/example/Hoifile
 endif
+
+$(PREFIX)/var/www/example:
+	mkdir -p $(PREFIX)/var/www/example
+	mkdir -p $(PREFIX)/var/www/example/config/ssl
+	openssl genrsa -out $(PREFIX)/var/www/example/config/ssl/example.org.key 2048
+	openssl req -new -x509 -sha256 -nodes -days 365 \
+		-key $(PREFIX)/var/www/example/config/ssl/example.org.key \
+		-out $(PREFIX)/var/www/example/config/ssl/example.org.crt \
+		-subj /C=DE/ST=Hamburg/L=Hamburg/O=None/OU=None/CN=example.org/subjectAltName=DNS.1=www.example.org
+	mkdir -p $(PREFIX)/var/www/example/assets
+	mkdir -p $(PREFIX)/var/www/example/media
+	mkdir -p $(PREFIX)/var/www/example/app/webroot
+	touch $(PREFIX)/var/www/example/app/webroot/index.php
+	echo "$$TEST_HOIFILE" > $(PREFIX)/var/www/example/Hoifile
 
 $(PREFIX)/bin/%: dist/%
 	install -m 555 $< $@
