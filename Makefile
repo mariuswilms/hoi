@@ -56,7 +56,10 @@ install: $(PREFIX)/bin/hoictl $(PREFIX)/sbin/hoid $(CONF_FILES) $(PREFIX)/usr/li
 uninstall:
 	rm -f $(PREFIX)/bin/hoictl
 	rm -f $(PREFIX)/sbin/hoid
-	# Leave configuration as is, as user might have customized it.
+	rm -f $(PREFIX)/usr/lib/tmpfiles.d/hoi.conf
+	rm -f $(PREFIX)/etc/systemd/system/hoid.service
+	# Leave other configuration as is, as user might have customized it.
+	# Leave database file.
 
 .PHONY: clean
 clean:
@@ -80,7 +83,6 @@ system-tests:
 	PREFIX= make uninstall
 	rm -fr /etc/hoi
 	rm -fr /var/www/example
-	rm -f /usr/lib/tmpfiles.d/hoi.conf /etc/systemd/system/hoid.service
 
 	VERSION=test PREFIX= make install
 	sed -i -e "s|useLegacy = false|useLegacy = true|g" /etc/hoi/hoid.conf
