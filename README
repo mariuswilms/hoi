@@ -25,8 +25,8 @@ pre-defined set of established/no-nonsense technologies.
 Reasoning
 ---------
 Hoi has been created to ease hosting of the growing number of Atelier Disko
-client projects. By minimizing project setup costs, we wanted to enable us
-to conduct quick experiments.
+client projects. By minimizing project setup costs, we want to enable
+ourselves to conduct experiments quickly.
 
 "It's as complicated as you want it to be." [0]
 
@@ -51,7 +51,7 @@ something for you.
 
 What's inside?
 --------------
-Hoi consist of a server (hoid) backend and client (hoictl) to control the
+Hoi consists of a server (hoid) backend and a client (hoictl) to control the
 server. It features several modules ("runners") which take care of the needs
 of a project.
 
@@ -169,14 +169,14 @@ The Go language >= 1.5 is required to build the project.
 
 Hoi is continously tested on Linux and Darwin.
 
+Generally systemd(1) is required
+  Recent systemd versions are always supported, older ones (i.e. 215) are
+  probably supported via the "useLegacy" option.
+
 The web runner requires nginx(8) and openssl(1)
   The default template for NGINX will log to syslog/journald. This feature is
   available in NGINX >= 1.7.1. To lower this version requirement the "useLegacy"
   option can be enabled (which will log to STDERR instead).
-
-The cron and worker runners require systemd(1)
-  Recent systemd versions are always supported, older ones (i.e. 215) are
-  probably supported via the "useLegacy" option.
 
 The PHP runner requires php-fpm(8)
   If you don't enable this runner you can drop this requirement.
