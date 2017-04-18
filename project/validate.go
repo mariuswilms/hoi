@@ -33,6 +33,19 @@ func (cfg Config) Validate() error {
 		return ""
 	}
 
+	// Basic
+	//
+	// Must have context, we can't autodetect this.
+	if cfg.Context == ContextUnknown {
+		return fmt.Errorf("project has no context: %s", cfg.Path)
+	}
+
+	if cfg.Webroot == "" {
+		return fmt.Errorf("project has no webroot: %s", cfg.Path)
+	} else if filepath.IsAbs(cfg.Webroot) {
+		return fmt.Errorf("webroot must not be absolute: %s", cfg.Webroot)
+	}
+
 	// TLD mustn't be "dev" outside dev contexts. Common neglect.
 	if cfg.Context != ContextDevelopment {
 		for _, v := range cfg.Domain {
@@ -50,19 +63,6 @@ func (cfg Config) Validate() error {
 				}
 			}
 		}
-	}
-
-	// Basic
-	//
-	// Must have context, we can't autodetect this.
-	if cfg.Context == ContextUnknown {
-		return fmt.Errorf("project has no context: %s", cfg.Path)
-	}
-
-	if cfg.Webroot == "" {
-		return fmt.Errorf("project has no webroot: %s", cfg.Path)
-	} else if filepath.IsAbs(cfg.Webroot) {
-		return fmt.Errorf("webroot must not be absolute: %s", cfg.Webroot)
 	}
 
 	creds := make(map[string]string)
