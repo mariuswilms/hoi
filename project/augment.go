@@ -184,7 +184,7 @@ func (cfg *Config) Augment() error {
 	for k, _ := range cfg.Domain {
 		e := cfg.Domain[k]
 
-		if e.Auth.Password != "" {
+		if e.Auth.Password != "" && e.Auth.User == "" {
 			e.Auth.User = cfg.Name
 			log.Printf("- guessed auth user: %s", e.Auth.User)
 		}
