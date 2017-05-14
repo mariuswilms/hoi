@@ -43,10 +43,10 @@ func (cfg *Config) Augment() error {
 		log.Printf("- guessed project name: %s", cfg.Name)
 	}
 
-	// Discover the webroot by looking a common names and files
-	// contained within such a directory. We must take care to not
-	// mistakenly expose a directory publicly with contains sensitive
-	// material.
+	// Discover the webroot by looking at common names and files
+	// contained within such a directory. We must take care not to
+	// publicly expose a directory that contains sensitive
+	// material by mistake.
 	//
 	// If we find a directory named "webroot" this is a strong
 	// indication it is intended as such.
