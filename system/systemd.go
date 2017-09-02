@@ -21,9 +21,10 @@ import (
 
 // The hoi-internal kind of units we manage.
 const (
-	SystemdKindCron   = "cron"
-	SystemdKindWorker = "worker"
-	SystemdKindVolume = "volume"
+	SystemdKindAppService = "app_service"
+	SystemdKindCron       = "cron"
+	SystemdKindWorker     = "worker"
+	SystemdKindVolume     = "volume"
 )
 
 func NewSystemd(kind string, p *project.Config, s *server.Config, conn *dbus.Conn) *Systemd {

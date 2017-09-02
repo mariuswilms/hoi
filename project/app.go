@@ -1,0 +1,74 @@
+// Copyright 2017 Atelier Disko. All rights reserved.
+//
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+package project
+
+import (
+	"fmt"
+	"net"
+)
+
+type AppKind string
+
+const (
+	AppKindUnknown AppKind = ""
+	// Project consisting of static contents only which can directly be
+	// served by a HTTP server.
+	AppKindStatic = "static"
+	// A generic service that starts a HTTP server and we proxy to.
+	AppKindService = "service"
+	// A project that uses .php files and optionally routes all requests
+	// through a front controller.
+	AppKindPHP = "php"
+)
+
+type AppDirective struct {
+	// The kind of app we are using.
+	Kind AppKind
+	// Used only for service backends. Defaults to localhost.
+	Host string
+	// Used only for service backends. By default picks the next free
+	// non-privileged port from range.
+	Port uint16
+	// Holds a command string, that starts a HTTP server. The command
+	// can either be a path (relative to project root or absolute)
+	// or a template which evaluates to one of both. Templates may
+	// reference P (the project configuration).
+	//
+	//   bin/server -l {.P.App.Host}:{.P.App.Port}
+	//
+	// Used only for service apps.
+	Command `hcl:",squash"`
+	// Whether we want to use "pretty URLs" by rewriting the incoming
+	// URLs as a GET parameter of the front controller file.
+	//
+	//   /foo/bar -> /index.html?/foo/bar
+	//
+	// Used only for static and PHP apps.
+	UseFrontController bool
+	// Whether we can use try_files in NGINX for rewrites into the
+	// front controller or not; optional and will be autodetected.
+	// Older PHP frameworks will need this.
+	//
+	// Used only for static and PHP apps.
+	UseLegacyFrontController bool
+}
+
+// Returns next available port number we want to assign to the app.
+func (drv AppDirective) GetFreePort(p *Config) (uint16, error) {
+	port := uint16(0)
+	addr, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("%s:%d", drv.Host, port))
+
+	if err != nil {
+		return port, err
+	}
+	l, err := net.ListenTCP("tcp", addr)
+	if err != nil {
+		return port, err
+	}
+	port = uint16(l.Addr().(*net.TCPAddr).Port)
+	l.Close()
+	return port, nil
+}

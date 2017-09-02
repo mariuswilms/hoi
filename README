@@ -36,7 +36,7 @@ choosing a classic shared hosting architechture are re-invested into providing
 a stable, secure and performant hosting environment with good resource
 utilization.
 
-Our projects are primarly PHP-based web applications. They are distinct in what
+Our projects are primarly Go and PHP-based web applications. They are distinct in what
 they do but pretty uniform in how the are structured and in the technology they
 need.
 
@@ -51,14 +51,19 @@ something for you.
 
 What's inside?
 --------------
-Hoi consists of a server (hoid) backend and a client (hoictl) to control the
-server. It features several modules ("runners") which take care of the needs
-of a project.
+Hoi consists of a server (hoid) and a client (hoictl) to control and
+query the server. It features several modules ("runners") which take
+care of the needs of a project.
 
 - "web"
   Serves the project under given domains, taking care of SSL
   certificates and basic auth where needed.
   https://godoc.org/github.com/atelierdisko/hoi/runner#WebRunner
+
+- "app service"
+  Allows to use any service (built with i.e. Go, Node.js or Python) that can
+  handle HTTP as a web backend.
+  https://godoc.org/github.com/atelierdisko/hoi/runner#HTTPBackendRunner
 
 - "php"
   Safely enables per project PHP(1) settings.
@@ -134,6 +139,8 @@ A more advanced Hoifile might look like this:
 	isTemporary = true
   }
 
+Loading and unloading the Hoifile
+---------------------------------
 Once a project contains a Hoifile, it's loaded with a single command:
 $ cd /var/www/foo
 $ hoictl load
@@ -142,6 +149,29 @@ The loaded configuration can be further manipulated i.e. by adding an
 alias to a domain:
 $ hoictl domain example.org --alias=example.com
 
+Choosing an App HTTP Backend
+----------------------------
+Hoi understands 3 different kinds of app HTTP backends: "static", "php" and
+"service". Hoi will automatically discover the app backend kind and most of
+its configuration. If you however wish to fine tune it, you can do so using
+the "app" directive.
+
+  app {
+    kind = "php"
+    useFrontController = true
+  }
+
+The "service" backend requires you to provide a command, that when
+executed, starts a HTTP service on the given port. Specifying host and
+port is optional, by default localhost and the next free port is used.
+SSL termination happens before it reaches the app.
+
+  app {
+    kind = "service"
+    command = "bin/server -l {.P.App.Host}:{.P.App.Port}"
+    # host = "192.168.1.23"
+    # port = "8080"
+  }
 
 Server Configuration: hoid.conf
 ===============================

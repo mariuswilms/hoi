@@ -48,7 +48,7 @@ func (r PHPRunner) Disable() error {
 }
 
 func (r PHPRunner) Enable() error {
-	if r.p.Kind != project.KindPHP {
+	if r.p.App.Kind != project.AppKindPHP {
 		return nil // nothing to do
 	}
 	tS, err := r.build.LoadTemplate("php.ini")

@@ -251,6 +251,9 @@ func runners(pCfg *project.Config) []runner.Runnable {
 	if Config.PHP.Enabled {
 		runners = append(runners, runner.NewPHPRunner(Config, pCfg, SystemdConn))
 	}
+	if Config.AppService.Enabled {
+		runners = append(runners, runner.NewAppServiceRunner(Config, pCfg, SystemdConn))
+	}
 	if Config.Web.Enabled {
 		runners = append(runners, runner.NewWebRunner(Config, pCfg, SystemdConn))
 	}

@@ -59,14 +59,6 @@ const (
 	ContextProduction              = "prod"
 )
 
-type KindType string
-
-const (
-	KindUnknown KindType = ""
-	KindPHP     KindType = "php"
-	KindStatic  KindType = "static"
-)
-
 // The main project configuration is provided by the Hoifile: a per
 // project configuration file which defines the needs of a project hoi
 // will try to fullfill.
@@ -89,21 +81,13 @@ type Config struct {
 	// The name of the context the project is running in:
 	// one of "dev", "stage" or "prod"; required.
 	Context ContextType
-	// Type of the project; autodetected.
-	Kind KindType
+	// App backend configuration; mostly detected automatically.
+	App AppDirective
 	// A path relative to the project path. If the special value "."
 	// is given webroot is equal to the project path. A webroot is the
 	// directory exposed under the root of the domains any may contain
 	// a front controller; optional, will be autodetected.
 	Webroot string
-	// Whether we want to use "pretty URLs" by rewriting the incoming
-	// URLs as a GET parameter of the front controller file.
-	//   /foo/bar -> /index.html?/foo/bar
-	UseFrontController bool
-	// Whether we can use try_files in NGINX for rewrites into the
-	// front controller or not; optional and will be autodetected. Older
-	// PHP frameworks will need this.
-	UseLegacyFrontController bool
 	// Whether the app can receive uploads at all (limited to 20MB).
 	UseUploads bool
 	// Whether the app can receive large uploads. Normally upload size

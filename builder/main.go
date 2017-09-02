@@ -19,11 +19,12 @@ import (
 )
 
 const (
-	KindWeb    = "web"
-	KindPHP    = "php"
-	KindCron   = "cron"
-	KindWorker = "worker"
-	KindVolume = "volume"
+	KindWeb        = "web"
+	KindAppService = "app_service"
+	KindPHP        = "php"
+	KindCron       = "cron"
+	KindWorker     = "worker"
+	KindVolume     = "volume"
 )
 
 func NewBuilder(kind string, p *project.Config, s *server.Config) *Builder {

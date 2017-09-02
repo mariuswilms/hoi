@@ -44,7 +44,7 @@ type CronDirective struct {
 // these (together with the project ID) are assumed to be unique enough.
 func (drv CronDirective) GetID() string {
 	if drv.Name == "" {
-		return fmt.Sprintf("%x", adler32.Checksum([]byte(drv.Command)))
+		return fmt.Sprintf("%x", adler32.Checksum([]byte(drv.Command.Command)))
 	}
 	return drv.Name
 }

@@ -95,26 +95,44 @@ func (cfg *Config) Augment() error {
 		log.Printf("- found webroot in: %s", cfg.Webroot)
 	}
 
-	// Detect which type of application this is first.
-	if _, err := os.Stat(cfg.GetAbsoluteWebroot() + "/index.html"); err == nil {
-		log.Print("- detected static project")
-		cfg.Kind = KindStatic
-	} else {
-		if _, err := os.Stat(cfg.GetAbsoluteWebroot() + "/index.php"); err == nil {
-			log.Print("- detected PHP project")
-			cfg.Kind = KindPHP
+	if cfg.App.Kind == AppKindUnknown {
+		if cfg.App.HasCommand() {
+			log.Print("- detected service app")
+			cfg.App.Kind = AppKindService
+		} else if _, err := os.Stat(cfg.GetAbsoluteWebroot() + "/index.html"); err == nil {
+			log.Print("- detected static app")
+			cfg.App.Kind = AppKindStatic
+		} else if _, err := os.Stat(cfg.GetAbsoluteWebroot() + "/index.php"); err == nil {
+			log.Print("- detected PHP app")
+			cfg.App.Kind = AppKindPHP
 		} else if _, err := os.Stat(cfg.Path + "/app/composer.json"); err == nil {
-			log.Print("- detected PHP project")
-			cfg.Kind = KindPHP
+			log.Print("- detected PHP app")
+			cfg.App.Kind = AppKindPHP
 		} else {
-			return fmt.Errorf("failed to detect project type in: %s", cfg.Path)
+			return fmt.Errorf("failed to detect app kind in: %s", cfg.Path)
 		}
 	}
 
-	log.Print("- found front controller, routing requests through it")
-	cfg.UseFrontController = true
+	if cfg.App.Kind == AppKindService {
+		if cfg.App.Host == "" {
+			cfg.App.Host = "localhost"
+		}
+		if cfg.App.Port == 0 {
+			freeport, err := cfg.App.GetFreePort(cfg)
+			if err != nil {
+				return err
+			}
+			cfg.App.Port = freeport
+			log.Printf("- assigned port %d to app service", cfg.App.Port)
+		}
+	}
 
-	if cfg.Kind == KindPHP && cfg.UseFrontController {
+	if cfg.App.Kind == AppKindPHP || cfg.App.Kind == AppKindStatic {
+		log.Print("- enabling front controller, routing requests through it")
+		cfg.App.UseFrontController = true
+	}
+
+	if cfg.App.Kind == AppKindPHP && cfg.App.UseFrontController {
 		// Detect oldish versions of CakePHP by inspecting the front controller
 		// file for certain string patterns. CakePHP version >= use uppercased "Cake"
 		// string.
@@ -124,7 +142,7 @@ func (cfg *Config) Augment() error {
 		}
 		if legacy {
 			log.Print("- using legacy front controller")
-			cfg.UseLegacyFrontController = true
+			cfg.App.UseLegacyFrontController = true
 		}
 	}
 

@@ -48,6 +48,7 @@ type Config struct {
 	Web          WebDirective
 	NGINX        NGINXDirective
 	SSL          SSLDirective
+	AppService   AppServiceDirective
 	PHP          PHPDirective
 	Cron         CronDirective
 	Worker       WorkerDirective
@@ -72,6 +73,9 @@ type NGINXDirective struct {
 type SSLDirective struct {
 	Enabled bool
 	RunPath string
+}
+type AppServiceDirective struct {
+	Enabled bool
 }
 type PHPDirective struct {
 	Enabled bool
