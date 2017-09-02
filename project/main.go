@@ -91,10 +91,10 @@ type Config struct {
 	Context ContextType
 	// Type of the project; autodetected.
 	Kind KindType
-	// A path relative to the project path. If the special value "." is given
-	// webroot is equal to the project path. A webroot is the directory exposed
-	// under the root of the domains any may contain a front controller; optional,
-	// will be autodetected.
+	// A path relative to the project path. If the special value "."
+	// is given webroot is equal to the project path. A webroot is the
+	// directory exposed under the root of the domains any may contain
+	// a front controller; optional, will be autodetected.
 	Webroot string
 	// Whether we want to use "pretty URLs" by rewriting the incoming
 	// URLs as a GET parameter of the front controller file.

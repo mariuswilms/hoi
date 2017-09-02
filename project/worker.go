@@ -24,7 +24,9 @@ type WorkerDirective struct {
 	Instances int
 	// Holds a command string which can be either a path (relative to project root
 	// or absolute) or a template which evaluates to one of both. Templates may
-	// reference P (the project configuration).
+	// reference P (the project configuration):
+	//
+	//   bin/cute-worker --scope={{.P.Name}}_{{.P.Context}}
 	//
 	// Commands will be executed with the project root path as the current working
 	// directory.
