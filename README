@@ -8,10 +8,10 @@
 
 Synopsis
 --------
-Hoi is a host management program that orchestrates other services, so projects
-can be hosted with the execution of just one command. It automates setting up
-several aspects of a project i.e. SSL certificates, databases, cron jobs and
-HTTP auth for staging areas.
+Hoi is a host management program that orchestrates other services, so web
+projects can be hosted with the execution of just one command. It automates
+setting up several aspects of a project i.e. SSL certificates, databases, cron
+jobs and HTTP auth for staging areas.
 
 Aspects of a project are defined by the Hoifile, a short and sweet per project
 configuration file.
@@ -25,7 +25,7 @@ pre-defined set of established/no-nonsense technologies.
 Reasoning
 ---------
 Hoi has been created to ease hosting of the growing number of Atelier Disko
-client projects. By minimizing project setup costs, we want to enable
+client web projects. By minimizing project setup costs, we want to enable
 ourselves to conduct experiments quickly.
 
 "It's as complicated as you want it to be." [0]
