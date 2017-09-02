@@ -6,12 +6,8 @@
 package project
 
 import (
-	"bytes"
 	"fmt"
 	"hash/adler32"
-	"path/filepath"
-	"strings"
-	"text/template"
 )
 
 // Jobs that are run on a regular basis are configured via the cron
@@ -32,11 +28,11 @@ type CronDirective struct {
 	// or absolute) or a template which evaluates to one of both. Templates may
 	// reference P (the project configuration):
 	//
-	//   bin/cute-worker --scope={{.P.Name}}_{{.P.Context}}
+	//   bin/li3.php jobs runFrequency low --scope={{.P.Name}}_{{.P.Context}}
 	//
 	// Commands will be executed with the project root path as the current working
 	// directory.
-	Command string
+	Command `hcl:",squash"`
 }
 
 // Generates the ID for the directive, prefers the plain Name, if that
@@ -47,39 +43,4 @@ func (drv CronDirective) GetID() string {
 		return fmt.Sprintf("%x", adler32.Checksum([]byte(drv.Command.Command)))
 	}
 	return drv.Name
-}
-
-// Returns (parsed and) absolute command string.
-//
-// Command strings may use template syntax (project configuration
-// is made available as P). Will parse only when necessarry, most
-// commands will not use templating.
-//
-// When used inside systemd service unit files paths need to be
-// absolute. When a command string is non absolute it will be treated
-// as being relative to the project root directory and made absolute.
-func (drv CronDirective) GetCommand(p *Config) (string, error) {
-	var cmd string
-
-	if !strings.Contains(drv.Command, "{{") {
-		cmd = drv.Command
-	} else {
-		cmdTmplData := struct {
-			P *Config
-		}{
-			P: p,
-		}
-		buf := new(bytes.Buffer)
-		cmdT := template.New("cmd")
-		cmdT.Parse(drv.Command)
-
-		if err := cmdT.Execute(buf, cmdTmplData); err != nil {
-			return "", err
-		}
-		cmd = buf.String()
-	}
-	if !filepath.IsAbs(cmd) {
-		cmd = filepath.Join(p.Path, cmd)
-	}
-	return cmd, nil
 }
