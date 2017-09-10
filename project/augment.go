@@ -229,7 +229,7 @@ func (cfg Config) discoverWebroot() (string, error) {
 	}
 
 	var breakWalk = errors.New("stopped walk early")
-	var string webroot
+	var webroot string
 
 	err := filepath.Walk(cfg.Path, func(path string, f os.FileInfo, err error) error {
 		if err != nil {
