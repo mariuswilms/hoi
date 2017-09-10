@@ -43,7 +43,7 @@ func (cfg *Config) Augment() error {
 		log.Printf("- guessed project name: %s", cfg.Name)
 	}
 
-	webroot, err = cfg.discoverWebroot()
+	webroot, err := cfg.discoverWebroot()
 	if err != nil {
 		return err
 	}
@@ -221,6 +221,9 @@ func fileContainsString(file string, search string) (bool, error) {
 func (cfg Config) discoverWebroot() (string, error) {
 	// For performance reasons look in common places first, than
 	// fallback to walking the entire tree.
+	if cfg.App.HasCommand() {
+		return ".", nil
+	}
 	if _, err := os.Stat(cfg.Path + "/app/webroot"); err == nil {
 		return "app/webroot", nil
 	}
