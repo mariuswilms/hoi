@@ -46,9 +46,10 @@ func (cfg Config) Validate() error {
 		return fmt.Errorf("webroot must not be absolute: %s", cfg.Webroot)
 	}
 
-	// TLD mustn't be "dev" outside dev contexts. Common neglect.
-	if cfg.Context != ContextDevelopment {
-		for _, v := range cfg.Domain {
+	creds := make(map[string]string)
+	for _, v := range cfg.Domain {
+		// TLD mustn't be "dev" outside dev contexts. Common neglect.
+		if cfg.Context != ContextDevelopment {
 			if TLD(v.FQDN) == "dev" {
 				return fmt.Errorf(".dev TLD in %s context: %s", cfg.Context, v.FQDN)
 			}
@@ -63,10 +64,7 @@ func (cfg Config) Validate() error {
 				}
 			}
 		}
-	}
 
-	creds := make(map[string]string)
-	for _, v := range cfg.Domain {
 		// Authentication
 		//
 		// Auth credentials setting must follow dedicated pattern.
