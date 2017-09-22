@@ -17,9 +17,13 @@ import (
 	"github.com/hashicorp/hcl"
 )
 
+// The current format version. Incremented by one whenever the format changes.
+const FormatVersion uint16 = 2
+
 func New(id string) (*Config, error) {
 	cfg := &Config{
-		ID: id,
+		FormatVersion: FormatVersion,
+		ID:            id,
 	}
 	return cfg, nil
 }
@@ -27,8 +31,9 @@ func New(id string) (*Config, error) {
 // Assumes f is in the root of the project.
 func NewFromFile(f string) (*Config, error) {
 	cfg := &Config{
-		ID:   PathToID(filepath.Dir(f)),
-		Path: filepath.Dir(f),
+		FormatVersion: FormatVersion,
+		ID:            PathToID(filepath.Dir(f)),
+		Path:          filepath.Dir(f),
 	}
 
 	b, err := ioutil.ReadFile(f)
@@ -46,7 +51,8 @@ func NewFromFile(f string) (*Config, error) {
 
 func NewFromString(s string) (*Config, error) {
 	cfg := &Config{
-		ID: fmt.Sprintf("memory:%x", adler32.Checksum([]byte(s))),
+		FormatVersion: FormatVersion,
+		ID:            fmt.Sprintf("memory:%x", adler32.Checksum([]byte(s))),
 	}
 	return decodeInto(cfg, s)
 }
@@ -55,6 +61,7 @@ func decodeInto(cfg *Config, s string) (*Config, error) {
 	if err := hcl.Decode(cfg, s); err != nil {
 		return cfg, err
 	}
+	log.Printf("decoding project configuration in format version %d", cfg.FormatVersion)
 
 	// key is FQDN
 	for k, _ := range cfg.Domain {
@@ -142,6 +149,9 @@ const (
 // configuration is filled in by discovering the projects needs (through
 // Augment()).
 type Config struct {
+	// The internal project configuration format version.
+	FormatVersion uint16
+
 	// The ID of the project, will be computed for you.
 	ID string
 	// The absolute path to the project root; required but will

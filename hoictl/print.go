@@ -33,9 +33,10 @@ import (
 // FIXME: Use go text template for generating output.
 func printProject(e store.Entity) {
 	fmt.Printf("● %-20s\n", e.Project.PrettyName())
-	fmt.Printf(" %8s: %s\n", "ID", e.Project.ID)
-	fmt.Printf(" %8s: **%s**\n", "Status", e.Meta.Status)
-	fmt.Printf(" %8s: %s\n", "Path", e.Project.Path)
+	fmt.Printf(" %14s: %s\n", "ID", e.Project.ID)
+	fmt.Printf(" %14s: **%s**\n", "Status", e.Meta.Status)
+	fmt.Printf(" %14s: %s\n", "Path", e.Project.Path)
+	fmt.Printf(" %14s: %d\n", "Format Version", e.Project.FormatVersion)
 
 	if len(e.Project.Domain) > 0 {
 		fmt.Printf(" %8s: %d\n", "Domain", len(e.Project.Domain))

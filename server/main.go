@@ -15,12 +15,14 @@ import (
 	"github.com/hashicorp/hcl"
 )
 
+// The current format version. Incremented by one whenever the format changes.
+const FormatVersion uint16 = 2
+
 func New() (*Config, error) {
-	cfg := &Config{}
-	return cfg, nil
+	return &Config{FormatVersion: FormatVersion}, nil
 }
 func NewFromFile(f string) (*Config, error) {
-	cfg := &Config{}
+	cfg := &Config{FormatVersion: FormatVersion}
 
 	b, err := ioutil.ReadFile(f)
 	if err != nil {
@@ -34,11 +36,13 @@ func NewFromFile(f string) (*Config, error) {
 	return cfg, err
 }
 func NewFromString(s string) (*Config, error) {
-	cfg := &Config{}
-	return decodeInto(cfg, s)
+	return decodeInto(&Config{FormatVersion: FormatVersion}, s)
 }
 
 type Config struct {
+	// The internal server configuration format version.
+	FormatVersion uint16
+
 	// Administrator email address.
 	Email string
 	// Use these user/group when possible i.e. in
@@ -108,11 +112,11 @@ type MySQLDirective struct {
 }
 
 func decodeInto(cfg *Config, s string) (*Config, error) {
-	err := hcl.Decode(cfg, s)
-
-	if err != nil {
+	if err := hcl.Decode(cfg, s); err != nil {
 		return cfg, err
 	}
+	log.Printf("decoding server configuration in format version %d", cfg.FormatVersion)
+
 	cfg.TemplatePath, _ = filepath.Abs(cfg.TemplatePath)
 	cfg.BuildPath, _ = filepath.Abs(cfg.BuildPath)
 
