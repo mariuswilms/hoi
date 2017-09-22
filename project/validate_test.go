@@ -5,9 +5,7 @@
 
 package project
 
-import (
-	"testing"
-)
+import "testing"
 
 func TestValidBasicRequirements(t *testing.T) {
 	hoifile := `
@@ -710,8 +708,8 @@ domain example.org {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if cfg.Validate() != nil {
-		t.Error("failed to validate self-signed SSL cert in dev context")
+	if err := cfg.Validate(); err != nil {
+		t.Errorf("failed to validate self-signed SSL cert in dev context: %s", err)
 	}
 }
 

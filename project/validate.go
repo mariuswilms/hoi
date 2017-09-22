@@ -136,18 +136,17 @@ func (cfg Config) validateDomainsAuth() error {
 func (cfg Config) validateDomainsSSL() error {
 	for _, v := range cfg.Domain {
 		if v.SSL.CertificateKey != "" && v.SSL.Certificate != "" {
-			if v.SSL.CertificateKey[0] == '!' || v.SSL.Certificate[0] == '!' {
-				if v.SSL.CertificateKey != v.SSL.Certificate {
-					return fmt.Errorf("cert and key indicate mix of special and regular action for domain: %s", v.FQDN)
-				}
-				if v.SSL.CertificateKey == v.SSL.Certificate && cfg.Context == ContextProduction {
-					return fmt.Errorf("self-signed certs are not allowed in %s contexts, domain: %s", cfg.Context, v.FQDN)
-				}
-			} else if filepath.IsAbs(v.SSL.CertificateKey) || filepath.IsAbs(v.SSL.Certificate) {
-				return fmt.Errorf("cert or key path is absolute, must be relative, domain: %s", v.FQDN)
+			if v.SSL.Certificate == CertSelfSigned && cfg.Context == ContextProduction {
+				return fmt.Errorf("self-signed certificates are not allowed in %s contexts, domain: %s", cfg.Context, v.FQDN)
+			}
+			if v.SSL.Certificate[0] != '!' && filepath.IsAbs(v.SSL.Certificate) {
+				return fmt.Errorf("certificate path is absolute, must be relative, domain: %s", v.FQDN)
+			}
+			if v.SSL.CertificateKey[0] != '!' && filepath.IsAbs(v.SSL.CertificateKey) {
+				return fmt.Errorf("certificate key path is absolute, must be relative, domain: %s", v.FQDN)
 			}
 		} else if v.SSL.CertificateKey != "" || v.SSL.Certificate != "" {
-			return fmt.Errorf("only cert or key set for domain: %s", v.FQDN)
+			return fmt.Errorf("only certificate or its key set for domain: %s", v.FQDN)
 		}
 	}
 	return nil

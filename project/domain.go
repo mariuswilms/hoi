@@ -78,6 +78,12 @@ func (drv AuthDirective) IsEnabled() bool {
 const (
 	// Will generate a self-signed cert on the fly.
 	CertSelfSigned = "!self-signed"
+	// Will use Let's Encrypt service to obtain and renew certificates.
+	CertLetsEncrypt = "!lets-encrypt"
+)
+const (
+	// Automatically generates certificate key.
+	CertKeyGenerate = "!generate"
 )
 
 // Certificate files should be named after the domain they belong to. Symlinks
@@ -85,6 +91,7 @@ const (
 type SSLDirective struct {
 	// Paths to certificate and certificate key. Paths must be
 	// relative to project root i.e. config/ssl/example.org.crt.
+	// Special strings beginning with "!" can also be used.
 	Certificate    string
 	CertificateKey string
 }

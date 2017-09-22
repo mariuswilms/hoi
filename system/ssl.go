@@ -43,10 +43,10 @@ func (sys *SSL) Install(domain string, ssl project.SSLDirective) error {
 	targetKey := fmt.Sprintf("%s/private/%s_%s.key", sys.s.SSL.RunPath, ns, domain)
 
 	switch ssl.CertificateKey {
-	case project.CertSelfSigned:
+	case project.CertKeyGenerate:
 		cmd := []string{"genrsa", "-out", targetKey, "2048"}
 		if err := exec.Command("openssl", cmd...).Run(); err != nil {
-			return fmt.Errorf("failed to generate self signed SSL cert key to %s: %s", targetKey, err)
+			return fmt.Errorf("failed to generate SSL cert key to %s: %s", targetKey, err)
 		}
 	default:
 		path := filepath.Join(sys.p.Path, ssl.CertificateKey)
