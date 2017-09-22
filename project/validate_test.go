@@ -85,9 +85,9 @@ func TestInvalidDomainInProdContext(t *testing.T) {
 	hoifile := `
 context = "prod"
 webroot = "app/webroot"
-domain example.dev {
-	aliases = ["example.com", "xmpp.dev"]
-	redirects = ["foo.dev", "bar.org"]
+domain example.test {
+	aliases = ["example.com", "xmpp.test"]
+	redirects = ["foo.test", "bar.org"]
 }
 `
 	cfg, err := NewFromString(hoifile)
@@ -104,7 +104,7 @@ func TestInvalidAliasInProdContext(t *testing.T) {
 context = "prod"
 webroot = "app/webroot"
 domain example.org {
-	aliases = ["example.com", "xmpp.dev"]
+	aliases = ["example.com", "xmpp.test"]
 	redirects = ["foo.org", "bar.org"]
 }
 `
@@ -123,7 +123,7 @@ context = "prod"
 webroot = "app/webroot"
 domain example.org {
 	aliases = ["example.com", "xmpp.com"]
-	redirects = ["foo.dev", "bar.org"]
+	redirects = ["foo.test", "bar.org"]
 }
 `
 	cfg, err := NewFromString(hoifile)
@@ -157,9 +157,9 @@ func TestInvalidDomainInStageContext(t *testing.T) {
 	hoifile := `
 context = "stage"
 webroot = "app/webroot"
-domain example.dev {
-	aliases = ["example.com", "xmpp.dev"]
-	redirects = ["foo.dev", "bar.org"]
+domain example.test {
+	aliases = ["example.com", "xmpp.test"]
+	redirects = ["foo.test", "bar.org"]
 }
 `
 	cfg, err := NewFromString(hoifile)
@@ -176,7 +176,7 @@ func TestInvalidAliasInStageContext(t *testing.T) {
 context = "stage"
 webroot = "app/webroot"
 domain example.org {
-	aliases = ["example.com", "xmpp.dev"]
+	aliases = ["example.com", "xmpp.test"]
 	redirects = ["foo.org", "bar.org"]
 }
 `
@@ -195,7 +195,7 @@ context = "stage"
 webroot = "app/webroot"
 domain example.org {
 	aliases = ["example.com", "xmpp.com"]
-	redirects = ["foo.dev", "bar.org"]
+	redirects = ["foo.test", "bar.org"]
 }
 `
 	cfg, err := NewFromString(hoifile)
@@ -207,13 +207,13 @@ domain example.org {
 	}
 }
 
-func TestValidDevDomainInDevContext(t *testing.T) {
+func TestValidTestDomainInDevContext(t *testing.T) {
 	hoifile := `
 context = "dev"
 webroot = "app/webroot"
-domain example.dev {
-	aliases = ["example.com", "xmpp.dev"]
-	redirects = ["foo.dev", "bar.org"]
+domain example.test {
+	aliases = ["example.com", "xmpp.test"]
+	redirects = ["foo.test", "bar.org"]
 }
 `
 	cfg, err := NewFromString(hoifile)
@@ -225,13 +225,13 @@ domain example.dev {
 	}
 }
 
-func TestValidNonDevDomainInDevContext(t *testing.T) {
+func TestValidNonTestDomainInDevContext(t *testing.T) {
 	hoifile := `
 context = "dev"
 webroot = "app/webroot"
 domain example.org {
-	aliases = ["example.com", "xmpp.dev"]
-	redirects = ["foo.dev", "bar.org"]
+	aliases = ["example.com", "xmpp.test"]
+	redirects = ["foo.test", "bar.org"]
 }
 `
 	cfg, err := NewFromString(hoifile)

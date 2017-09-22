@@ -48,19 +48,19 @@ func (cfg Config) Validate() error {
 
 	creds := make(map[string]string)
 	for _, v := range cfg.Domain {
-		// TLD mustn't be "dev" outside dev contexts. Common neglect.
+		// TLD mustn't be "test" outside dev contexts. Common neglect.
 		if cfg.Context != ContextDevelopment {
-			if TLD(v.FQDN) == "dev" {
-				return fmt.Errorf(".dev TLD in %s context: %s", cfg.Context, v.FQDN)
+			if TLD(v.FQDN) == "test" {
+				return fmt.Errorf("test TLD in %s context: %s", cfg.Context, v.FQDN)
 			}
 			for _, alias := range v.Aliases {
-				if TLD(alias) == "dev" {
-					return fmt.Errorf(".dev TLD in %s context in alias: %s", cfg.Context, alias)
+				if TLD(alias) == "test" {
+					return fmt.Errorf("test TLD in %s context in alias: %s", cfg.Context, alias)
 				}
 			}
 			for _, redirect := range v.Redirects {
-				if TLD(redirect) == "dev" {
-					return fmt.Errorf(".dev TLD in %s context in redirect: %s", cfg.Context, redirect)
+				if TLD(redirect) == "test" {
+					return fmt.Errorf("test TLD in %s context in redirect: %s", cfg.Context, redirect)
 				}
 			}
 		}
