@@ -39,6 +39,8 @@ func NewFromString(s string) (*Config, error) {
 }
 
 type Config struct {
+	// Administrator email address.
+	Email string
 	// Use these user/group when possible i.e. in
 	// systemd unit definitions.
 	User         string
