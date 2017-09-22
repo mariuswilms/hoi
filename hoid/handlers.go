@@ -35,13 +35,11 @@ func handleLoad(path string) error {
 	if err != nil {
 		return fmt.Errorf("failed to parse Hoifile in project %s: %s", pCfg.PrettyName(), err)
 	}
-
 	if err = pCfg.Augment(); err != nil {
-		return fmt.Errorf("failed to discover configuration of project %s: %s", pCfg.PrettyName(), err)
+		return fmt.Errorf("failed to augment config in project %s: %s", pCfg.PrettyName(), err)
 	}
-
 	if err = pCfg.Validate(); err != nil {
-		return fmt.Errorf("cannot load project %s, config did not validate: %s", pCfg.PrettyName(), err)
+		return fmt.Errorf("failed to validate config in project %s: %s", pCfg.PrettyName(), err)
 	}
 
 	steps := make([]func() error, 0)
@@ -136,15 +134,25 @@ func handleReload(path string) error {
 	if !Store.Has(id) {
 		return fmt.Errorf("no project %s in store", id)
 	}
-	Store.WriteStatus(id, project.StatusReloading)
 
 	e, err := Store.Read(id)
 	if err != nil {
-		return fmt.Errorf("failed reloading project, cannot read id %s from store: %s", id, err)
+		return fmt.Errorf("failed to read project at path %s from store: %s", path, err)
+	}
+
+	pCfg, err := project.NewFromFile(e.Project.Path + "/Hoifile")
+	if err != nil {
+		return fmt.Errorf("failed to parse Hoifile in project %s: %s", pCfg.PrettyName(), err)
+	}
+	if err = pCfg.Augment(); err != nil {
+		return fmt.Errorf("failed to augment config in project %s: %s", pCfg.PrettyName(), err)
+	}
+	if err = pCfg.Validate(); err != nil {
+		return fmt.Errorf("failed to validate config in project %s: %s", pCfg.PrettyName(), err)
 	}
 
 	steps := make([]func() error, 0)
-	for _, r := range runners(e.Project) {
+	for _, r := range runners(pCfg) {
 		steps = append(
 			steps,
 			r.Disable,
@@ -153,22 +161,40 @@ func handleReload(path string) error {
 		)
 	}
 
-	if err := performSteps(e.Project, steps); err != nil {
-		Store.WriteStatus(e.Project.ID, project.StatusFailed)
-		return fmt.Errorf("failed to reload project %s: %s", e.Project.PrettyName(), err)
+	if err := Store.Write(pCfg.ID, pCfg); err != nil {
+		return err
+	}
+	Store.WriteStatus(pCfg.ID, project.StatusReloading)
+
+	if err := performSteps(pCfg, steps); err != nil {
+		Store.WriteStatus(pCfg.ID, project.StatusFailed)
+		return fmt.Errorf("failed to reload project %s: %s", pCfg.PrettyName(), err)
 	}
 
-	log.Printf("project %s reloaded", e.Project.PrettyName())
-	Store.WriteStatus(e.Project.ID, project.StatusActive)
+	log.Printf("project %s reloaded", pCfg.PrettyName())
+	Store.WriteStatus(pCfg.ID, project.StatusActive)
 	return nil
 }
 
 func handleReloadAll() error {
 	for _, e := range Store.ReadAll() {
-		Store.WriteStatus(e.Project.ID, project.StatusReloading)
+		pCfg, err := project.NewFromFile(e.Project.Path + "/Hoifile")
+		if err != nil {
+			return fmt.Errorf("failed to parse Hoifile in project %s: %s", pCfg.PrettyName(), err)
+		}
+		if err = pCfg.Augment(); err != nil {
+			return fmt.Errorf("failed to augment config in project %s: %s", pCfg.PrettyName(), err)
+		}
+		if err = pCfg.Validate(); err != nil {
+			return fmt.Errorf("failed to validate config in project %s: %s", pCfg.PrettyName(), err)
+		}
+		if err := Store.Write(pCfg.ID, pCfg); err != nil {
+			return err
+		}
+		Store.WriteStatus(pCfg.ID, project.StatusReloading)
 
 		steps := make([]func() error, 0)
-		for _, r := range runners(e.Project) {
+		for _, r := range runners(pCfg) {
 			steps = append(
 				steps,
 				r.Disable,
@@ -176,11 +202,11 @@ func handleReloadAll() error {
 				r.Commit,
 			)
 		}
-		if err := performSteps(e.Project, steps); err != nil {
-			Store.WriteStatus(e.Project.ID, project.StatusFailed)
-			return fmt.Errorf("failed to reload project %s: %s", e.Project.PrettyName(), err)
+		if err := performSteps(pCfg, steps); err != nil {
+			Store.WriteStatus(pCfg.ID, project.StatusFailed)
+			return fmt.Errorf("failed to reload project %s: %s", pCfg.PrettyName(), err)
 		}
-		Store.WriteStatus(e.Project.ID, project.StatusActive)
+		Store.WriteStatus(pCfg.ID, project.StatusActive)
 	}
 
 	log.Printf("all projects reloaded")
