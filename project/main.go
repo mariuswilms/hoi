@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"hash/adler32"
 	"io/ioutil"
+	"log"
 	"path/filepath"
 
 	"github.com/hashicorp/hcl"
@@ -121,6 +122,10 @@ type Config struct {
 	Database map[string]DatabaseDirective
 	// Volumes for the project
 	Volume map[string]VolumeDirective
+
+	// Deprecated, both settings have been moved below App.
+	UseFrontController       bool
+	UseLegacyFrontController bool
 }
 
 func (cfg Config) PrettyName() string {
@@ -203,6 +208,26 @@ func decodeInto(cfg *Config, s string) (*Config, error) {
 		e := cfg.Volume[k]
 		e.Path = k
 		cfg.Volume[k] = e
+	}
+
+	// Handle deprecated configuration, default values for these
+	// settings are false. So when setting is true we can safely
+	// assume it was given by the user.
+	if cfg.UseFrontController {
+		log.Printf(
+			"found deprecated '%s' while decoding config, please use '%s' instead",
+			"useFrontController = ...",
+			"app { useFrontController = ... }",
+		)
+		cfg.App.UseFrontController = true
+	}
+	if cfg.UseLegacyFrontController {
+		log.Printf(
+			"found deprecated '%s' while decoding config, please use '%s' instead",
+			"useLegacyFrontController = ...",
+			"app { useLegacyFrontController = ... }",
+		)
+		cfg.App.UseLegacyFrontController = true
 	}
 	return cfg, nil
 }
