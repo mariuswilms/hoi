@@ -8,6 +8,9 @@ package project
 import (
 	"fmt"
 	"net"
+
+	"github.com/atelierdisko/hoi/server"
+	"github.com/coreos/go-semver/semver"
 )
 
 type AppKind string
@@ -27,6 +30,10 @@ const (
 type AppDirective struct {
 	// The kind of app we are using.
 	Kind AppKind
+	// The semantic version of the app language to use. For an PHP app
+	// can switch the FPM socket by looking at the major part of the
+	// version, to run projects side by side.
+	Version string
 	// Used only for service backends. Defaults to localhost.
 	Host string
 	// Used only for service backends. By default picks the next free
@@ -71,4 +78,27 @@ func (drv AppDirective) GetFreePort(p *Config) (uint16, error) {
 	port = uint16(l.Addr().(*net.TCPAddr).Port)
 	l.Close()
 	return port, nil
+}
+
+// Returns major part of version string. Also takes default versions into account.
+func (drv AppDirective) GetMajorVersion(s *server.Config) (int64, error) {
+	v, err := drv.getVersion(s)
+	if err != nil {
+		return 0, err
+	}
+	return v.Major, nil
+}
+
+// Returns a semantic version type, which allows accessing the major,
+// minor parts of the version string. When a version was not given
+// in project configuration will try to find a default version from
+// server configuration.
+func (drv AppDirective) getVersion(s *server.Config) (*semver.Version, error) {
+	if drv.Version != "" {
+		return semver.NewVersion(drv.Version)
+	}
+	if drv.Kind == AppKindPHP {
+		return semver.NewVersion(s.PHP.Version)
+	}
+	return nil, fmt.Errorf("failed to get app version: no default version for kind %s found", drv.Kind)
 }

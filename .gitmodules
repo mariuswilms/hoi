@@ -13,3 +13,6 @@
 [submodule "vendor/github.com/godbus/dbus"]
 	path = vendor/github.com/godbus/dbus
 	url = https://github.com/godbus/dbus
+[submodule "vendor/github.com/coreos/go-semver"]
+	path = vendor/github.com/coreos/go-semver
+	url = https://github.com/coreos/go-semver

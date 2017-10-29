@@ -80,6 +80,7 @@ type AppServiceDirective struct {
 type PHPDirective struct {
 	Enabled bool
 	RunPath string
+	Version string
 }
 type CronDirective struct {
 	Enabled bool
