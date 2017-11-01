@@ -7,9 +7,9 @@ package project
 
 import (
 	"bytes"
-	"html/template"
 	"path/filepath"
 	"strings"
+	"text/template"
 )
 
 type Command struct {
