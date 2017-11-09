@@ -116,6 +116,9 @@ func (cfg Config) Validate() error {
 		if cfg.Context != ContextDevelopment && db.Password == "" {
 			return fmt.Errorf("user %s has empty password for database: %s", db.User, db.Name)
 		}
+		if db.User == "root" {
+			return fmt.Errorf("user %s is a MySQL restricted user", db.User)
+		}
 		seenDatabases = append(seenDatabases, db.Name)
 	}
 

@@ -80,10 +80,15 @@ func (sys MySQL) HasPassword(user string, password string) (bool, error) {
 func (sys MySQL) EnsureUser(user string, password string) error {
 	var sql string
 
+	if err := sys.CheckRestrictedUser(user); err != nil {
+		return err
+	}
+
 	hasUser, err := sys.HasUser(user)
 	if err != nil {
 		return err
 	}
+
 	if hasUser {
 		hasPassword, err := sys.HasPassword(user, password)
 		if err != nil {
@@ -129,6 +134,10 @@ func (sys MySQL) EnsureUser(user string, password string) error {
 // Ensures at least the given privileges are granted to the user on database
 // level.
 func (sys MySQL) EnsureGrant(user string, database string, privs []string) error {
+	if err := sys.CheckRestrictedUser(user); err != nil {
+		return err
+	}
+
 	hasUser, err := sys.HasUser(user)
 	if err != nil {
 		return err
@@ -153,6 +162,10 @@ func (sys MySQL) EnsureGrant(user string, database string, privs []string) error
 // Ensures at least the given privileges are granted to the user on database
 // level. MySQL does not include GRANT OPTION in ALL.
 func (sys MySQL) EnsureNoGrant(user string, database string, privs []string) error {
+	if err := sys.CheckRestrictedUser(user); err != nil {
+		return err
+	}
+
 	hasUser, err := sys.HasUser(user)
 	if err != nil {
 		return err
@@ -185,5 +198,13 @@ func (sys *MySQL) ReloadIfDirty() error {
 		return fmt.Errorf("failed to reload MySQL, has been left in dirty state: %s", err)
 	}
 	MySQLDirty = false
+	return nil
+}
+
+// Ensures we don't manipulate general protected (admin) users.
+func (sys MySQL) CheckRestrictedUser(user string) error {
+	if user == "root" {
+		return fmt.Errorf("is MySQL restricted user: %s", user)
+	}
 	return nil
 }
