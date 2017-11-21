@@ -872,3 +872,20 @@ volume "/etc/log" {}
 		t.Error("failed to detect absolute volume path")
 	}
 }
+
+func TestMultipleFQDNInDomainBlock(t *testing.T) {
+	hoifile := `
+context = "prod"
+webroot = "app/webroot"
+domain foo.test {
+	redirects = ["bar.test", "foo.test"]
+}
+`
+	cfg, err := NewFromString(hoifile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := cfg.Validate(); err == nil {
+		t.Fail()
+	}
+}

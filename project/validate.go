@@ -23,6 +23,9 @@ func (cfg Config) Validate() error {
 		if err := cfg.validateDomainsHaveNoTestTLD(); err != nil {
 			return err
 		}
+		if err := cfg.validateDomainsAreUsedOnce(); err != nil {
+			return err
+		}
 	}
 	if err := cfg.validateDomainsAuth(); err != nil {
 		return err
@@ -80,6 +83,32 @@ func (cfg Config) validateDomainsHaveNoTestTLD() error {
 	return nil
 }
 
+func (cfg Config) validateDomainsAreUsedOnce() error {
+	mainSeen := map[string]bool{}
+
+	for _, v := range cfg.Domain {
+		if _, ok := mainSeen[v.FQDN]; ok {
+			return fmt.Errorf("multiple domains for %s", v.FQDN)
+		}
+		blockSeen := map[string]bool{v.FQDN: true}
+
+		for _, alias := range v.Aliases {
+			if _, ok := blockSeen[alias]; ok {
+				return fmt.Errorf("FQDN %s used more than once in domain %s", alias, v.FQDN)
+			}
+			blockSeen[alias] = true
+		}
+		for _, redirect := range v.Redirects {
+			if _, ok := blockSeen[redirect]; ok {
+				return fmt.Errorf("FQDN %s used more than once in domain %s", redirect, v.FQDN)
+			}
+			blockSeen[redirect] = true
+		}
+		mainSeen[v.FQDN] = true
+	}
+	return nil
+}
+
 // - Auth credentials setting must follow dedicated pattern.
 // - Passwords mustn't differ for same users.
 // - The credentials are stored in one single file per project.
@@ -127,22 +156,13 @@ func (cfg Config) validateDomainsSSL() error {
 // Database names must be unique and users should for security reasons not
 // have an empty password (not even for dev contexts).
 func (cfg Config) validateDatabases() error {
-	stringInSlice := func(a string, list []string) bool {
-		for _, b := range list {
-			if b == a {
-				return true
-			}
-		}
-		return false
-	}
-
-	seenDatabases := make([]string, 0)
+	seen := map[string]bool{}
 
 	for _, db := range cfg.Database {
 		if db.Name == "" {
 			return fmt.Errorf("found empty database name")
 		}
-		if stringInSlice(db.Name, seenDatabases) {
+		if _, ok := seen[db.Name]; ok {
 			return fmt.Errorf("found duplicate database name: %s", db.Name)
 		}
 		if cfg.Context != ContextDevelopment && db.Password == "" {
@@ -151,7 +171,7 @@ func (cfg Config) validateDatabases() error {
 		if db.User == "root" {
 			return fmt.Errorf("user %s is a MySQL restricted user", db.User)
 		}
-		seenDatabases = append(seenDatabases, db.Name)
+		seen[db.Name] = true
 	}
 	return nil
 }
