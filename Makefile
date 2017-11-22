@@ -67,6 +67,7 @@ clean:
 	if [ -d ./dist ]; then rm -r ./dist; fi
 	if [ -f ./hoid/hoid ]; then rm ./hoid/hoid; fi
 	if [ -f ./hoictl/hoictl ]; then rm ./hoictl/hoictl; fi
+	rm -rf /tmp/hoi_*
 
 .PHONY: dist
 dist: dist/hoictl dist/hoid dist/hoictl-darwin-amd64 dist/hoid-darwin-amd64 dist/hoictl-linux-amd64 dist/hoid-linux-amd64 dist/hoi_$(VERSION)-1-amd64.deb
@@ -104,10 +105,10 @@ $(PREFIX)/var/www/example:
 	touch $(PREFIX)/var/www/example/app/webroot/index.php
 	echo "$$TEST_HOIFILE" > $(PREFIX)/var/www/example/Hoifile
 
-$(PREFIX)/bin/%: dist/%
+$(PREFIX)/bin/%: dist/%-$(GOOS)-$(GOARCH)
 	install -m 555 $< $@
 
-$(PREFIX)/sbin/%: dist/%
+$(PREFIX)/sbin/%: dist/%-$(GOOS)-$(GOARCH)
 	install -m 555 $< $@
 
 $(PREFIX)/etc/hoi/%: conf/%
