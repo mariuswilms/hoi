@@ -89,6 +89,15 @@ func (drv AppDirective) GetMajorVersion(s *server.Config) (int64, error) {
 	return v.Major, nil
 }
 
+// Returns minor part of version string. Also takes default versions into account.
+func (drv AppDirective) GetMinorVersion(s *server.Config) (int64, error) {
+	v, err := drv.getVersion(s)
+	if err != nil {
+		return 0, err
+	}
+	return v.Minor, nil
+}
+
 // Returns a semantic version type, which allows accessing the major,
 // minor parts of the version string. When a version was not given
 // in project configuration will try to find a default version from
