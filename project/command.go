@@ -6,10 +6,9 @@
 package project
 
 import (
-	"bytes"
 	"path/filepath"
-	"strings"
-	"text/template"
+
+	"github.com/atelierdisko/hoi/util"
 )
 
 type Command struct {
@@ -28,32 +27,19 @@ func (c Command) String() string {
 
 // Returns (parsed and) absolute command string.
 //
-// Command strings may use template syntax (project configuration
-// is made available as P). Will parse only when necessarry, most
-// commands will not use templating.
-//
 // When used inside systemd service unit files paths need to be
 // absolute. When a command string is non absolute it will be treated
 // as being relative to the project root directory and made absolute.
+//
+// You may use template syntax here (P is the project configuration).
 func (c Command) GetCommand(p *Config) (string, error) {
-	var cmd string
-
-	if !strings.Contains(c.Command, "{{") {
-		cmd = c.Command
-	} else {
-		cmdTmplData := struct {
-			P *Config
-		}{
-			P: p,
-		}
-		buf := new(bytes.Buffer)
-		cmdT := template.New("cmd")
-		cmdT.Parse(c.Command)
-
-		if err := cmdT.Execute(buf, cmdTmplData); err != nil {
-			return "", err
-		}
-		cmd = buf.String()
+	cmd, err := util.ParseAndExecuteTemplate("command", c.Command, struct {
+		P *Config
+	}{
+		P: p,
+	})
+	if err != nil {
+		return cmd, err
 	}
 	if !filepath.IsAbs(cmd) {
 		cmd = filepath.Join(p.Path, cmd)

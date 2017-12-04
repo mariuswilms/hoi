@@ -38,7 +38,7 @@ type PHPRunner struct {
 }
 
 func (r PHPRunner) Disable() error {
-	if !r.sys.IsInstalled() {
+	if ok, err := r.sys.IsInstalled(); !ok || err != nil {
 		return nil // nothing to disable
 	}
 	if err := r.sys.Uninstall(); err != nil {

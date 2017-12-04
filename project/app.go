@@ -10,6 +10,7 @@ import (
 	"net"
 
 	"github.com/atelierdisko/hoi/server"
+	"github.com/atelierdisko/hoi/util"
 	"github.com/coreos/go-semver/semver"
 )
 
@@ -61,6 +62,36 @@ type AppDirective struct {
 	//
 	// Used only for static and PHP apps.
 	UseLegacyFrontController bool
+}
+
+// Certain app (i.e. PHP) have a corresponding service unit that we need to reload
+// on configuration changes. Returns a systemd service unit name including suffix.
+func (drv AppDirective) GetService(p *Config, s *server.Config) (string, error) {
+	if drv.Kind != AppKindPHP {
+		return "", fmt.Errorf("app kind %s has no service", drv.Kind)
+	}
+	service, err := util.ParseAndExecuteTemplate("command", s.PHP.Service, struct {
+		P *Config
+		S *server.Config
+	}{
+		P: p,
+		S: s,
+	})
+	return fmt.Sprintf("%s.service", service), err
+}
+
+// Certain apps (i.e. PHP) need further outside configuration.
+func (drv AppDirective) GetRunPath(p *Config, s *server.Config) (string, error) {
+	if drv.Kind != AppKindPHP {
+		return "", fmt.Errorf("app kind %s has no run path", drv.Kind)
+	}
+	return util.ParseAndExecuteTemplate("runPath", s.PHP.RunPath, struct {
+		P *Config
+		S *server.Config
+	}{
+		P: p,
+		S: s,
+	})
 }
 
 // Returns next available port number we want to assign to the app.

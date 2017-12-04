@@ -32,7 +32,11 @@ type PHP struct {
 
 // Installs just the server configuration.
 func (sys PHP) Install(path string) error {
-	target := fmt.Sprintf("%s/99-project-%s.ini", sys.s.PHP.RunPath, sys.p.ID)
+	runPath, err := sys.p.App.GetRunPath(sys.p, sys.s)
+	if err != nil {
+		return err
+	}
+	target := fmt.Sprintf("%s/99-project-%s.ini", runPath, sys.p.ID)
 
 	if err := os.Symlink(path, target); err != nil {
 		return fmt.Errorf("PHP failed to install %s -> %s: %s", path, target, err)
@@ -42,7 +46,11 @@ func (sys PHP) Install(path string) error {
 }
 
 func (sys PHP) Uninstall() error {
-	target := fmt.Sprintf("%s/99-project-%s.ini", sys.s.PHP.RunPath, sys.p.ID)
+	runPath, err := sys.p.App.GetRunPath(sys.p, sys.s)
+	if err != nil {
+		return err
+	}
+	target := fmt.Sprintf("%s/99-project-%s.ini", runPath, sys.p.ID)
 
 	if err := os.Remove(target); err != nil {
 		return fmt.Errorf("PHP failed to uninstall %s: %s", target, err)
@@ -55,12 +63,16 @@ func (sys PHP) ReloadIfDirty() error {
 	if !PHPDirty {
 		return nil
 	}
+	service, err := sys.p.App.GetService(sys.p, sys.s)
+	if err != nil {
+		return err
+	}
 	PHPLock.Lock()
 	defer PHPLock.Unlock()
 
 	done := make(chan string)
 
-	if _, err := sys.conn.ReloadUnit("php5-fpm.service", "replace", done); err != nil {
+	if _, err := sys.conn.ReloadUnit(service, "replace", done); err != nil {
 		return fmt.Errorf("failed to reload PHP; left in dirty state: %s", err)
 	}
 	if r := <-done; r != "done" {
@@ -70,8 +82,12 @@ func (sys PHP) ReloadIfDirty() error {
 	return nil
 }
 
-func (sys PHP) IsInstalled() bool {
-	file := fmt.Sprintf("%s/99-project-%s.ini", sys.s.PHP.RunPath, sys.p.ID)
-	_, err := os.Stat(file)
-	return !os.IsNotExist(err)
+func (sys PHP) IsInstalled() (bool, error) {
+	runPath, err := sys.p.App.GetRunPath(sys.p, sys.s)
+	if err != nil {
+		return false, err
+	}
+	file := fmt.Sprintf("%s/99-project-%s.ini", runPath, sys.p.ID)
+	_, err = os.Stat(file)
+	return !os.IsNotExist(err), nil
 }

@@ -79,6 +79,9 @@ type AppServiceDirective struct {
 }
 type PHPDirective struct {
 	Enabled bool
+	// Service may be a templated string.
+	Service string
+	// RunPath may be a templated string.
 	RunPath string
 	Version string
 }
