@@ -12,6 +12,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
 	"github.com/atelierdisko/hoi/rpc"
@@ -84,12 +85,24 @@ func main() {
 
 		// Only connect if we need a connection objects later.
 		if Config.Database.Enabled {
-			dsn := fmt.Sprintf(
-				"%s:%s@tcp(%s)/",
-				Config.MySQL.User,
-				Config.MySQL.Password,
-				Config.MySQL.Host,
-			)
+			var dsn string
+
+			// Check if host is an absolute path to a unix socket.
+			if strings.HasPrefix(Config.MySQL.Host, "/") {
+				dsn = fmt.Sprintf(
+					"%s:%s@unix(%s)/",
+					Config.MySQL.User,
+					Config.MySQL.Password,
+					Config.MySQL.Host,
+				)
+			} else {
+				dsn = fmt.Sprintf(
+					"%s:%s@tcp(%s)/",
+					Config.MySQL.User,
+					Config.MySQL.Password,
+					Config.MySQL.Host,
+				)
+			}
 			conn, err := sql.Open("mysql", dsn)
 			if err != nil {
 				log.Fatal(err)
