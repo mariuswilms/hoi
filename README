@@ -204,10 +204,9 @@ Generally systemd(1) is required
   probably supported via the "useLegacy" option.
 
 The web runner requires nginx(8) and openssl(1)
-  The default template for NGINX will log to syslog/journald and enable HTTP2.
-  This feature is available in NGINX >= 1.9.5. To lower this version requirement
-  the "useLegacy" option can be enabled (which will log to STDERR and not use HTTP2
-  instead).
+  NGINX >= 1.9.5 is required, older versions can be used by enabling the
+  "useLegacy" option. In legacy mode NGINX will log to STDERR and not use
+  syslog/journald and disable HTTP2.
 
 The PHP runner requires php-fpm(8)
   If you don't enable this runner you can drop this requirement.
