@@ -64,13 +64,13 @@ type AppDirective struct {
 	UseLegacyFrontController bool
 }
 
-// Certain app (i.e. PHP) have a corresponding service unit that we need to reload
+// Certain apps (i.e. PHP) have a corresponding service unit that we need to reload
 // on configuration changes. Returns a systemd service unit name including suffix.
 func (drv AppDirective) GetService(p *Config, s *server.Config) (string, error) {
 	if drv.Kind != AppKindPHP {
-		return "", fmt.Errorf("app kind %s has no service", drv.Kind)
+		return "", fmt.Errorf("app kind %s has no service unit", drv.Kind)
 	}
-	service, err := util.ParseAndExecuteTemplate("command", s.PHP.Service, struct {
+	service, err := util.ParseAndExecuteTemplate("service", s.PHP.Service, struct {
 		P *Config
 		S *server.Config
 	}{
