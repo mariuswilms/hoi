@@ -65,19 +65,14 @@ func (sys Systemd) getPrefix() string {
 	return fmt.Sprintf("project_%s_%s_", sys.p.ID, sys.kind)
 }
 
-// Copies/links a unit file into the systemd configuration directory. Takes an absolute
-// path to the source unit file.
+// Copies a unit file into the systemd configuration directory. Takes an absolute
+// path to the source unit file. Using copies instead of symlinks is more robust:
+// not all locations are valid symlink targets (i.e. files under /etc).
 func (sys Systemd) Install(path string) error {
 	target := fmt.Sprintf("%s/%s%s", sys.s.Systemd.RunPath, sys.getPrefix(), filepath.Base(path))
 
-	if sys.s.Systemd.UseLegacy {
-		if err := util.CopyFile(path, target); err != nil {
-			return fmt.Errorf("failed to copy systemd unit %s -> %s: %s", path, target, err)
-		}
-	} else {
-		if err := os.Symlink(path, target); err != nil {
-			return fmt.Errorf("failed to symlink systemd unit %s -> %s: %s", path, target, err)
-		}
+	if err := util.CopyFile(path, target); err != nil {
+		return fmt.Errorf("failed to copy systemd unit %s -> %s: %s", path, target, err)
 	}
 	return nil
 }
