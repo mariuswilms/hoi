@@ -6,7 +6,7 @@ What={{.V.GetSource .P .S}}
 Where={{.V.GetTarget .P}}
 Type=none
 Options=bind,defaults
-DirectoryMode=1770
+DirectoryMode=0775
 
 [Install]
 WantedBy=default.target

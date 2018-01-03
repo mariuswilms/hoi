@@ -8,6 +8,8 @@
 // one or multiple systems, into which artifacts are installed.
 package runner
 
+import "archive/tar"
+
 // Runnable describes methods common to each runner. Runnable methods are called
 // "steps" as these methods are invoked one after another in a fixed order. Steps
 // do not take any arguments as to being able to treat them equally.
@@ -25,4 +27,9 @@ type Runnable interface {
 	Disable() error
 	// Commits any changes made to the system.
 	Commit() error
+}
+
+// Dumpers are able to create dumps of objects under their control.
+type Dumper interface {
+	Dump(*tar.Writer) error
 }

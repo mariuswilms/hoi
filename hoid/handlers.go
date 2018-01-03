@@ -6,8 +6,11 @@
 package main
 
 import (
+	"archive/tar"
 	"fmt"
 	"log"
+	"os"
+	"path/filepath"
 	"reflect"
 	"regexp"
 	"runtime"
@@ -236,6 +239,40 @@ func handleDomain(path string, dDrv *project.DomainDirective) error {
 
 	log.Printf("added/modified domain %s for projects %s", dDrv.FQDN, e.Project.PrettyName())
 	Store.WriteStatus(e.Project.ID, project.StatusActive)
+	return nil
+}
+
+func handleDump(path string) error {
+	id := project.PathToID(path)
+
+	if !Store.Has(id) {
+		return fmt.Errorf("no project %s in store", id)
+	}
+	e, _ := Store.Read(id)
+
+	dumpers := make([]runner.Dumper, 0)
+
+	if Config.Volume.Enabled {
+		dumpers = append(dumpers, runner.NewVolumeRunner(Config, e.Project, SystemdConn))
+	}
+	if Config.Database.Enabled {
+		dumpers = append(dumpers, runner.NewDBRunner(Config, e.Project, MySQLConn))
+	}
+
+	file, err := os.Create(filepath.Join(e.Project.Path, "dump.tar"))
+	if err != nil {
+		return fmt.Errorf("failed to dump project %s: %s", err)
+	}
+	tw := tar.NewWriter(file)
+
+	defer file.Close()
+	defer tw.Close()
+
+	for _, r := range dumpers {
+		if err := r.Dump(tw); err != nil {
+			return fmt.Errorf("failed to dump project %s: %s", e.Project.PrettyName(), err)
+		}
+	}
 	return nil
 }
 

@@ -20,17 +20,20 @@ type VolumeDirective struct {
 	IsTemporary bool
 }
 
-// The source directory outside the project.
-func (drv VolumeDirective) GetSource(p *Config, s *server.Config) string {
+// Returns the run path for the volume, dependend on the type, together
+// with a project directory for namespacing the volume source.
+func (drv VolumeDirective) GetRunPath(p *Config, s *server.Config) string {
 	ns := fmt.Sprintf("project_%s", p.ID)
 
-	var src string
 	if drv.IsTemporary {
-		src = s.Volume.TemporaryRunPath
-	} else {
-		src = s.Volume.PersistentRunPath
+		return filepath.Join(s.Volume.TemporaryRunPath, ns)
 	}
-	return filepath.Join(src, ns, drv.Path)
+	return filepath.Join(s.Volume.PersistentRunPath, ns)
+}
+
+// The source directory outside the project.
+func (drv VolumeDirective) GetSource(p *Config, s *server.Config) string {
+	return filepath.Join(drv.GetRunPath(p, s), drv.Path)
 }
 
 // The target directory inside the project.

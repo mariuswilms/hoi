@@ -69,6 +69,7 @@ func main() {
 				ReloadHandler:    handleReload,
 				ReloadAllHandler: handleReloadAll,
 				DomainHandler:    handleDomain,
+				DumpHandler:      handleDump,
 			},
 		}
 		RPCServer = rpcServer // Assign to global.

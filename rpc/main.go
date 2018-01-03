@@ -49,6 +49,7 @@ type ProjectAPI struct {
 	ReloadHandler    func(path string) error
 	ReloadAllHandler func() error
 	DomainHandler    func(path string, dDrv *project.DomainDirective) error
+	DumpHandler      func(path string) error
 }
 
 type ProjectAPIArgs struct {
@@ -92,6 +93,11 @@ func (p *ProjectAPI) ReloadAll(args *ProjectAPIArgs, reply *bool) error {
 func (p *ProjectAPI) Domain(args *ProjectAPIArgs, reply *bool) error {
 	*reply = true
 	return logIfError(p.DomainHandler(args.Path, args.Domain))
+}
+
+func (p *ProjectAPI) Dump(args *ProjectAPIArgs, reply *bool) error {
+	*reply = true
+	return logIfError(p.DumpHandler(args.Path))
 }
 
 func logIfError(err error) error {

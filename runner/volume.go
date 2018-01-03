@@ -6,10 +6,9 @@
 package runner
 
 import (
+	"archive/tar"
 	"fmt"
 	"log"
-	"os"
-	"os/exec"
 	"path/filepath"
 
 	"github.com/atelierdisko/hoi/builder"
@@ -25,14 +24,16 @@ func NewVolumeRunner(s *server.Config, p *project.Config, conn *dbus.Conn) *Volu
 		p:     p,
 		build: builder.NewBuilder(builder.KindVolume, p, s),
 		sys:   system.NewSystemd(system.SystemdKindVolume, p, s, conn),
+		fs:    system.NewFilesystem(p, s),
 	}
 }
 
 type VolumeRunner struct {
 	s     *server.Config
 	p     *project.Config
-	sys   *system.Systemd
 	build *builder.Builder
+	sys   *system.Systemd
+	fs    *system.Filesystem
 }
 
 func (r VolumeRunner) Disable() error {
@@ -61,7 +62,7 @@ func (r VolumeRunner) Enable() error {
 	}
 
 	for _, v := range r.p.Volume {
-		if err := r.setupDirs(v); err != nil {
+		if err := r.fs.SetupVolume(v); err != nil {
 			return err
 		}
 
@@ -103,49 +104,17 @@ func (r VolumeRunner) Commit() error {
 	return nil
 }
 
-func (r VolumeRunner) setupDirs(v project.VolumeDirective) error {
-	// Use our own (poor-man's) Chown here, so we do not need to
-	// lookup the uid/gid, which would require cgo, which isn't
-	// available during cross compilation.
-	chown := func(path string, user string, group string) error {
-		if err := exec.Command("chown", user+":"+group, path).Run(); err != nil {
-			return fmt.Errorf("failed to chown %s to user %s and group %s: %s", path, user, group, err)
+// Creates dumps of all persistent volumes.
+func (r VolumeRunner) Dump(tw *tar.Writer) error {
+	for _, v := range r.p.Volume {
+		if v.IsTemporary {
+			continue
 		}
-		return nil
-	}
+		log.Printf("dumping volume %s", v.Path)
 
-	// Sets FS ACLs, so user + group rights are inherited by sub-directories and files.
-	setfacl := func(path string) error {
-		if err := exec.Command("setfacl", "-d", "-m", "g::rwx", path).Run(); err != nil {
-			return fmt.Errorf("failed to set ACLs on mount source %s: %s", path, err)
+		if err := r.fs.DumpVolume(v, tw); err != nil {
+			return err
 		}
-		return nil
 	}
-
-	// 1. owned by global user and group
-	// 2. and have the sticky flag set, so when new files are created owner is the same
-	// 3. user and group can read AND write, others cannot do anything
-	// 4. perms are persisted even for new files
-	setup := func(path string, user string, group string) error {
-		if _, err := os.Stat(path); os.IsNotExist(err) {
-			if err := os.MkdirAll(path, 1770); err != nil {
-				return err
-			}
-			if err := chown(path, user, group); err != nil {
-				return err
-			}
-			if err := setfacl(path); err != nil {
-				return err
-			}
-			log.Printf("setup new volume path: %s", path)
-		} else {
-			log.Printf("reusing volume path: %s", path)
-		}
-		return nil
-	}
-
-	if err := setup(v.GetSource(r.p, r.s), r.s.User, r.s.Group); err != nil {
-		return err
-	}
-	return setup(v.GetTarget(r.p), r.s.User, r.s.Group)
+	return nil
 }

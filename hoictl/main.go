@@ -298,5 +298,25 @@ func main() {
 		}
 	})
 
+	App.Command("dump", "creates database and persistent volume dump tarball", func(cmd *cli.Cmd) {
+		cmd.Action = func() {
+			var reply bool
+
+			if *all {
+				fmt.Fprint(os.Stderr, "dumping all projects is not supported")
+				os.Exit(1)
+			} else {
+				args := &sRPC.ProjectAPIArgs{
+					Path: projectDirectory(*path),
+				}
+				if err := RPCClient.Call("Project.Dump", args, &reply); err != nil {
+					fmt.Fprintf(os.Stderr, "failed dumping, got error: %s\n", err)
+					os.Exit(1)
+				}
+				fmt.Println("project successfully dumped: dump.tar created")
+			}
+		}
+	})
+
 	App.Run(os.Args)
 }

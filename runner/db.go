@@ -6,6 +6,7 @@
 package runner
 
 import (
+	"archive/tar"
 	"database/sql"
 	"strings"
 
@@ -71,4 +72,13 @@ func (r DBRunner) Enable() error {
 
 func (r DBRunner) Commit() error {
 	return r.sys.ReloadIfDirty()
+}
+
+func (r DBRunner) Dump(tw *tar.Writer) error {
+	for _, db := range r.p.Database {
+		if err := r.sys.DumpDatabase(db.Name, tw); err != nil {
+			return err
+		}
+	}
+	return nil
 }
