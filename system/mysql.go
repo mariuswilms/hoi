@@ -243,8 +243,6 @@ func (sys MySQL) DumpDatabase(database string, tw *tar.Writer) error {
 	}
 	cmdArgs = append(cmdArgs, database)
 
-	log.Printf("dumping database %s...: mysqldump %#v", database, cmdArgs)
-
 	cmd := exec.Command("mysqldump", cmdArgs...)
 	cmd.Stdout = tmpgz // Write into tmp and compress on the fly.
 	stderr, err := cmd.StderrPipe()
