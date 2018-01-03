@@ -71,7 +71,7 @@ func handleUnload(path string) error {
 	id := project.PathToID(path)
 
 	if !Store.Has(id) {
-		return fmt.Errorf("no project %s in store to unload", id)
+		return fmt.Errorf("no project %s in store", id)
 	}
 	Store.WriteStatus(id, project.StatusUnloading)
 
@@ -132,7 +132,7 @@ func handleReload(path string) error {
 	id := project.PathToID(path)
 
 	if !Store.Has(id) {
-		return fmt.Errorf("no project %s in store to reload", id)
+		return fmt.Errorf("no project %s in store", id)
 	}
 	Store.WriteStatus(id, project.StatusReloading)
 
@@ -189,7 +189,7 @@ func handleDomain(path string, dDrv *project.DomainDirective) error {
 	id := project.PathToID(path)
 
 	if !Store.Has(id) {
-		return fmt.Errorf("no project %s in store to add/modifiy domain for", id)
+		return fmt.Errorf("no project %s in store", id)
 	}
 	e, _ := Store.Read(id)
 

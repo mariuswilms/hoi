@@ -43,11 +43,76 @@ func NewFromFile(f string) (*Config, error) {
 	}
 	return cfg, nil
 }
+
 func NewFromString(s string) (*Config, error) {
 	cfg := &Config{
 		ID: fmt.Sprintf("memory:%x", adler32.Checksum([]byte(s))),
 	}
 	return decodeInto(cfg, s)
+}
+
+func decodeInto(cfg *Config, s string) (*Config, error) {
+	if err := hcl.Decode(cfg, s); err != nil {
+		return cfg, err
+	}
+
+	// key is FQDN
+	for k, _ := range cfg.Domain {
+		e := cfg.Domain[k]
+		e.FQDN = k
+		cfg.Domain[k] = e
+	}
+
+	// key is Name
+	for k, _ := range cfg.Cron {
+		e := cfg.Cron[k]
+		e.Name = k
+		cfg.Cron[k] = e
+	}
+	for k, _ := range cfg.Worker {
+		e := cfg.Worker[k]
+		e.Name = k
+
+		if e.Instances == 0 {
+			e.Instances = 1
+		}
+		cfg.Worker[k] = e
+	}
+	for k, _ := range cfg.Database {
+		e := cfg.Database[k]
+		e.Name = k
+		cfg.Database[k] = e
+	}
+	for k, _ := range cfg.Volume {
+		e := cfg.Volume[k]
+		e.Path = k
+		cfg.Volume[k] = e
+	}
+
+	// Handle deprecated configuration, default values for these
+	// settings are false. So when setting is true we can safely
+	// assume it was given by the user.
+	if cfg.UseFrontController {
+		log.Printf(
+			"found deprecated '%s' while decoding config, please use '%s' instead",
+			"useFrontController = ...",
+			"app { useFrontController = ... }",
+		)
+		cfg.App.UseFrontController = true
+	}
+	if cfg.UseLegacyFrontController {
+		log.Printf(
+			"found deprecated '%s' while decoding config, please use '%s' instead",
+			"useLegacyFrontController = ...",
+			"app { useLegacyFrontController = ... }",
+		)
+		cfg.App.UseLegacyFrontController = true
+	}
+	return cfg, nil
+}
+
+func PathToID(path string) string {
+	return fmt.Sprintf("%x", adler32.Checksum([]byte(path)))
 }
 
 type ContextType string
@@ -138,10 +203,6 @@ func (cfg Config) PrettyName() string {
 	return fmt.Sprintf("? in %s", filepath.Base(cfg.Path))
 }
 
-func PathToID(path string) string {
-	return fmt.Sprintf("%x", adler32.Checksum([]byte(path)))
-}
-
 // Extracts username/password pairs from domain configuration.
 func (cfg Config) GetCreds() map[string]string {
 	creds := make(map[string]string)
@@ -168,66 +229,21 @@ func (cfg Config) GetCerts() map[string]SSLDirective {
 	return certs
 }
 
+// Hoi Project Directory API
+//
+// The list belows shows general purporse directories officially
+// supported by Hoi. The list loosely mirrors directory configurations
+// available to systemd units.
+//
+// https://www.freedesktop.org/software/systemd/man/systemd.exec.html#RuntimeDirectory=
+//
+// - webroot
+// - tmp
+// - state
+// - cache
+// - logs
+// - configuration
+
 func (cfg Config) GetAbsoluteWebroot() string {
 	return filepath.Join(cfg.Path, cfg.Webroot)
-}
-
-func decodeInto(cfg *Config, s string) (*Config, error) {
-	if err := hcl.Decode(cfg, s); err != nil {
-		return cfg, err
-	}
-
-	// key is FQDN
-	for k, _ := range cfg.Domain {
-		e := cfg.Domain[k]
-		e.FQDN = k
-		cfg.Domain[k] = e
-	}
-
-	// key is Name
-	for k, _ := range cfg.Cron {
-		e := cfg.Cron[k]
-		e.Name = k
-		cfg.Cron[k] = e
-	}
-	for k, _ := range cfg.Worker {
-		e := cfg.Worker[k]
-		e.Name = k
-
-		if e.Instances == 0 {
-			e.Instances = 1
-		}
-		cfg.Worker[k] = e
-	}
-	for k, _ := range cfg.Database {
-		e := cfg.Database[k]
-		e.Name = k
-		cfg.Database[k] = e
-	}
-	for k, _ := range cfg.Volume {
-		e := cfg.Volume[k]
-		e.Path = k
-		cfg.Volume[k] = e
-	}
-
-	// Handle deprecated configuration, default values for these
-	// settings are false. So when setting is true we can safely
-	// assume it was given by the user.
-	if cfg.UseFrontController {
-		log.Printf(
-			"found deprecated '%s' while decoding config, please use '%s' instead",
-			"useFrontController = ...",
-			"app { useFrontController = ... }",
-		)
-		cfg.App.UseFrontController = true
-	}
-	if cfg.UseLegacyFrontController {
-		log.Printf(
-			"found deprecated '%s' while decoding config, please use '%s' instead",
-			"useLegacyFrontController = ...",
-			"app { useLegacyFrontController = ... }",
-		)
-		cfg.App.UseLegacyFrontController = true
-	}
-	return cfg, nil
 }
