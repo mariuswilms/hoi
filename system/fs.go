@@ -50,7 +50,10 @@ func (sys Filesystem) SetupVolume(v project.VolumeDirective) error {
 	if _, err := os.Stat(src); os.IsNotExist(err) {
 		// Mkdir honors system's umask, to get around backing up then
 		// resetting umask, we chmod afterwards.
-		if err := os.Mkdir(src, 0700); err != nil {
+		//
+		// Need recursive mkdir, as mount source paths mirror their
+		// counterparts in structure, i.e. app/webroot/img/content.
+		if err := os.MkdirAll(src, 0700); err != nil {
 			return err
 		}
 
