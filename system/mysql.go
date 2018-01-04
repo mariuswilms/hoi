@@ -8,7 +8,6 @@ package system
 
 import (
 	"archive/tar"
-	"compress/gzip"
 	"database/sql"
 	"fmt"
 	"io"
@@ -217,20 +216,17 @@ func (sys MySQL) CheckRestrictedUser(user string) error {
 }
 
 // Dumps can grow quite large (several GB large), so we're using
-// a disk-backed buffer as to to keep memory usage low. SQL dumps
-// usually compress very well, but media data does not. So we chose to
-// compress the dump inside the tar archive and not the archive as a
-// whole.
+// a disk-backed buffer as to to keep memory usage low.
 //
-// The name of the dump inside the archive will be <database>.sql.gz.
+// TODO: Implement gzipping: SQL dumps usually compress very well, but
+// media data does not. So we chose to compress the dump inside the
+// tar archive and not the archive as a whole. The name of the dump
+// inside the archive will be <database>.sql.gz.
 func (sys MySQL) DumpDatabase(database string, tw *tar.Writer) error {
 	tmp, err := ioutil.TempFile("", "hoi_")
 	if err != nil {
 		return err
 	}
-	tmpgz := gzip.NewWriter(tmp)
-
-	defer tmpgz.Close()
 	defer tmp.Close()
 	defer os.Remove(tmp.Name())
 
@@ -244,15 +240,10 @@ func (sys MySQL) DumpDatabase(database string, tw *tar.Writer) error {
 	cmdArgs = append(cmdArgs, database)
 
 	cmd := exec.Command("mysqldump", cmdArgs...)
-	cmd.Stdout = tmpgz // Write into tmp and compress on the fly.
-	stderr, err := cmd.StderrPipe()
-	if err != nil {
-		return err
-	}
+	cmd.Stdout = tmp
 
 	if err := cmd.Start(); err != nil {
-		errout, _ := ioutil.ReadAll(stderr)
-		return fmt.Errorf("command mysqldump failed: %s; error output was: %s", err, errout)
+		return err
 	}
 	if err := cmd.Wait(); err != nil {
 		return err
@@ -263,20 +254,24 @@ func (sys MySQL) DumpDatabase(database string, tw *tar.Writer) error {
 	if err != nil {
 		return err
 	}
-
 	stat, err := tmp.Stat()
 	if err != nil {
 		return err
 	}
 	size := stat.Size()
-
 	log.Printf("database %s dump created, is %d bytes", database, size)
 
 	header := &tar.Header{
-		Name:    fmt.Sprintf("%s.sql.gz", database),
-		Size:    size,
-		Mode:    0660,
-		ModTime: time.Now(),
+		Name:     fmt.Sprintf("%s.sql", database),
+		Size:     size,
+		ModTime:  time.Now(),
+		Typeflag: tar.TypeReg,
+		Mode:     0660,
+		ModTime:  time.Now(),
+		Uid:      0,
+		Gid:      0,
+		Uname:    "root",
+		Gname:    "root",
 	}
 	if err := tw.WriteHeader(header); err != nil {
 		return err
