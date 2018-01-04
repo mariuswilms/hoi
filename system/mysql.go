@@ -267,7 +267,6 @@ func (sys MySQL) DumpDatabase(database string, tw *tar.Writer) error {
 		ModTime:  time.Now(),
 		Typeflag: tar.TypeReg,
 		Mode:     0660,
-		ModTime:  time.Now(),
 		Uid:      0,
 		Gid:      0,
 		Uname:    "root",
