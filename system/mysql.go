@@ -221,7 +221,7 @@ func (sys MySQL) CheckRestrictedUser(user string) error {
 // TODO: Implement gzipping: SQL dumps usually compress very well, but
 // media data does not. So we chose to compress the dump inside the
 // tar archive and not the archive as a whole. The name of the dump
-// inside the archive will be <database>.sql.gz.
+// inside the archive will be database/<database>.sql.gz.
 func (sys MySQL) DumpDatabase(database string, tw *tar.Writer) error {
 	tmp, err := ioutil.TempFile("", "hoi_")
 	if err != nil {
@@ -262,7 +262,7 @@ func (sys MySQL) DumpDatabase(database string, tw *tar.Writer) error {
 	log.Printf("database %s dump created, is %d bytes", database, size)
 
 	header := &tar.Header{
-		Name:     fmt.Sprintf("%s.sql", database),
+		Name:     fmt.Sprintf("database/%s.sql", database),
 		Size:     size,
 		ModTime:  time.Now(),
 		Typeflag: tar.TypeReg,

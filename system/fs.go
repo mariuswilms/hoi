@@ -73,9 +73,20 @@ func (sys Filesystem) SetupVolume(v project.VolumeDirective) error {
 
 // Intentionally not compressing data as we can assume it is mostly
 // pre-compressed media data.
+//
+// When walking the volume tree, generate paths inside archive accroding
+// to following rules:
+//
+// 1. Turn absolute path into path relative to volume.
+// 2. Add back directory fragments from project root to volume.
+// 3. Nest everything under the "volume" directory
+//
+//  /var/www/example/app/media/e0/foo.jpg -> e0/foo.jpg
+//  e0/foo.jpg -> app/media/e0/foo.jpg
+//  app/media/e0/foo.jpg -> volume/app/media/e0/foo.jpg
 func (sys Filesystem) DumpVolume(v project.VolumeDirective, tw *tar.Writer) error {
 	source := v.GetSource(sys.p, sys.s)
-	base := filepath.Base(source)
+	base := strings.TrimPrefix(source, sys.p.Path)
 
 	return filepath.Walk(source, func(path string, f os.FileInfo, err error) error {
 		if err != nil {
@@ -86,9 +97,7 @@ func (sys Filesystem) DumpVolume(v project.VolumeDirective, tw *tar.Writer) erro
 			return err
 		}
 
-		if base != "" {
-			header.Name = filepath.Join(base, strings.TrimPrefix(path, source))
-		}
+		header.Name = filepath.Join("volume", base, strings.TrimPrefix(path, source))
 		if f.IsDir() {
 			header.Name += "/"
 		}
