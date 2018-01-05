@@ -218,10 +218,7 @@ func (sys MySQL) CheckRestrictedUser(user string) error {
 // Dumps can grow quite large (several GB large), so we're using
 // a disk-backed buffer as to to keep memory usage low.
 //
-// TODO: Implement gzipping: SQL dumps usually compress very well, but
-// media data does not. So we chose to compress the dump inside the
-// tar archive and not the archive as a whole. The name of the dump
-// inside the archive will be database/<database>.sql.gz.
+// TODO: Implement gzipping SQL dumps usually compress very well.
 func (sys MySQL) DumpDatabase(database string, tw *tar.Writer) error {
 	tmp, err := ioutil.TempFile("", "hoi_")
 	if err != nil {
