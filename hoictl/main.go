@@ -89,8 +89,9 @@ func main() {
 		cmd.Action = func() {
 
 			if *all {
-				var reply []store.Entity
 				args := &sRPC.ProjectAPIArgs{}
+				var reply []store.Entity
+
 				if err := RPCClient.Call("Project.StatusAll", args, &reply); err != nil {
 					fmt.Fprintf(os.Stderr, "failed, got error: %s\n", err)
 					os.Exit(1)
@@ -125,6 +126,7 @@ func main() {
 				Path: projectDirectory(*path),
 			}
 			var reply bool
+
 			if err := RPCClient.Call("Project.Load", args, &reply); err != nil {
 				fmt.Fprintf(os.Stderr, "failed, got error: %s\n", err)
 				os.Exit(1)
@@ -195,7 +197,7 @@ func main() {
 		})
 
 		cmd.Action = func() {
-			args := &sRPC.ProjectAPIArgs{
+			args := &sRPC.DomainAPIArgs{
 				Path: projectDirectory(*path),
 				Domain: &project.DomainDirective{
 					FQDN:    *fqdn,
@@ -204,6 +206,7 @@ func main() {
 				},
 			}
 			var reply bool
+
 			if err := RPCClient.Call("Project.Domain", args, &reply); err != nil {
 				fmt.Fprintf(os.Stderr, "failed, got error: %s\n", err)
 				os.Exit(1)
@@ -212,7 +215,7 @@ func main() {
 		}
 	})
 
-	App.Command("dump", "creates database and persistent volume dump tarball", func(cmd *cli.Cmd) {
+	App.Command("dump", "exports databases and persistent volumes", func(cmd *cli.Cmd) {
 		cmd.Action = func() {
 			var reply bool
 
@@ -220,8 +223,9 @@ func main() {
 				fmt.Fprint(os.Stderr, "dumping all projects is not supported")
 				os.Exit(1)
 			} else {
-				args := &sRPC.ProjectAPIArgs{
+				args := &sRPC.DumpAPIArgs{
 					Path: projectDirectory(*path),
+					File: "",
 				}
 				if err := RPCClient.Call("Project.Dump", args, &reply); err != nil {
 					fmt.Fprintf(os.Stderr, "failed dumping, got error: %s\n", err)
