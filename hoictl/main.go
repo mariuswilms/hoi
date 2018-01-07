@@ -222,17 +222,24 @@ func main() {
 			if *all {
 				fmt.Fprint(os.Stderr, "dumping all projects is not supported")
 				os.Exit(1)
-			} else {
-				args := &sRPC.DumpAPIArgs{
-					Path: projectDirectory(*path),
-					File: "",
-				}
-				if err := RPCClient.Call("Project.Dump", args, &reply); err != nil {
-					fmt.Fprintf(os.Stderr, "failed dumping, got error: %s\n", err)
-					os.Exit(1)
-				}
-				fmt.Println("project successfully dumped: dump.tar created")
 			}
+
+			wd, err := os.Getwd()
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "failed to get current working directory: %s\n", err)
+				os.Exit(1)
+			}
+			target := filepath.Join(wd, "dump.tar")
+
+			args := &sRPC.DumpAPIArgs{
+				Path: projectDirectory(*path),
+				File: target,
+			}
+			if err := RPCClient.Call("Project.Dump", args, &reply); err != nil {
+				fmt.Fprintf(os.Stderr, "failed dumping, got error: %s\n", err)
+				os.Exit(1)
+			}
+			fmt.Println("project successfully dumped: %s created", target)
 		}
 	})
 

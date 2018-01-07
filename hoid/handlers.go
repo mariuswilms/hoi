@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"path/filepath"
 	"reflect"
 	"regexp"
 	"runtime"
@@ -242,7 +241,7 @@ func handleDomain(path string, dDrv *project.DomainDirective) error {
 	return nil
 }
 
-func handleDump(path string) error {
+func handleDump(path string, target string) error {
 	id := project.PathToID(path)
 
 	if !Store.Has(id) {
@@ -259,9 +258,9 @@ func handleDump(path string) error {
 		dumpers = append(dumpers, runner.NewDBRunner(Config, e.Project, MySQLConn))
 	}
 
-	file, err := os.Create(filepath.Join(e.Project.Path, "dump.tar"))
+	file, err := os.Create(target)
 	if err != nil {
-		return fmt.Errorf("failed to dump project %s: %s", err)
+		return fmt.Errorf("failed to dump project %s into %s: %s", e.Project.PrettyName(), target, err)
 	}
 	tw := tar.NewWriter(file)
 

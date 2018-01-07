@@ -21,7 +21,7 @@ type ProjectAPI struct {
 	ReloadHandler    func(path string) error
 	ReloadAllHandler func() error
 	DomainHandler    func(path string, dDrv *project.DomainDirective) error
-	DumpHandler      func(path string) error
+	DumpHandler      func(path string, target string) error
 }
 
 func (p *ProjectAPI) Status(args *ProjectAPIArgs, reply *store.Entity) error {
@@ -56,8 +56,8 @@ func (p *ProjectAPI) Domain(args *DomainAPIArgs, reply *bool) error {
 	return logIfError(p.DomainHandler(args.Path, args.Domain))
 }
 
-func (p *ProjectAPI) Dump(args *ProjectAPIArgs, reply *bool) error {
-	return logIfError(p.DumpHandler(args.Path))
+func (p *ProjectAPI) Dump(args *DumpAPIArgs, reply *bool) error {
+	return logIfError(p.DumpHandler(args.Path, args.File))
 }
 
 func logIfError(err error) error {
