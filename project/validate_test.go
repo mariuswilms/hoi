@@ -613,46 +613,6 @@ domain example.org {
 	}
 }
 
-func TestInvalidSSLSpecialActionMissingCert(t *testing.T) {
-	hoifile := `
-context = "dev"
-webroot = "app/webroot"
-domain example.org {
-	SSL = {
-		certificate = "example.org.crt"
-		certificateKey = "!self-signed"
-	}
-}
-`
-	cfg, err := NewFromString(hoifile)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if cfg.Validate() == nil {
-		t.Error("failed to detect SSL special action missing for cert")
-	}
-}
-
-func TestInvalidSSLSpecialActionMissingKey(t *testing.T) {
-	hoifile := `
-context = "dev"
-webroot = "app/webroot"
-domain example.org {
-	SSL = {
-		certificate = "!self-signed"
-		certificateKey = "example.org.key"
-	}
-}
-`
-	cfg, err := NewFromString(hoifile)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if cfg.Validate() == nil {
-		t.Error("failed to detect SSL special action missing for key")
-	}
-}
-
 func TestInvalidSSLCertPathAbsolute(t *testing.T) {
 	hoifile := `
 context = "prod"
@@ -700,7 +660,7 @@ webroot = "app/webroot"
 domain example.org {
 	SSL = {
 		certificate = "!self-signed"
-		certificateKey = "!self-signed"
+		certificateKey = "!generate"
 	}
 }
 `
@@ -720,7 +680,7 @@ webroot = "app/webroot"
 domain example.org {
 	SSL = {
 		certificate = "!self-signed"
-		certificateKey = "!self-signed"
+		certificateKey = "!generate"
 	}
 }
 `
