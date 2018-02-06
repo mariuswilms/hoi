@@ -86,6 +86,17 @@ care of the needs of a project.
   https://godoc.org/github.com/atelierdisko/hoi/runner#VolumeRunner
 
 
+Reducing Risk of Human Error
+----------------------------
+Hoi tries to prevent common mistakes that humans make when managing many
+projects on a daily basis. The following is an incomplete list of measure
+hoi takes.
+
+- no development TLDs in non development environments (i.e. .test)
+- no circular domain redirects or invalid re-usage of domain aliases
+- projects can't use database root user
+- no empty passwords in production environments
+
 Installation
 ============
 The following handful of commands will install hoi into your system:
