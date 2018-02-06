@@ -38,6 +38,8 @@ func printProject(e store.Entity) {
 	fmt.Printf(" %14s: %s\n", "Path", e.Project.Path)
 	fmt.Printf(" %14s: %d\n", "Format Version", e.Project.FormatVersion)
 
+	fmt.Print("\n")
+
 	fmt.Printf(" %8s: %s\n", "App", e.Project.App.Kind)
 	if e.Project.App.Version != "" {
 		fmt.Printf("          - %s: %s\n", "Version", e.Project.App.Version)
