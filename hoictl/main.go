@@ -216,6 +216,20 @@ func main() {
 	})
 
 	App.Command("dump", "exports databases and persistent volumes", func(cmd *cli.Cmd) {
+		targetArg := cmd.StringArg("FILE", "", "The name and path under which to store the dump.")
+		var target string
+
+		if !filepath.IsAbs(*targetArg) {
+			wd, err := os.Getwd()
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "failed to get current working directory: %s\n", err)
+				os.Exit(1)
+			}
+			target = filepath.Join(wd, *targetArg)
+		} else {
+			target = *targetArg
+		}
+
 		cmd.Action = func() {
 			var reply bool
 
@@ -223,13 +237,6 @@ func main() {
 				fmt.Fprint(os.Stderr, "dumping all projects is not supported")
 				os.Exit(1)
 			}
-
-			wd, err := os.Getwd()
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "failed to get current working directory: %s\n", err)
-				os.Exit(1)
-			}
-			target := filepath.Join(wd, "dump.tar")
 
 			args := &sRPC.DumpAPIArgs{
 				Path: projectDirectory(*path),
