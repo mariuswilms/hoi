@@ -204,20 +204,9 @@ func fileContainsString(file string, search string) (bool, error) {
 	return strings.Contains(s, search), nil
 }
 
-// Discover the webroot by looking at common names and files
-// contained within such a directory. We must take care not to
-// publicly expose a directory that contains sensitive
-// material by mistake.
-//
-// If we find a directory named "webroot" this is a strong
-// indication it is intended as such.
-//
-// When not finding any directory with this name we'll start
-// looking into the root directory for index.php or index.html
-// files in order to confirm root is the webroot.
-//
-// No other directories except they are named "webroot" or the
-// root directory can become webroot.
+// Discover the webroot by looking at common names and files contained
+// within such a directory. We take care not to publicly expose a
+// directory that contains sensitive material by mistake.
 func (cfg Config) discoverWebroot() (string, error) {
 	// For performance reasons look in common places first, than
 	// fallback to walking the entire tree.
@@ -244,19 +233,10 @@ func (cfg Config) discoverWebroot() (string, error) {
 		webroot = path
 		return breakWalk
 	})
-	if err != nil && err != breakWalk {
-		return webroot, fmt.Errorf("failed to detect webroot in %s: %s", cfg.Path, err)
-	}
-
 	if webroot == "" {
-		// Check if webroot is same as root path. Be careful not to expose
-		// whole application.
-		_, errPHP := os.Stat(cfg.Path + "/index.php")
-		_, errHTML := os.Stat(cfg.Path + "/index.html")
-
-		if errPHP == nil || errHTML == nil {
-			return ".", nil
-		}
+		return webroot, fmt.Errorf("failed to detect webroot in %s", cfg.Path)
+	}
+	if err != nil && err != breakWalk {
 		return webroot, fmt.Errorf("failed to detect webroot in %s: %s", cfg.Path, err)
 	}
 	return webroot, nil
