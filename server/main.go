@@ -43,8 +43,6 @@ type Config struct {
 	// The internal server configuration format version.
 	FormatVersion uint16
 
-	// Administrator email address.
-	Email string
 	// Use these user/group when possible i.e. in
 	// systemd unit definitions.
 	User         string

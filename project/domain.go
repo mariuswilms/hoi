@@ -78,8 +78,6 @@ func (drv AuthDirective) IsEnabled() bool {
 const (
 	// Will generate a self-signed cert on the fly.
 	CertSelfSigned = "!self-signed"
-	// Will use Let's Encrypt service to obtain and renew certificates.
-	CertLetsEncrypt = "!lets-encrypt"
 )
 const (
 	// Automatically generates certificate key.
