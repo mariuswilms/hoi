@@ -38,6 +38,17 @@ func printProject(e store.Entity) {
 	fmt.Printf(" %14s: %s\n", "Path", e.Project.Path)
 	fmt.Printf(" %14s: %d\n", "Format Version", e.Project.FormatVersion)
 
+	fmt.Printf(" %8s: %s\n", "App", e.Project.App.Kind)
+	if e.Project.App.Version != "" {
+		fmt.Printf("          - %s: %s\n", "Version", e.Project.App.Version)
+	}
+	if e.Project.App.HasCommand() {
+		fmt.Printf("          - %s: %s\n", "Command", e.Project.App.Command)
+	}
+	if e.Project.App.Host != "" || e.Project.App.Port != 0 {
+		fmt.Printf("          - %s: %s:%d\n", "Address", e.Project.App.Host, e.Project.App.Port)
+	}
+
 	if len(e.Project.Domain) > 0 {
 		fmt.Printf(" %8s: %d\n", "Domain", len(e.Project.Domain))
 		for _, d := range e.Project.Domain {

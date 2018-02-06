@@ -29,7 +29,7 @@ const (
 )
 
 type AppDirective struct {
-	// The kind of app we are using.
+	// The kind of app backend we are using.
 	Kind AppKind
 	// The semantic version of the app language to use. For an PHP app
 	// can switch the FPM socket by looking at the major part of the
@@ -47,20 +47,20 @@ type AppDirective struct {
 	//
 	//   bin/server -l {.P.App.Host}:{.P.App.Port}
 	//
-	// Used only for service apps.
+	// Used only for service backends.
 	Command `hcl:",squash"`
 	// Whether we want to use "pretty URLs" by rewriting the incoming
 	// URLs as a GET parameter of the front controller file.
 	//
 	//   /foo/bar -> /index.html?/foo/bar
 	//
-	// Used only for static and PHP apps.
+	// Used only for static and PHP backends.
 	UseFrontController bool
 	// Whether we can use try_files in NGINX for rewrites into the
 	// front controller or not; optional and will be autodetected.
 	// Older PHP frameworks will need this.
 	//
-	// Used only for static and PHP apps.
+	// Used only for static and PHP backends.
 	UseLegacyFrontController bool
 }
 
