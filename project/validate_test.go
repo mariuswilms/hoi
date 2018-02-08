@@ -5,7 +5,23 @@
 
 package project
 
-import "testing"
+import (
+	"io/ioutil"
+	"os"
+	"testing"
+)
+
+func setupTestPathOn(cfg *Config) {
+	tmp, err := ioutil.TempDir("", "hoi")
+	if err != nil {
+		panic(err)
+	}
+	cfg.Path = tmp
+}
+
+func teardownTestPathOn(cfg *Config) {
+	// os.RemoveAll(cfg.Path)
+}
 
 func TestValidBasicRequirements(t *testing.T) {
 	hoifile := `
@@ -16,6 +32,10 @@ webroot = "app/webroot"
 	if err != nil {
 		t.Fatal(err)
 	}
+	setupTestPathOn(cfg)
+	defer teardownTestPathOn(cfg)
+	os.MkdirAll(cfg.Path+"/app/webroot", 0777)
+
 	if cfg.Validate() != nil {
 		t.Error("failed to validate context or webroot")
 	}
@@ -74,6 +94,10 @@ domain example.org {
 	if err != nil {
 		t.Fatal(err)
 	}
+	setupTestPathOn(cfg)
+	defer teardownTestPathOn(cfg)
+	os.MkdirAll(cfg.Path+"/app/webroot", 0777)
+
 	if cfg.Validate() != nil {
 		t.Error("failed to validate domain in prod context")
 	}
@@ -92,6 +116,10 @@ domain example.test {
 	if err != nil {
 		t.Fatal(err)
 	}
+	setupTestPathOn(cfg)
+	defer teardownTestPathOn(cfg)
+	os.MkdirAll(cfg.Path+"/app/webroot", 0777)
+
 	if cfg.Validate() == nil {
 		t.Error("failed to detect invalid domain in prod context")
 	}
@@ -110,6 +138,10 @@ domain example.org {
 	if err != nil {
 		t.Fatal(err)
 	}
+	setupTestPathOn(cfg)
+	defer teardownTestPathOn(cfg)
+	os.MkdirAll(cfg.Path+"/app/webroot", 0777)
+
 	if cfg.Validate() == nil {
 		t.Error("failed to detect invalid alias in prod context")
 	}
@@ -128,6 +160,10 @@ domain example.org {
 	if err != nil {
 		t.Fatal(err)
 	}
+	setupTestPathOn(cfg)
+	defer teardownTestPathOn(cfg)
+	os.MkdirAll(cfg.Path+"/app/webroot", 0777)
+
 	if cfg.Validate() == nil {
 		t.Error("failed to detect invalid redirect in prod context")
 	}
@@ -146,6 +182,10 @@ domain example.org {
 	if err != nil {
 		t.Fatal(err)
 	}
+	setupTestPathOn(cfg)
+	defer teardownTestPathOn(cfg)
+	os.MkdirAll(cfg.Path+"/app/webroot", 0777)
+
 	if cfg.Validate() != nil {
 		t.Error("failed to validate domain in stage context")
 	}
@@ -164,6 +204,10 @@ domain example.test {
 	if err != nil {
 		t.Fatal(err)
 	}
+	setupTestPathOn(cfg)
+	defer teardownTestPathOn(cfg)
+	os.MkdirAll(cfg.Path+"/app/webroot", 0777)
+
 	if cfg.Validate() == nil {
 		t.Error("failed to detect invalid domain in stage context")
 	}
@@ -182,6 +226,10 @@ domain example.org {
 	if err != nil {
 		t.Fatal(err)
 	}
+	setupTestPathOn(cfg)
+	defer teardownTestPathOn(cfg)
+	os.MkdirAll(cfg.Path+"/app/webroot", 0777)
+
 	if cfg.Validate() == nil {
 		t.Error("failed to detect invalid alias in stage context")
 	}
@@ -200,6 +248,10 @@ domain example.org {
 	if err != nil {
 		t.Fatal(err)
 	}
+	setupTestPathOn(cfg)
+	defer teardownTestPathOn(cfg)
+	os.MkdirAll(cfg.Path+"/app/webroot", 0777)
+
 	if cfg.Validate() == nil {
 		t.Error("failed to detect invalid redirect in stage context")
 	}
@@ -218,6 +270,10 @@ domain example.test {
 	if err != nil {
 		t.Fatal(err)
 	}
+	setupTestPathOn(cfg)
+	defer teardownTestPathOn(cfg)
+	os.MkdirAll(cfg.Path+"/app/webroot", 0777)
+
 	if cfg.Validate() != nil {
 		t.Error("failed to validate domain in dev context")
 	}
@@ -236,6 +292,10 @@ domain example.org {
 	if err != nil {
 		t.Fatal(err)
 	}
+	setupTestPathOn(cfg)
+	defer teardownTestPathOn(cfg)
+	os.MkdirAll(cfg.Path+"/app/webroot", 0777)
+
 	if cfg.Validate() != nil {
 		t.Error("failed to validate non-dev domain in dev context")
 	}
@@ -256,6 +316,10 @@ domain example.org {
 	if err != nil {
 		t.Fatal(err)
 	}
+	setupTestPathOn(cfg)
+	defer teardownTestPathOn(cfg)
+	os.MkdirAll(cfg.Path+"/app/webroot", 0777)
+
 	if cfg.Validate() != nil {
 		t.Error("failed to validate empty auth in prod context")
 	}
@@ -276,6 +340,10 @@ domain example.org {
 	if err != nil {
 		t.Fatal(err)
 	}
+	setupTestPathOn(cfg)
+	defer teardownTestPathOn(cfg)
+	os.MkdirAll(cfg.Path+"/app/webroot", 0777)
+
 	if cfg.Validate() != nil {
 		t.Error("failed to validate full auth in prod context")
 	}
@@ -296,6 +364,10 @@ domain example.org {
 	if err != nil {
 		t.Fatal(err)
 	}
+	setupTestPathOn(cfg)
+	defer teardownTestPathOn(cfg)
+	os.MkdirAll(cfg.Path+"/app/webroot", 0777)
+
 	if cfg.Validate() == nil {
 		t.Error("failed to detect missing auth password in prod context")
 	}
@@ -316,6 +388,10 @@ domain example.org {
 	if err != nil {
 		t.Fatal(err)
 	}
+	setupTestPathOn(cfg)
+	defer teardownTestPathOn(cfg)
+	os.MkdirAll(cfg.Path+"/app/webroot", 0777)
+
 	if cfg.Validate() == nil {
 		t.Error("failed to detect missing auth username in prod context")
 	}
@@ -336,6 +412,10 @@ domain example.org {
 	if err != nil {
 		t.Fatal(err)
 	}
+	setupTestPathOn(cfg)
+	defer teardownTestPathOn(cfg)
+	os.MkdirAll(cfg.Path+"/app/webroot", 0777)
+
 	if cfg.Validate() != nil {
 		t.Error("failed to validate empty auth in stage context")
 	}
@@ -356,6 +436,10 @@ domain example.org {
 	if err != nil {
 		t.Fatal(err)
 	}
+	setupTestPathOn(cfg)
+	defer teardownTestPathOn(cfg)
+	os.MkdirAll(cfg.Path+"/app/webroot", 0777)
+
 	if cfg.Validate() != nil {
 		t.Error("failed to validate full auth in stage context")
 	}
@@ -376,6 +460,10 @@ domain example.org {
 	if err != nil {
 		t.Fatal(err)
 	}
+	setupTestPathOn(cfg)
+	defer teardownTestPathOn(cfg)
+	os.MkdirAll(cfg.Path+"/app/webroot", 0777)
+
 	if cfg.Validate() == nil {
 		t.Error("failed to detect missing auth password in stage context")
 	}
@@ -396,6 +484,10 @@ domain example.org {
 	if err != nil {
 		t.Fatal(err)
 	}
+	setupTestPathOn(cfg)
+	defer teardownTestPathOn(cfg)
+	os.MkdirAll(cfg.Path+"/app/webroot", 0777)
+
 	if cfg.Validate() == nil {
 		t.Error("failed to detect missing auth username in stage context")
 	}
@@ -416,6 +508,10 @@ domain example.org {
 	if err != nil {
 		t.Fatal(err)
 	}
+	setupTestPathOn(cfg)
+	defer teardownTestPathOn(cfg)
+	os.MkdirAll(cfg.Path+"/app/webroot", 0777)
+
 	if cfg.Validate() != nil {
 		t.Error("failed to validate empty auth in dev context")
 	}
@@ -436,6 +532,10 @@ domain example.org {
 	if err != nil {
 		t.Fatal(err)
 	}
+	setupTestPathOn(cfg)
+	defer teardownTestPathOn(cfg)
+	os.MkdirAll(cfg.Path+"/app/webroot", 0777)
+
 	if cfg.Validate() != nil {
 		t.Error("failed to validate full auth in dev context")
 	}
@@ -456,6 +556,10 @@ domain example.org {
 	if err != nil {
 		t.Fatal(err)
 	}
+	setupTestPathOn(cfg)
+	defer teardownTestPathOn(cfg)
+	os.MkdirAll(cfg.Path+"/app/webroot", 0777)
+
 	if cfg.Validate() != nil {
 		t.Error("failed to validate missing auth password in dev context")
 	}
@@ -476,6 +580,10 @@ domain example.org {
 	if err != nil {
 		t.Fatal(err)
 	}
+	setupTestPathOn(cfg)
+	defer teardownTestPathOn(cfg)
+	os.MkdirAll(cfg.Path+"/app/webroot", 0777)
+
 	if cfg.Validate() == nil {
 		t.Error("failed to detect missing auth username in dev context")
 	}
@@ -502,6 +610,10 @@ domain another.org {
 	if err != nil {
 		t.Fatal(err)
 	}
+	setupTestPathOn(cfg)
+	defer teardownTestPathOn(cfg)
+	os.MkdirAll(cfg.Path+"/app/webroot", 0777)
+
 	if cfg.Validate() != nil {
 		t.Error("failed to validate coherent auth recurrence")
 	}
@@ -528,6 +640,10 @@ domain another.org {
 	if err != nil {
 		t.Fatal(err)
 	}
+	setupTestPathOn(cfg)
+	defer teardownTestPathOn(cfg)
+	os.MkdirAll(cfg.Path+"/app/webroot", 0777)
+
 	if cfg.Validate() == nil {
 		t.Error("failed to detect incoherent auth recurrence")
 	}
@@ -548,6 +664,10 @@ domain example.org {
 	if err != nil {
 		t.Fatal(err)
 	}
+	setupTestPathOn(cfg)
+	defer teardownTestPathOn(cfg)
+	os.MkdirAll(cfg.Path+"/app/webroot", 0777)
+
 	if cfg.Validate() != nil {
 		t.Error("failed to validate empty SSL")
 	}
@@ -568,6 +688,10 @@ domain example.org {
 	if err != nil {
 		t.Fatal(err)
 	}
+	setupTestPathOn(cfg)
+	defer teardownTestPathOn(cfg)
+	os.MkdirAll(cfg.Path+"/app/webroot", 0777)
+
 	if cfg.Validate() != nil {
 		t.Error("failed to validate full SSL")
 	}
@@ -588,6 +712,10 @@ domain example.org {
 	if err != nil {
 		t.Fatal(err)
 	}
+	setupTestPathOn(cfg)
+	defer teardownTestPathOn(cfg)
+	os.MkdirAll(cfg.Path+"/app/webroot", 0777)
+
 	if cfg.Validate() == nil {
 		t.Error("failed to detect missing SSL key")
 	}
@@ -608,6 +736,10 @@ domain example.org {
 	if err != nil {
 		t.Fatal(err)
 	}
+	setupTestPathOn(cfg)
+	defer teardownTestPathOn(cfg)
+	os.MkdirAll(cfg.Path+"/app/webroot", 0777)
+
 	if cfg.Validate() == nil {
 		t.Error("failed to detect missing SSL cert")
 	}
@@ -628,6 +760,10 @@ domain example.org {
 	if err != nil {
 		t.Fatal(err)
 	}
+	setupTestPathOn(cfg)
+	defer teardownTestPathOn(cfg)
+	os.MkdirAll(cfg.Path+"/app/webroot", 0777)
+
 	if cfg.Validate() == nil {
 		t.Error("failed to detect SSL cert path is absolute")
 	}
@@ -648,6 +784,10 @@ domain example.org {
 	if err != nil {
 		t.Fatal(err)
 	}
+	setupTestPathOn(cfg)
+	defer teardownTestPathOn(cfg)
+	os.MkdirAll(cfg.Path+"/app/webroot", 0777)
+
 	if cfg.Validate() == nil {
 		t.Error("failed to detect SSL key path is absolute")
 	}
@@ -668,6 +808,10 @@ domain example.org {
 	if err != nil {
 		t.Fatal(err)
 	}
+	setupTestPathOn(cfg)
+	defer teardownTestPathOn(cfg)
+	os.MkdirAll(cfg.Path+"/app/webroot", 0777)
+
 	if err := cfg.Validate(); err != nil {
 		t.Errorf("failed to validate self-signed SSL cert in dev context: %s", err)
 	}
@@ -688,6 +832,10 @@ domain example.org {
 	if err != nil {
 		t.Fatal(err)
 	}
+	setupTestPathOn(cfg)
+	defer teardownTestPathOn(cfg)
+	os.MkdirAll(cfg.Path+"/app/webroot", 0777)
+
 	if cfg.Validate() == nil {
 		t.Error("failed to detect self-signed SSL cert in prod context")
 	}
@@ -706,6 +854,10 @@ database example {
 	if err != nil {
 		t.Fatal(err)
 	}
+	setupTestPathOn(cfg)
+	defer teardownTestPathOn(cfg)
+	os.MkdirAll(cfg.Path+"/app/webroot", 0777)
+
 	if cfg.Validate() != nil {
 		t.Error("failed to validate database in prod context")
 	}
@@ -723,6 +875,10 @@ database example {
 	if err != nil {
 		t.Fatal(err)
 	}
+	setupTestPathOn(cfg)
+	defer teardownTestPathOn(cfg)
+	os.MkdirAll(cfg.Path+"/app/webroot", 0777)
+
 	if cfg.Validate() == nil {
 		t.Error("failed to detect database without password in prod context")
 	}
@@ -740,6 +896,10 @@ database example {
 	if err != nil {
 		t.Fatal(err)
 	}
+	setupTestPathOn(cfg)
+	defer teardownTestPathOn(cfg)
+	os.MkdirAll(cfg.Path+"/app/webroot", 0777)
+
 	if cfg.Validate() == nil {
 		t.Error("failed to detect database without password in stage context")
 	}
@@ -757,6 +917,10 @@ database example {
 	if err != nil {
 		t.Fatal(err)
 	}
+	setupTestPathOn(cfg)
+	defer teardownTestPathOn(cfg)
+	os.MkdirAll(cfg.Path+"/app/webroot", 0777)
+
 	if cfg.Validate() != nil {
 		t.Error("failed to validate database in dev context")
 	}
@@ -775,6 +939,10 @@ database "" {
 	if err != nil {
 		t.Fatal(err)
 	}
+	setupTestPathOn(cfg)
+	defer teardownTestPathOn(cfg)
+	os.MkdirAll(cfg.Path+"/app/webroot", 0777)
+
 	if cfg.Validate() == nil {
 		t.Error("failed to detect empty database name")
 	}
@@ -793,6 +961,10 @@ database example {
 	if err != nil {
 		t.Fatal(err)
 	}
+	setupTestPathOn(cfg)
+	defer teardownTestPathOn(cfg)
+	os.MkdirAll(cfg.Path+"/app/webroot", 0777)
+
 	cfg.Database["example2"] = DatabaseDirective{Name: "example"}
 	if cfg.Validate() == nil {
 		t.Error("failed to detect database name duplicate")
@@ -810,6 +982,10 @@ volume log {}
 	if err != nil {
 		t.Fatal(err)
 	}
+	setupTestPathOn(cfg)
+	defer teardownTestPathOn(cfg)
+	os.MkdirAll(cfg.Path+"/app/webroot", 0777)
+
 	if cfg.Validate() != nil {
 		t.Error("failed to validate volume path")
 	}
@@ -826,6 +1002,10 @@ volume "/etc/log" {}
 	if err != nil {
 		t.Fatal(err)
 	}
+	setupTestPathOn(cfg)
+	defer teardownTestPathOn(cfg)
+	os.MkdirAll(cfg.Path+"/app/webroot", 0777)
+
 	if cfg.Validate() == nil {
 		t.Error("failed to detect absolute volume path")
 	}
@@ -843,6 +1023,10 @@ domain foo.test {
 	if err != nil {
 		t.Fatal(err)
 	}
+	setupTestPathOn(cfg)
+	defer teardownTestPathOn(cfg)
+	os.MkdirAll(cfg.Path+"/app/webroot", 0777)
+
 	if err := cfg.Validate(); err == nil {
 		t.Fail()
 	}

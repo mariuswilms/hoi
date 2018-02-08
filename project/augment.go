@@ -43,12 +43,14 @@ func (cfg *Config) Augment() error {
 		log.Printf("- guessed project name: %s", cfg.Name)
 	}
 
-	webroot, err := cfg.discoverWebroot()
-	if err != nil {
-		return err
+	if cfg.Webroot == "" {
+		webroot, err := cfg.discoverWebroot()
+		if err != nil {
+			return err
+		}
+		cfg.Webroot = webroot
+		log.Printf("- detected webroot in: %s", webroot)
 	}
-	log.Printf("- found webroot in: %s", webroot)
-	cfg.Webroot = webroot
 
 	if cfg.App.Kind == AppKindUnknown {
 		if cfg.App.HasCommand() {
@@ -210,13 +212,12 @@ func fileContainsString(file string, search string) (bool, error) {
 func (cfg Config) discoverWebroot() (string, error) {
 	// For performance reasons look in common places first, than
 	// fallback to walking the entire tree.
-	if cfg.App.HasCommand() {
-		return ".", nil
-	}
 	if _, err := os.Stat(cfg.Path + "/app/webroot"); err == nil {
 		return "app/webroot", nil
 	}
 
+	// Walk the project directory down and stop when finding a directory
+	// named "webroot".
 	var breakWalk = errors.New("stopped walk early")
 	var webroot string
 
@@ -233,11 +234,11 @@ func (cfg Config) discoverWebroot() (string, error) {
 		webroot = path
 		return breakWalk
 	})
-	if webroot == "" {
-		return webroot, fmt.Errorf("failed to detect webroot in %s", cfg.Path)
-	}
 	if err != nil && err != breakWalk {
 		return webroot, fmt.Errorf("failed to detect webroot in %s: %s", cfg.Path, err)
+	}
+	if webroot == "." || webroot == "" {
+		return webroot, fmt.Errorf("failed to detect webroot in %s: reached project root", cfg.Path)
 	}
 	return webroot, nil
 }

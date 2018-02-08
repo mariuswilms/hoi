@@ -7,6 +7,7 @@ package project
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 )
@@ -49,8 +50,12 @@ func (cfg Config) validateBasics() error {
 	}
 	if cfg.Webroot == "" {
 		return fmt.Errorf("project has no webroot: %s", cfg.Path)
-	} else if filepath.IsAbs(cfg.Webroot) {
+	}
+	if filepath.IsAbs(cfg.Webroot) {
 		return fmt.Errorf("webroot must not be absolute: %s", cfg.Webroot)
+	}
+	if _, err := os.Stat(cfg.GetAbsoluteWebroot()); os.IsNotExist(err) {
+		return fmt.Errorf("webroot doest not exist at: %s", cfg.Webroot)
 	}
 	return nil
 }
