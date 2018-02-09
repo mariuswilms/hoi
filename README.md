@@ -1,6 +1,7 @@
 # Hoi: Host Web Projects
 
 ## Synopsis
+
 Hoi is a host management program that orchestrates other services, so web
 projects can be hosted with the execution of just one command. It automates
 setting up several aspects of a project i.e. SSL certificates, databases, cron
@@ -13,6 +14,7 @@ configuration file.
 the configuration format and API might change in backwards incompatible ways until reaching 1.0.
 
 ## Reasoning
+
 Hoi has been created to ease hosting of the growing number of Atelier Disko
 client web projects. By minimizing project setup costs, we want to enable
 ourselves to conduct experiments quickly.
@@ -31,6 +33,7 @@ utilization.
 Our projects are primarly Go and PHP-based web applications. 
 
 ## What's inside?
+
 Hoi consists of a server (_hoid_) and a client (_hoictl_) to control and
 query the server. It features several modules (_runners_) which take
 care of the different needs of a project.
@@ -59,22 +62,25 @@ care of the different needs of a project.
   Mounts persistent and/or temporary volumes into the project.
   
 ### Reducing Risk of Human Error
+
 Hoi tries to prevent common mistakes that humans make when managing
 many projects on a daily basis. The following is an incomplete list
 of measures hoi takes.
 
-- no development TLDs in non development environments (i.e. .test)
+- no development TLDs in non development environments (i.e. `.test`)
 - no circular domain redirects or invalid re-usage of domain aliases
 - projects can't use database root user
 - no empty passwords in production environments
 
 ### Is it for you?
+
 If your hosting needs are similar and are ready to sacrifice the benefits of
 i.e. containers for ease of use or you are running services that are not well
 suited for per-project containers (i.e. PHP FPM or MySQL), hoi might also be
 something for you.
 
 ## Installation
+
 The following handful of commands will install hoi into your system:
 
 ```
@@ -86,6 +92,7 @@ $ systemctl enable --now hoid
 ```
 
 ## [Project Configuration](https://godoc.org/github.com/atelierdisko/hoi/project#Config): The Hoifile
+
 The Hoifile defines the needs of a project and provides a minimum
 set of configuration. The remaining configuration is discovered
 automatically once the project is loaded.
@@ -102,33 +109,34 @@ domain example.org {}
 
 A more advanced Hoifile might look like this:
 ```nginx
-  name = "example"
-  context = "prod"
-  domain example.org {
-    SSL = {
-      certificate = "config/ssl/example.org.crt"
-      certificateKey = "config/ssl/example.org.key"
-    }
-    aliases = ["example.com", "example.net"]
+name = "example"
+context = "prod"
+domain "example.org" {
+  SSL = {
+    certificate = "config/ssl/example.org.crt"
+    certificateKey = "config/ssl/example.org.key"
   }
-  database example {
-    password = "s3cret"
-  }
-  cron reporter {
-    schedule = "daily"
-    command = "bin/compile-report"
-  }
-  worker media-processor {
-    instances = 2
-    command = "bin/process-media"
-  }
-  volume media_versions {}
-  volume tmp {
-    isTemporary = true
-  }
+  aliases = ["example.com", "example.net"]
+}
+database "example" {
+  password = "s3cret"
+}
+cron "reporter" {
+  schedule = "daily"
+  command = "bin/compile-report"
+}
+worker "media-processor" {
+  instances = 2
+  command = "bin/process-media"
+}
+volume "media_versions" {}
+volume "tmp" {
+  isTemporary = true
+}
 ```
 
-## Loading and unloading the Hoifile
+### Loading and unloading the Hoifile
+
 Once a project contains a Hoifile, it's loaded with a single command:
 ```
 $ cd /var/www/foo
@@ -141,17 +149,18 @@ alias to a domain:
 $ hoictl domain example.org --alias=example.com
 ```
 
-## Choosing an App HTTP Backend
+### Choosing an App HTTP Backend
+
 Hoi understands 3 different kinds of app HTTP backends: `static`, `php` and
 `service`. Hoi will automatically discover the app backend kind and most of
 its configuration. If you however wish to fine tune it, you can do so using
 the `app` directive.
 
 ```nginx
-  app {
-    kind = "php"
-    useFrontController = true
-  }
+app {
+  kind = "php"
+  useFrontController = true
+}
 ```
 
 The `service` backend requires you to provide a command, that when
@@ -160,21 +169,23 @@ port is optional, by default localhost and the next free port is used.
 SSL termination happens before it reaches the app.
 
 ```nginx
-  app {
-    kind = "service"
-    command = "bin/server -l {.P.App.Host}:{.P.App.Port}"
-    # host = "192.168.1.23"
-    # port = "8080"
-  }
+app {
+  kind = "service"
+  command = "bin/server -l {{.P.App.Host}}:{{.P.App.Port}}"
+  # host = "192.168.1.23"
+  # port = "8080"
+}
 ```
 
 ## [Server Configuration](https://godoc.org/github.com/atelierdisko/hoi/server#Config): hoid.conf
 
 ### Customizing Service Templates
+
 The templates used by hoid to generate service configuration can be customized,
 they reside inside `conf/templates` and use [Go Template syntax](https://golang.org/pkg/text/template/).
 
 ## Copyright & License
+
 Hoi is Copyright (c) 2016 Atelier Disko if not otherwise
 stated. Use of the source code is governed by a BSD-style
 license that can be found in the LICENSE file.
@@ -205,6 +216,7 @@ license that can be found in the LICENSE file.
 
 
 ## Development
+
 Hoi comes with unit tests which can be safely executed as they don't
 touch the system itself. The unit tests can be run via:
 
