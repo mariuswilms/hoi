@@ -91,8 +91,8 @@ page](https://github.com/atelierdisko/hoi/releases).
 For Debian and Ubuntu we provide deb packages, that can be installed
 easily. Be sure to pick the latest version and the right architecture.
 ```
-curl -L https://github.com/atelierdisko/hoi/releases/download/v0.7.0-beta/hoi_0.7.0-beta-1-amd64.deb 
-dpkg --install hoi_0.7.0-beta-1-amd64.deb
+$ curl -L https://github.com/atelierdisko/hoi/releases/download/v0.7.0-beta/hoi_0.7.0-beta-1-amd64.deb 
+$ dpkg --install hoi_0.7.0-beta-1-amd64.deb
 ```
 
 You will need to install from source if your distro isn't supported above, need a yet
@@ -118,7 +118,7 @@ A minimal Hoifile has 3 lines:
 ```nginx
 name = "example"
 context = "prod"
-domain example.org {}
+domain "example.org" {}
 ```
 
 A more advanced Hoifile might look like this:
