@@ -191,6 +191,53 @@ app {
 }
 ```
 
+### SSL Configuration
+Using a certificate and key that is contained inside the project.
+
+```nginx
+  domain "example.org" {
+    SSL = {
+      certificate = "config/ssl/example.org.crt"
+      certificateKey = "config/ssl/example.org.key"
+    }
+  }
+
+Here we indicate that certificate and key should be generated
+for us automatically.
+
+```nginx
+  domain "example.org" {
+    SSL = {
+      certificate = "!self-signed"
+      certificateKey = "!generate"
+    }
+  }
+```
+
+It's also possible to use certificates and keys provided by the system. These
+must be whitelisted inside the hoid.conf configuration file. This is especially
+useful if you are using wildcard certificates.
+
+Hoifile:
+```nginx
+  domain "foo.example.org" {
+    SSL = {
+      certificate = "!system"
+      certificateKey = "!system"
+    }
+  }
+```
+
+hoid.conf:
+```nginx
+  SSL {
+    system "*.example.org" {
+      certificate = "/etc/ssl/certs/star.example.org.crt"
+      certificateKey = "/etc/ssl/private/star.example.org.key"
+    }
+  }
+```
+
 ## [Server Configuration](https://godoc.org/github.com/atelierdisko/hoi/server#Config): hoid.conf
 
 ### Customizing Service Templates

@@ -78,10 +78,14 @@ func (drv AuthDirective) IsEnabled() bool {
 const (
 	// Will generate a self-signed cert on the fly.
 	CertSelfSigned = "!self-signed"
+	// Will try to find a cert whitelisted for the system.
+	CertSystem = "!system"
 )
 const (
 	// Automatically generates certificate key.
 	CertKeyGenerate = "!generate"
+	// Will try to find a certificate key whitelisted for the system.
+	CertKeySystem = "!system"
 )
 
 // Certificate files should be named after the domain they belong to. Symlinks

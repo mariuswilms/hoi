@@ -43,17 +43,25 @@ func (sys *SSL) Install(domain string, ssl project.SSLDirective) error {
 	targetKey := fmt.Sprintf("%s/private/%s_%s.key", sys.s.SSL.RunPath, ns, domain)
 
 	switch ssl.CertificateKey {
+	case project.CertKeySystem:
+		sourceKey, err := sys.s.SSL.GetSystemCertificateKey(domain)
+		if err != nil {
+			return err
+		}
+		if err := util.CopyFile(sourceKey, targetKey); err != nil {
+			return fmt.Errorf("failed to copy system SSL cert key %s -> %s: %s", sourceKey, targetKey, err)
+		}
 	case project.CertKeyGenerate:
 		cmd := []string{"genrsa", "-out", targetKey, "2048"}
 		if err := exec.Command("openssl", cmd...).Run(); err != nil {
 			return fmt.Errorf("failed to generate SSL cert key to %s: %s", targetKey, err)
 		}
 	default:
-		path := filepath.Join(sys.p.Path, ssl.CertificateKey)
+		sourceKey := filepath.Join(sys.p.Path, ssl.CertificateKey)
 		// TODO Ensure target file is 0600, even if source file had different perms,
 		// in order to keep system directory clean.
-		if err := util.CopyFile(path, targetKey); err != nil {
-			return fmt.Errorf("failed to copy SSL cert key %s -> %s: %s", path, targetKey, err)
+		if err := util.CopyFile(sourceKey, targetKey); err != nil {
+			return fmt.Errorf("failed to copy project SSL cert key %s -> %s: %s", sourceKey, targetKey, err)
 		}
 	}
 	SSLDirty = true // is now dirty, ensure is set, we might exit below
@@ -61,6 +69,14 @@ func (sys *SSL) Install(domain string, ssl project.SSLDirective) error {
 	targetCert := fmt.Sprintf("%s/certs/%s_%s.crt", sys.s.SSL.RunPath, ns, domain)
 
 	switch ssl.Certificate {
+	case project.CertSystem:
+		sourceCert, err := sys.s.SSL.GetSystemCertificate(domain)
+		if err != nil {
+			return err
+		}
+		if err := util.CopyFile(sourceCert, targetCert); err != nil {
+			fmt.Errorf("failed to copy system SSL cert %s -> %s: %s", sourceCert, targetCert, err)
+		}
 	case project.CertSelfSigned:
 		cmd := []string{
 			"req", "-new",
@@ -84,9 +100,10 @@ func (sys *SSL) Install(domain string, ssl project.SSLDirective) error {
 			// return fmt.Errorf("failed executing openssl command with %+v, got: %s", cmd, err)
 		}
 	default:
-		path := filepath.Join(sys.p.Path, ssl.Certificate)
-		if err := util.CopyFile(path, targetCert); err != nil {
-			fmt.Errorf("failed to copy SSL cert %s -> %s: %s", ssl.Certificate, targetCert, err)
+		sourceCert := filepath.Join(sys.p.Path, ssl.Certificate)
+
+		if err := util.CopyFile(sourceCert, targetCert); err != nil {
+			fmt.Errorf("failed to copy project SSL cert %s -> %s: %s", sourceCert, targetCert, err)
 		}
 	}
 
