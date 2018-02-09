@@ -1,4 +1,7 @@
-# Hoi: Host Web Projects
+# Hoi
+
+[![Build Status](https://travis-ci.org/atelierdisko/hoi.svg?branch=master)](https://travis-ci.org/atelierdisko/hoi)
+[![GoDoc](https://godoc.org/github.com/atelierdisko/hoi?status.svg)](https://godoc.org/github.com/atelierdisko/hoi)
 
 ## Synopsis
 
@@ -89,7 +92,7 @@ For Debian and Ubuntu we provide deb packages, that can be installed
 easily. Be sure to pick the latest version and the right architecture.
 ```
 curl -L https://github.com/atelierdisko/hoi/releases/download/v0.7.0-beta/hoi_0.7.0-beta-1-amd64.deb 
-dpkg --install hoi_0.7.0-beta1-amd64.deb
+dpkg --install hoi_0.7.0-beta-1-amd64.deb
 ```
 
 You will need to install from source if your distro isn't supported above, need a yet
