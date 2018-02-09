@@ -26,7 +26,7 @@ pre-defined set of established/no-nonsense technologies.
 
 Atelier Disko isn't primarly an infrastructure company, so we don't like to
 afford maintaining too ambitious solutions. Resources freed from deliberately
-choosing a more classic shared hosting architechture are re-invested into providing
+choosing a more classic shared hosting architecture are re-invested into providing
 a stable, secure and performant hosting environment with good resource
 utilization.
 
@@ -81,8 +81,19 @@ something for you.
 
 ## Installation
 
-The following handful of commands will install hoi into your system:
+The latest installation packages for Debian and Ubuntu and pre-built
+binaries for Linux and Darwin can be downloaded from [the releases
+page](https://github.com/atelierdisko/hoi/releases).
 
+For Debian and Ubuntu we provide deb packages, that can be installed
+easily. Be sure to pick the latest version and the right architecture.
+```
+curl -L https://github.com/atelierdisko/hoi/releases/download/v0.7.0-beta/hoi_0.7.0-beta-1-amd64.deb 
+dpkg --install hoi_0.7.0-beta1-amd64.deb
+```
+
+You will need to install from source if your distro isn't supported above, need a yet
+unreleased version or want to participate in the development of hoi.
 ```
 $ go get github.com/atelierdisko/hoi
 $ cd $GOPATH/src/github.com/atelierdisko/hoi
