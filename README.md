@@ -22,7 +22,12 @@ Hoi has been created to ease hosting of the growing number of Atelier Disko
 client web projects. By minimizing project setup costs, we want to enable
 ourselves to conduct experiments quickly.
 
-> [It's as complicated as you want it to be.](https://twitter.com/alexander_h/status/751470506503798784)
+> It's as complicated as you want it to be. - Alexander Haensch, [Source](https://twitter.com/alexander_h/status/751470506503798784)
+
+> First off: Kubernetes *is* a complex system. It does a lot and brings new
+abstractions. Those abstractions aren't always justified for all problems. I'm
+sure that there are plenty of people using Kubernetes that could get by with
+something simpler. - Joe Beda, [Source](https://twitter.com/jbeda/status/993978919907770368)
 
 In architecting hoi we made sure to stay very pragmatic, thus hoi uses a
 pre-defined set of established/no-nonsense technologies.
