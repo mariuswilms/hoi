@@ -244,7 +244,7 @@ func main() {
 				fmt.Fprintf(os.Stderr, "failed dumping, got error: %s\n", err)
 				os.Exit(1)
 			}
-			fmt.Println("project successfully dumped: %s created", target)
+			fmt.Printf("project successfully dumped: %s created\n", target)
 		}
 	})
 
