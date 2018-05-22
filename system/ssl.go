@@ -75,7 +75,7 @@ func (sys *SSL) Install(domain string, ssl project.SSLDirective) error {
 			return err
 		}
 		if err := util.CopyFile(sourceCert, targetCert); err != nil {
-			fmt.Errorf("failed to copy system SSL cert %s -> %s: %s", sourceCert, targetCert, err)
+			return fmt.Errorf("failed to copy system SSL cert %s -> %s: %s", sourceCert, targetCert, err)
 		}
 	case project.CertSelfSigned:
 		cmd := []string{
@@ -103,7 +103,7 @@ func (sys *SSL) Install(domain string, ssl project.SSLDirective) error {
 		sourceCert := filepath.Join(sys.p.Path, ssl.Certificate)
 
 		if err := util.CopyFile(sourceCert, targetCert); err != nil {
-			fmt.Errorf("failed to copy project SSL cert %s -> %s: %s", sourceCert, targetCert, err)
+			return fmt.Errorf("failed to copy project SSL cert %s -> %s: %s", sourceCert, targetCert, err)
 		}
 	}
 
