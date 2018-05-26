@@ -77,7 +77,7 @@ func (drv AuthDirective) IsEnabled() bool {
 
 const (
 	// Will generate a self-signed cert on the fly.
-	CertSelfSigned = "!self-signed"
+	CertSelfSigned = "!selfsigned"
 	// Will try to find a cert whitelisted for the system.
 	CertSystem = "!system"
 )
