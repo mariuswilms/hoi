@@ -11,7 +11,6 @@ VERSION ?= head-$(shell git rev-parse --short HEAD)
 HOID_GOFLAGS = -X main.Version=$(VERSION)
 HOID_GOFLAGS +=  -X main.SocketPath=$(FLAG_PREFIX)/var/run/hoid.socket
 HOID_GOFLAGS +=  -X main.ConfigPath=$(FLAG_PREFIX)/etc/hoi/hoid.conf
-HOID_GOFLAGS +=  -X main.DataPath=$(FLAG_PREFIX)/var/lib/hoid.db
 
 HOICTL_GOFLAGS = -X main.Version=$(VERSION)
 HOICTL_GOFLAGS +=  -X main.SocketPath=$(FLAG_PREFIX)/var/run/hoid.socket

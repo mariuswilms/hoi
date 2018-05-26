@@ -45,21 +45,24 @@ type Config struct {
 
 	// Use these user/group when possible i.e. in
 	// systemd unit definitions.
-	User         string
-	Group        string
+	User  string
+	Group string
+
 	TemplatePath string
 	BuildPath    string
-	Web          WebDirective
-	NGINX        NGINXDirective
-	SSL          SSLDirective
-	AppService   AppServiceDirective
-	PHP          PHPDirective
-	Cron         CronDirective
-	Worker       WorkerDirective
-	Systemd      SystemdDirective
-	Database     DatabaseDirective
-	MySQL        MySQLDirective
-	Volume       VolumeDirective
+	DataPath     string
+
+	Web        WebDirective
+	NGINX      NGINXDirective
+	SSL        SSLDirective
+	AppService AppServiceDirective
+	PHP        PHPDirective
+	Cron       CronDirective
+	Worker     WorkerDirective
+	Systemd    SystemdDirective
+	Database   DatabaseDirective
+	MySQL      MySQLDirective
+	Volume     VolumeDirective
 }
 
 type VolumeDirective struct {
