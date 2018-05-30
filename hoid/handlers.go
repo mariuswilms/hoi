@@ -304,7 +304,7 @@ func handleDump(path string, target string) error {
 func runners(pCfg *project.Config) []runner.Runnable {
 	runners := make([]runner.Runnable, 0)
 
-	if Config.Volume.Enabled && len(pcfg.Volume) > 0 {
+	if Config.Volume.Enabled && len(pCfg.Volume) > 0 {
 		runners = append(runners, runner.NewVolumeRunner(Config, pCfg, SystemdConn))
 	}
 	if Config.Database.Enabled {
@@ -316,13 +316,13 @@ func runners(pCfg *project.Config) []runner.Runnable {
 	if Config.AppService.Enabled {
 		runners = append(runners, runner.NewAppServiceRunner(Config, pCfg, SystemdConn))
 	}
-	if Config.Web.Enabled && len(pcfg.Domain) > 0 {
+	if Config.Web.Enabled && len(pCfg.Domain) > 0 {
 		runners = append(runners, runner.NewWebRunner(Config, pCfg, SystemdConn))
 	}
-	if Config.Cron.Enabled && len(pcfg.Cron) > 0 {
+	if Config.Cron.Enabled && len(pCfg.Cron) > 0 {
 		runners = append(runners, runner.NewCronRunner(Config, pCfg, SystemdConn))
 	}
-	if Config.Worker.Enabled && len(pcfg.Worker) > 0 {
+	if Config.Worker.Enabled && len(pCfg.Worker) > 0 {
 		runners = append(runners, runner.NewWorkerRunner(Config, pCfg, SystemdConn))
 	}
 
