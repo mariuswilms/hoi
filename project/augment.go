@@ -44,12 +44,17 @@ func (cfg *Config) Augment() error {
 	}
 
 	if cfg.Webroot == "" {
-		webroot, err := cfg.discoverWebroot()
-		if err != nil {
-			return err
+		if cfg.App.Kind == AppKindService {
+			cfg.Webroot = cfg.Path
+			log.Printf("- using project root as webroot: %s", cfg.Webroot)
+		} else {
+			webroot, err := cfg.discoverWebroot()
+			if err != nil {
+				return err
+			}
+			cfg.Webroot = webroot
+			log.Printf("- detected webroot in: %s", cfg.Webroot)
 		}
-		cfg.Webroot = webroot
-		log.Printf("- detected webroot in: %s", webroot)
 	}
 
 	if cfg.App.Kind == AppKindUnknown {
