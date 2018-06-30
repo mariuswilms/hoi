@@ -36,6 +36,11 @@ func (cfg *Config) Augment() error {
 		return false
 	}
 
+	if cfg.Context == "" {
+		cfg.Context = ContextProduction
+		log.Printf("- using default context: %s", cfg.Context)
+	}
+
 	if cfg.Name == "" {
 		// Strips the directory name from known context suffix, the
 		// context may be added as suffixed later (see database name).

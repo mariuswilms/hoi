@@ -122,7 +122,6 @@ configuration files.
 A minimal Hoifile has 3 lines:
 ```nginx
 name = "example"
-context = "prod"
 domain "example.org" {}
 ```
 
