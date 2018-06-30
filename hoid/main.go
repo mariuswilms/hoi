@@ -65,6 +65,7 @@ func main() {
 				StatusAllHandler: handleStatusAll,
 				LoadHandler:      handleLoad,
 				UnloadHandler:    handleUnload,
+				UnloadAllHandler: handleUnloadAll,
 				ReloadHandler:    handleReload,
 				ReloadAllHandler: handleReloadAll,
 				DomainHandler:    handleDomain,
