@@ -47,8 +47,15 @@ func (r WorkerRunner) Disable() error {
 	if err != nil {
 		return err
 	}
-	var lastTemplate string
 
+	// We need at least on unit to derive the template from later.
+	if len(units) < 1 {
+		return r.build.Clean()
+	}
+
+	// Units started from service templates do not have a file backing
+	// them. The template has the file. Units will fail to disable
+	// when we remove the template's file first.
 	for _, u := range units {
 		if err := r.sys.StopAndDisable(u); err != nil {
 			return err
@@ -56,30 +63,22 @@ func (r WorkerRunner) Disable() error {
 		// Intentionally not calling Uninstall(), as worker unit files
 		// are always derived from templated units, thus do not exist
 		// physically.
-
-		// Where a unit using a template is, a template must also exist.
-		// As templates are not included in ListInstalledServices we
-		// map back manually to clean up.
-		//
-		// unit name is i.e. worker_media-processor@1.service
-		// template name is i.e. worker_media-processor@.service
-		matches := templatedUnitRegex.FindStringSubmatch(u)
-		if matches == nil {
-			return fmt.Errorf("failed to parse unit template name from unit: %s", u)
-		}
-
-		// Try only just once to remove the template file, as we want
-		// to error out when uninstall fails. There is now way to
-		// check if that file exists from the runner.
-		if lastTemplate == matches[1] {
-			continue
-		}
-		lastTemplate = matches[1]
-
-		if err := r.sys.Uninstall(lastTemplate + "@.service"); err != nil {
-			return err
-		}
 	}
+
+	// Where a unit using a template is, a template must also exist.
+	// As templates are not included in ListInstalledServices we map
+	// back manually to use them for clean up later.
+	//
+	// unit name is i.e. worker_media-processor@1.service
+	// template name is i.e. worker_media-processor@.service
+	matches := templatedUnitRegex.FindStringSubmatch(units[0])
+	if matches == nil {
+		return fmt.Errorf("failed to parse unit template name from unit: %s", units[0])
+	}
+	if err := r.sys.Uninstall(matches[1] + "@.service"); err != nil {
+		return err
+	}
+
 	return r.build.Clean()
 }
 
