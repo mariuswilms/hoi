@@ -14,6 +14,7 @@ import (
 
 	"github.com/atelierdisko/hoi/project"
 	"github.com/atelierdisko/hoi/server"
+	"github.com/atelierdisko/hoi/util"
 	"github.com/coreos/go-systemd/dbus"
 )
 
@@ -37,7 +38,7 @@ func (sys *NGINX) Install(path string) error {
 	ns := fmt.Sprintf("project_%s", sys.p.ID)
 	target := fmt.Sprintf("%s/%s_%s", sys.s.NGINX.RunPath, ns, filepath.Base(path))
 
-	if err := os.Symlink(path, target); err != nil {
+	if err := util.ForceSymlink(path, target); err != nil {
 		return fmt.Errorf("NGINX failed to install %s -> %s: %s", path, target, err)
 	}
 	NGINXDirty = true

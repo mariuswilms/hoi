@@ -13,6 +13,15 @@ import (
 	"text/template"
 )
 
+func ForceSymlink(oldname, newname string) error {
+	if _, err := os.Lstat(newname); err == nil {
+		if err := os.Remove(newname); err != nil {
+			return err
+		}
+	}
+	return os.Symlink(oldname, newname)
+}
+
 func CopyFile(src string, dst string) error {
 	info, err := os.Stat(src)
 	if err != nil {
