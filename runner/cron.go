@@ -122,5 +122,5 @@ func (r CronRunner) Enable() error {
 }
 
 func (r CronRunner) Commit() error {
-	return nil
+	return r.sys.ReloadIfDirty()
 }

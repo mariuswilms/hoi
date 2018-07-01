@@ -139,5 +139,5 @@ func (r WorkerRunner) Enable() error {
 }
 
 func (r WorkerRunner) Commit() error {
-	return nil
+	return r.sys.ReloadIfDirty()
 }

@@ -85,5 +85,5 @@ func (r AppServiceRunner) Enable() error {
 }
 
 func (r AppServiceRunner) Commit() error {
-	return nil
+	return r.sys.ReloadIfDirty()
 }
