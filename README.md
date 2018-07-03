@@ -260,7 +260,7 @@ license that can be found in the LICENSE file.
 - The Go language >= 1.5 is required to build the project.
  Must have go vendor support enabled.
 
-- Hoi is continously tested on Linux and Darwin.
+- Hoi is continously tested on Linux.
 
 - Generally systemd(1) is required. 
   Recent systemd versions are always supported, older ones (i.e. 215) are
