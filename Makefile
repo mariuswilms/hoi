@@ -39,12 +39,10 @@ worker media-processor {
   instances = 2
   command = "/bin/ping localhost"
 }
-# 
-# volume tmp {
-#   isTemporary = true
-# }
-# volume media {
-# }
+volume tmp {
+  isTemporary = true
+}
+volume media {}
 endef
 
 CONF_FILES = $(patsubst conf/%,$(PREFIX)/etc/hoi/%,conf/hoid.conf $(shell find conf/templates -type f))
