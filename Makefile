@@ -11,7 +11,6 @@ VERSION ?= head-$(shell git rev-parse --short HEAD)
 HOID_GOFLAGS = -X main.Version=$(VERSION)
 HOID_GOFLAGS +=  -X main.SocketPath=$(FLAG_PREFIX)/var/run/hoid.socket
 HOID_GOFLAGS +=  -X main.ConfigPath=$(FLAG_PREFIX)/etc/hoi/hoid.conf
-HOID_GOFLAGS +=  -X main.DataPath=$(FLAG_PREFIX)/var/lib/hoid.db
 
 HOICTL_GOFLAGS = -X main.Version=$(VERSION)
 HOICTL_GOFLAGS +=  -X main.SocketPath=$(FLAG_PREFIX)/var/run/hoid.socket
@@ -40,12 +39,10 @@ worker media-processor {
   instances = 2
   command = "/bin/ping localhost"
 }
-# 
-# volume tmp {
-#   isTemporary = true
-# }
-# volume media {
-# }
+volume tmp {
+  isTemporary = true
+}
+volume media {}
 endef
 
 CONF_FILES = $(patsubst conf/%,$(PREFIX)/etc/hoi/%,conf/hoid.conf $(shell find conf/templates -type f))
@@ -149,8 +146,8 @@ dist/hoi_%-amd64.deb:
 	echo "Architecture: amd64" >> /tmp/hoi_$*-amd64/DEBIAN/control
 	echo "Depends: systemd (>= 215)" >> /tmp/hoi_$*-amd64/DEBIAN/control
 	echo "Maintainer: Atelier Disko <info@atelierdisko.de>" >> /tmp/hoi_$*-amd64/DEBIAN/control
-	echo "Description: Bare Metal PaaS" >> /tmp/hoi_$*-amd64/DEBIAN/control
-	echo " Hoi is a host management program that orchestrates other services,"  >> /tmp/hoi_$*-amd64/DEBIAN/control
+	echo "Description: Host Orchestration Interface" >> /tmp/hoi_$*-amd64/DEBIAN/control
+	echo " Hoi is a program that manages the host by orchestrating other services,"  >> /tmp/hoi_$*-amd64/DEBIAN/control
 	echo " so projects can be hosted with the execution of just one command." >> /tmp/hoi_$*-amd64/DEBIAN/control
 	VERSION=$* GOOS=linux GOARCH=amd64 FLAG_PREFIX= PREFIX=/tmp/hoi_$*-amd64 make install
 	dpkg-deb --build /tmp/hoi_$*-amd64

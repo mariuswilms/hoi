@@ -69,12 +69,20 @@ func decodeInto(cfg *Config, s string) (*Config, error) {
 		e.FQDN = k
 
 		// Deprecated/BC: "!self-signed" used to be used for keys, too.
-		if e.SSL.CertificateKey == CertSelfSigned {
+		if e.SSL.CertificateKey == CertSelfSigned || e.SSL.CertificateKey == "!self-signed" {
 			log.Printf(
 				"detected deprecated usage of '%s' for certificate key in domain %s, use '%s' instead",
 				CertSelfSigned, k, CertKeyGenerate,
 			)
 			e.SSL.CertificateKey = CertKeyGenerate
+		}
+		// Deprecated/BC: "!self-signed" is now spelled "!selfsigned".
+		if e.SSL.Certificate == "!self-signed" {
+			log.Printf(
+				"detected deprecated usage of '%s' for certificate in domain %s, use '%s' instead",
+				"!self-signed", k, CertSelfSigned,
+			)
+			e.SSL.Certificate = CertSelfSigned
 		}
 		cfg.Domain[k] = e
 	}

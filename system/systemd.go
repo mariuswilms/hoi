@@ -27,6 +27,12 @@ const (
 	SystemdKindVolume     = "volume"
 )
 
+var (
+	// SystemdDirty indicates wheter the systemd daemon needs to be
+	// reloaded. Flag will be reset once daemon reloaded.
+	SystemdDirty bool
+)
+
 func NewSystemd(kind string, p *project.Config, s *server.Config, conn *dbus.Conn) *Systemd {
 	return &Systemd{kind: kind, p: p, s: s, conn: conn}
 }
@@ -74,6 +80,7 @@ func (sys Systemd) Install(path string) error {
 	if err := util.CopyFile(path, target); err != nil {
 		return fmt.Errorf("failed to copy systemd unit %s -> %s: %s", path, target, err)
 	}
+	SystemdDirty = true
 	return nil
 }
 
@@ -85,6 +92,18 @@ func (sys Systemd) Uninstall(unit string) error {
 	if err := os.Remove(target); err != nil {
 		return fmt.Errorf("failed to remove systemd unit %s: %s", target, err)
 	}
+	SystemdDirty = true
+	return nil
+}
+
+func (sys Systemd) ReloadIfDirty() error {
+	if !SystemdDirty {
+		return nil
+	}
+	if err := sys.conn.Reload(); err != nil {
+		return fmt.Errorf("failed to reload systemd; left in dirty state: %s", err)
+	}
+	SystemdDirty = false
 	return nil
 }
 

@@ -30,7 +30,6 @@ var (
 	Version    string // hoi version
 	ConfigPath string // path to configuration file
 	SocketPath string // path to socket for RPC
-	DataPath   string // path to store database file
 
 	Config *server.Config
 
@@ -66,6 +65,7 @@ func main() {
 				StatusAllHandler: handleStatusAll,
 				LoadHandler:      handleLoad,
 				UnloadHandler:    handleUnload,
+				UnloadAllHandler: handleUnloadAll,
 				ReloadHandler:    handleReload,
 				ReloadAllHandler: handleReloadAll,
 				DomainHandler:    handleDomain,
@@ -77,7 +77,7 @@ func main() {
 			log.Fatal(err)
 		}
 
-		_store := store.New(DataPath)
+		_store := store.New(Config.DataPath)
 		if err := _store.Load(); err != nil {
 			log.Fatal(err)
 		}

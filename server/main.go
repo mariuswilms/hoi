@@ -45,21 +45,24 @@ type Config struct {
 
 	// Use these user/group when possible i.e. in
 	// systemd unit definitions.
-	User         string
-	Group        string
+	User  string
+	Group string
+
 	TemplatePath string
 	BuildPath    string
-	Web          WebDirective
-	NGINX        NGINXDirective
-	SSL          SSLDirective
-	AppService   AppServiceDirective
-	PHP          PHPDirective
-	Cron         CronDirective
-	Worker       WorkerDirective
-	Systemd      SystemdDirective
-	Database     DatabaseDirective
-	MySQL        MySQLDirective
-	Volume       VolumeDirective
+	DataPath     string
+
+	Web        WebDirective
+	NGINX      NGINXDirective
+	SSL        SSLDirective
+	AppService AppServiceDirective
+	PHP        PHPDirective
+	Cron       CronDirective
+	Worker     WorkerDirective
+	Systemd    SystemdDirective
+	Database   DatabaseDirective
+	MySQL      MySQLDirective
+	Volume     VolumeDirective
 }
 
 type VolumeDirective struct {
@@ -67,20 +70,20 @@ type VolumeDirective struct {
 	TemporaryRunPath  string
 	PersistentRunPath string
 }
+
 type WebDirective struct {
 	Enabled bool
 }
+
 type NGINXDirective struct {
 	RunPath   string
 	UseLegacy bool
 }
-type SSLDirective struct {
-	Enabled bool
-	RunPath string
-}
+
 type AppServiceDirective struct {
 	Enabled bool
 }
+
 type PHPDirective struct {
 	Enabled bool
 	// Service may be a templated string.
@@ -89,19 +92,24 @@ type PHPDirective struct {
 	RunPath string
 	Version string
 }
+
 type CronDirective struct {
 	Enabled bool
 }
+
 type WorkerDirective struct {
 	Enabled bool
 }
+
 type SystemdDirective struct {
 	RunPath   string
 	UseLegacy bool
 }
+
 type DatabaseDirective struct {
 	Enabled bool
 }
+
 type MySQLDirective struct {
 	Host      string
 	User      string
@@ -121,6 +129,13 @@ func decodeInto(cfg *Config, s string) (*Config, error) {
 	cfg.NGINX.RunPath, _ = filepath.Abs(cfg.NGINX.RunPath)
 	cfg.Systemd.RunPath, _ = filepath.Abs(cfg.Systemd.RunPath)
 	cfg.PHP.RunPath, _ = filepath.Abs(cfg.PHP.RunPath)
+
+	// key is Pattern
+	for k, _ := range cfg.SSL.System {
+		e := cfg.SSL.System[k]
+		e.Pattern = k
+		cfg.SSL.System[k] = e
+	}
 
 	return cfg, nil
 }

@@ -101,7 +101,7 @@ func (r VolumeRunner) Enable() error {
 }
 
 func (r VolumeRunner) Commit() error {
-	return nil
+	return r.sys.ReloadIfDirty()
 }
 
 // Creates dumps of all persistent volumes.
