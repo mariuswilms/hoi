@@ -111,10 +111,11 @@ type DatabaseDirective struct {
 }
 
 type MySQLDirective struct {
-	Host      string
-	User      string
-	Password  string
-	UseLegacy bool
+	Host        string
+	User        string
+	Password    string
+	AccountHost string
+	UseLegacy   bool
 }
 
 func decodeInto(cfg *Config, s string) (*Config, error) {

@@ -51,12 +51,12 @@ func (sys MySQL) EnsureDatabase(database string) error {
 	return nil
 }
 
-func (sys MySQL) HasUser(user string) (bool, error) {
-	sql := `SELECT COUNT(*) FROM mysql.user WHERE User = ? AND Host = 'localhost'`
+func (sys MySQL) HasUser(user string, host string) (bool, error) {
+	sql := `SELECT COUNT(*) FROM mysql.user WHERE User = ? AND Host = ?`
 
-	rows, err := sys.conn.Query(sql, user)
+	rows, err := sys.conn.Query(sql, user, host)
 	if err != nil {
-		return false, fmt.Errorf("failed to check for MySQL user '%s': %s", user, err)
+		return false, fmt.Errorf("failed to check for MySQL user '%s' on host '%s': %s", user, host, err)
 	}
 	var count int
 	for rows.Next() {
@@ -67,12 +67,28 @@ func (sys MySQL) HasUser(user string) (bool, error) {
 	return count > 0, nil
 }
 
-func (sys MySQL) HasPassword(user string, password string) (bool, error) {
-	sql := `SELECT COUNT(*) FROM mysql.user WHERE User = ? AND Host = 'localhost' AND CAST(Password as Binary) = PASSWORD(?)`
+func (sys MySQL) HasAnyUser(user string) (bool, error) {
+	sql := `SELECT COUNT(*) FROM mysql.user WHERE User = ?`
 
-	rows, err := sys.conn.Query(sql, user, password)
+	rows, err := sys.conn.Query(sql, user)
 	if err != nil {
-		return false, fmt.Errorf("failed to verify MySQL user '%s' has password '%s': %s", user, password, err)
+		return false, fmt.Errorf("failed to check for MySQL user '%s' on any host: %s", user, err)
+	}
+	var count int
+	for rows.Next() {
+		if err := rows.Scan(&count); err != nil {
+			return false, err
+		}
+	}
+	return count > 0, nil
+}
+
+func (sys MySQL) HasPassword(user string, host string, password string) (bool, error) {
+	sql := `SELECT COUNT(*) FROM mysql.user WHERE User = ? AND Host = ? AND CAST(Password as Binary) = PASSWORD(?)`
+
+	rows, err := sys.conn.Query(sql, user, sys.s.MySQL.AccountHost, password)
+	if err != nil {
+		return false, fmt.Errorf("failed to verify MySQL user '%s' on host '%s' has password '%s': %s", user, host, password, err)
 	}
 	var count int
 	for rows.Next() {
@@ -90,46 +106,59 @@ func (sys MySQL) EnsureUser(user string, password string) error {
 		return err
 	}
 
-	hasUser, err := sys.HasUser(user)
+	hasUser, err := sys.HasUser(user, sys.s.MySQL.AccountHost)
 	if err != nil {
 		return err
 	}
-
-	if hasUser {
-		hasPassword, err := sys.HasPassword(user, password)
+	if !hasUser {
+		hasAnyUser, err := sys.HasAnyUser(user)
 		if err != nil {
 			return err
 		}
-		if hasPassword {
+
+		if !hasAnyUser {
+			sql = fmt.Sprintf("CREATE USER '%s'@'%s' IDENTIFIED BY '%s'", user, sys.s.MySQL.AccountHost, password)
+			res, err := sys.conn.Exec(sql)
+			if err != nil {
+				return fmt.Errorf("failed creating MySQL user '%s' with password '%s': %s", user, password, err)
+			}
+			if num, _ := res.RowsAffected(); num > 0 {
+				MySQLDirty = true
+			}
 			return nil
 		}
-		// Let's give a heads up on this, as changing password
-		// especially with shared user accounts can lead to unintended
-		// side effects. Current hoi versions will not use shared
-		// accounts, but older ones did.
-		log.Printf("changing MySQL password for user '%s' to '%s'", user, password)
 
-		if sys.s.MySQL.UseLegacy {
-			// PASSWORD() is deprecated and should be used in legacy systems only.
-			sql = fmt.Sprintf("SET PASSWORD FOR '%s'@'localhost' = PASSWORD('%s')", user, password)
-		} else {
-			// ALTER USER to change password is supported since MySQL 5.7.6
-			sql = fmt.Sprintf("ALTER USER '%s'@'localhost' IDENTIFIED BY '%s'", user, password)
-		}
+		sql = fmt.Sprintf("UPDATE mysql.user SET host = '%s' WHERE user = '%s'", sys.s.MySQL.AccountHost, user)
 		res, err := sys.conn.Exec(sql)
 		if err != nil {
-			return fmt.Errorf("failed setting new password '%s' for MySQL user '%s': %s", password, user, err)
+			return fmt.Errorf("failed migrating host for MySQL user '%s': %s", user, err)
 		}
-		if num, _ := res.RowsAffected(); num > 0 {
-			MySQLDirty = true
-		}
-		return nil
+		MySQLDirty = true
 	}
 
-	sql = fmt.Sprintf("CREATE USER '%s'@'localhost' IDENTIFIED BY '%s'", user, password)
+	hasPassword, err := sys.HasPassword(user, sys.s.MySQL.AccountHost, password)
+	if err != nil {
+		return err
+	}
+	if hasPassword {
+		return nil
+	}
+	// Let's give a heads up on this, as changing password
+	// especially with shared user accounts can lead to unintended
+	// side effects. Current hoi versions will not use shared
+	// accounts, but older ones did.
+	log.Printf("changing MySQL password for user '%s' to '%s'", user, password)
+
+	if sys.s.MySQL.UseLegacy {
+		// PASSWORD() is deprecated and should be used in legacy systems only.
+		sql = fmt.Sprintf("SET PASSWORD FOR '%s'@'%s' = PASSWORD('%s')", user, sys.s.MySQL.AccountHost, password)
+	} else {
+		// ALTER USER to change password is supported since MySQL 5.7.6
+		sql = fmt.Sprintf("ALTER USER '%s'@'%s' IDENTIFIED BY '%s'", user, sys.s.MySQL.AccountHost, password)
+	}
 	res, err := sys.conn.Exec(sql)
 	if err != nil {
-		return fmt.Errorf("failed creating MySQL user '%s' with password '%s': %s", user, password, err)
+		return fmt.Errorf("failed setting new password '%s' for MySQL user '%s': %s", password, user, err)
 	}
 	if num, _ := res.RowsAffected(); num > 0 {
 		MySQLDirty = true
@@ -144,7 +173,7 @@ func (sys MySQL) EnsureGrant(user string, database string, privs []string) error
 		return err
 	}
 
-	hasUser, err := sys.HasUser(user)
+	hasUser, err := sys.HasUser(user, sys.s.MySQL.AccountHost)
 	if err != nil {
 		return err
 	}
@@ -153,7 +182,7 @@ func (sys MySQL) EnsureGrant(user string, database string, privs []string) error
 	}
 
 	for _, priv := range privs {
-		sql := fmt.Sprintf("GRANT %s ON %s.* TO '%s'@'localhost'", priv, database, user)
+		sql := fmt.Sprintf("GRANT %s ON %s.* TO '%s'@'%s'", priv, database, user, sys.s.MySQL.AccountHost)
 		res, err := sys.conn.Exec(sql)
 		if err != nil {
 			return fmt.Errorf("failed granting MySQL user '%s' privilege '%s' on '%s': %s", user, priv, database, err)
@@ -172,7 +201,7 @@ func (sys MySQL) EnsureNoGrant(user string, database string, privs []string) err
 		return err
 	}
 
-	hasUser, err := sys.HasUser(user)
+	hasUser, err := sys.HasUser(user, sys.s.MySQL.AccountHost)
 	if err != nil {
 		return err
 	}
@@ -181,7 +210,7 @@ func (sys MySQL) EnsureNoGrant(user string, database string, privs []string) err
 	}
 
 	for _, priv := range privs {
-		sql := fmt.Sprintf("REVOKE %s ON %s.* FROM '%s'@'localhost'", priv, database, user)
+		sql := fmt.Sprintf("REVOKE %s ON %s.* FROM '%s'@'%s'", priv, database, user, sys.s.MySQL.AccountHost)
 		res, err := sys.conn.Exec(sql)
 		if err != nil {
 			// Ignore "there is no such grant" errors, querying for privs is tedious.
