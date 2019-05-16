@@ -111,12 +111,16 @@ func (sys MySQL) EnsureUser(user string, password string) error {
 		return err
 	}
 	if !hasUser {
+		// No user for given host, but maybe the account host was
+		// changed and there is a user with a different host existing.
 		hasAnyUser, err := sys.HasAnyUser(user)
 		if err != nil {
 			return err
 		}
 
 		if !hasAnyUser {
+			// All good... we can safely create a brand new user
+			// without performing any kind of migration.
 			sql = fmt.Sprintf("CREATE USER '%s'@'%s' IDENTIFIED BY '%s'", user, sys.s.MySQL.AccountHost, password)
 			res, err := sys.conn.Exec(sql)
 			if err != nil {
@@ -125,9 +129,12 @@ func (sys MySQL) EnsureUser(user string, password string) error {
 			if num, _ := res.RowsAffected(); num > 0 {
 				MySQLDirty = true
 			}
+			// New user created, password set.
 			return nil
 		}
 
+		// We did not find a user for the current account host, but
+		// found one with a different host. We only want one account per user.
 		sql = fmt.Sprintf("UPDATE mysql.user SET host = '%s' WHERE user = '%s'", sys.s.MySQL.AccountHost, user)
 		_, err = sys.conn.Exec(sql)
 		if err != nil {
@@ -135,6 +142,7 @@ func (sys MySQL) EnsureUser(user string, password string) error {
 		}
 		MySQLDirty = true
 	}
+	// We can now be sure to have a user account with the correct host.
 
 	hasPassword, err := sys.HasPassword(user, sys.s.MySQL.AccountHost, password)
 	if err != nil {
