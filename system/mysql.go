@@ -129,7 +129,7 @@ func (sys MySQL) EnsureUser(user string, password string) error {
 		}
 
 		sql = fmt.Sprintf("UPDATE mysql.user SET host = '%s' WHERE user = '%s'", sys.s.MySQL.AccountHost, user)
-		res, err := sys.conn.Exec(sql)
+		_, err = sys.conn.Exec(sql)
 		if err != nil {
 			return fmt.Errorf("failed migrating host for MySQL user '%s': %s", user, err)
 		}
