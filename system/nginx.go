@@ -38,7 +38,7 @@ func (sys *NGINX) Install(path string) error {
 	ns := fmt.Sprintf("project_%s", sys.p.ID)
 	target := fmt.Sprintf("%s/%s_%s", sys.s.NGINX.RunPath, ns, filepath.Base(path))
 
-	if err := util.ForceSymlink(path, target); err != nil {
+	if err := util.CopyFile(path, target); err != nil {
 		return fmt.Errorf("NGINX failed to install %s -> %s: %s", path, target, err)
 	}
 	NGINXDirty = true

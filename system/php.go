@@ -39,7 +39,7 @@ func (sys PHP) Install(path string) error {
 	}
 	target := fmt.Sprintf("%s/99-project-%s.ini", runPath, sys.p.ID)
 
-	if err := util.ForceSymlink(path, target); err != nil {
+	if err := util.CopyFile(path, target); err != nil {
 		return fmt.Errorf("PHP failed to install %s -> %s: %s", path, target, err)
 	}
 	PHPDirty = true
